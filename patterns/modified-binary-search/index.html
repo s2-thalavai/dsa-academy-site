@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modified binary search · DSA Academy</title>
+<meta name="description" content="Binary search on rotated arrays, boundaries and answers.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Modified binary search</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Modified binary search</h1>
+  <p class="lede">Binary search works whenever you can look at a middle element and decide which half can&#39;t contain the answer. That&#39;s true far beyond plain sorted arrays: rotated arrays, peaks, boundaries and answer ranges.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Finding the page where a misfiled chapter starts in a book whose second half was bound before the first. Open the middle: by comparing the page number with the first and last pages, you can still tell which half is in order, and whether your page is inside it.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>The input is sorted, <strong>partly</strong> sorted (rotated), or has a monotonic yes/no property.</li>
+<li>The question asks for a first or last position, a boundary, a peak, or a minimum.</li>
+<li>An O(log n) solution is expected, or n is up to 10⁹ (searching values, not indices).</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">lo, hi = search range
+while lo &lt; hi (or lo &lt;= hi):
+    mid = lo + (hi − lo) / 2
+    decide which half must contain the answer
+    keep that half: lo = mid + 1 or hi = mid (or mid − 1)
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>The only question that matters at each step is: <strong>which half can I throw
+away?</strong></p>
+<ul>
+<li><strong>Rotated sorted array</strong>: one half of <code>[lo, mid]</code> and <code>[mid, hi]</code> is always in
+order. If the target lies within the in-order half&#39;s range, search there;
+otherwise search the other half.</li>
+<li><strong>Minimum of a rotated array</strong>: if <code>a[mid] &gt; a[hi]</code>, the drop (and the
+minimum) is to the right; otherwise it&#39;s at <code>mid</code> or to the left.</li>
+<li><strong>Peak element</strong>: if <code>a[mid] &lt; a[mid + 1]</code>, you&#39;re on an uphill slope, so a
+peak lies to the right. Otherwise there&#39;s one at <code>mid</code> or to the left.</li>
+<li><strong>First and last position</strong>: run a lower-bound search for the first
+<code>&gt;= target</code> and another for the first <code>&gt; target</code>.</li>
+</ul>
+<p>Write down the loop invariant (&quot;the answer is always in <code>[lo, hi]</code>&quot;) and check
+that every update keeps it. That&#39;s what prevents off-by-one bugs.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Search a rotated sorted array</td><td class="nowrap">O(log n)</td><td>One half is discarded per step.</td></tr><tr><td>Minimum of a rotated array, peak element</td><td class="nowrap">O(log n)</td><td>Same halving argument.</td></tr><tr><td>First and last position</td><td class="nowrap">O(log n)</td><td>Two lower-bound searches.</td></tr><tr><td>Integer square root</td><td class="nowrap">O(log x)</td><td>Binary search over candidate answers 0..x.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Each loop keeps the invariant &quot;the answer is in <code>[lo, hi]</code>&quot; and stops when the range has one candidate.</p><figure class="codeblock" id="code-modified-binary-search" aria-label="Rotated search, rotated minimum, first and last position, peak and integer square root">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-modified-binary-search-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-modified-binary-search-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-modified-binary-search-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-modified-binary-search-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-modified-binary-search-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">searchRotated</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a, <span class="hljs-type">int</span> target)</span> {</span><span class="ln" data-line="4">        <span class="hljs-type">int</span> <span class="hljs-variable">lo</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, hi = a.length - <span class="hljs-number">1</span>;</span><span class="ln" data-line="5">        <span class="hljs-keyword">while</span> (lo &lt;= hi) {</span><span class="ln" data-line="6">            <span class="hljs-type">int</span> <span class="hljs-variable">mid</span> <span class="hljs-operator">=</span> lo + (hi - lo) / <span class="hljs-number">2</span>;</span><span class="ln" data-line="7">            <span class="hljs-keyword">if</span> (a[mid] == target) <span class="hljs-keyword">return</span> mid;</span><span class="ln" data-line="8">            <span class="hljs-keyword">if</span> (a[lo] &lt;= a[mid]) { <span class="hljs-comment">// left half is in order</span></span><span class="ln" data-line="9">                <span class="hljs-keyword">if</span> (a[lo] &lt;= target &amp;&amp; target &lt; a[mid]) hi = mid - <span class="hljs-number">1</span>;</span><span class="ln" data-line="10">                <span class="hljs-keyword">else</span> lo = mid + <span class="hljs-number">1</span>;</span><span class="ln" data-line="11">            } <span class="hljs-keyword">else</span> {               <span class="hljs-comment">// right half is in order</span></span><span class="ln" data-line="12">                <span class="hljs-keyword">if</span> (a[mid] &lt; target &amp;&amp; target &lt;= a[hi]) lo = mid + <span class="hljs-number">1</span>;</span><span class="ln" data-line="13">                <span class="hljs-keyword">else</span> hi = mid - <span class="hljs-number">1</span>;</span><span class="ln" data-line="14">            }</span><span class="ln" data-line="15">        }</span><span class="ln" data-line="16">        <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="17">    }</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">findMinRotated</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a)</span> {</span><span class="ln" data-line="20">        <span class="hljs-type">int</span> <span class="hljs-variable">lo</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, hi = a.length - <span class="hljs-number">1</span>;</span><span class="ln" data-line="21">        <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="22">            <span class="hljs-type">int</span> <span class="hljs-variable">mid</span> <span class="hljs-operator">=</span> lo + (hi - lo) / <span class="hljs-number">2</span>;</span><span class="ln" data-line="23">            <span class="hljs-keyword">if</span> (a[mid] &gt; a[hi]) lo = mid + <span class="hljs-number">1</span>; <span class="hljs-comment">// the drop is to the right</span></span><span class="ln" data-line="24">            <span class="hljs-keyword">else</span> hi = mid;</span><span class="ln" data-line="25">        }</span><span class="ln" data-line="26">        <span class="hljs-keyword">return</span> a[lo];</span><span class="ln" data-line="27">    }</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29">    <span class="hljs-comment">/** First index with a[i] &gt;= x. */</span></span><span class="ln" data-line="30">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">lowerBound</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a, <span class="hljs-type">int</span> x)</span> {</span><span class="ln" data-line="31">        <span class="hljs-type">int</span> <span class="hljs-variable">lo</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, hi = a.length;</span><span class="ln" data-line="32">        <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="33">            <span class="hljs-type">int</span> <span class="hljs-variable">mid</span> <span class="hljs-operator">=</span> lo + (hi - lo) / <span class="hljs-number">2</span>;</span><span class="ln" data-line="34">            <span class="hljs-keyword">if</span> (a[mid] &gt;= x) hi = mid;</span><span class="ln" data-line="35">            <span class="hljs-keyword">else</span> lo = mid + <span class="hljs-number">1</span>;</span><span class="ln" data-line="36">        }</span><span class="ln" data-line="37">        <span class="hljs-keyword">return</span> lo;</span><span class="ln" data-line="38">    }</span><span class="ln" data-line="39"> </span><span class="ln" data-line="40">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">searchRange</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a, <span class="hljs-type">int</span> target)</span> {</span><span class="ln" data-line="41">        <span class="hljs-type">int</span> <span class="hljs-variable">first</span> <span class="hljs-operator">=</span> lowerBound(a, target);</span><span class="ln" data-line="42">        <span class="hljs-keyword">if</span> (first == a.length || a[first] != target) <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span> };</span><span class="ln" data-line="43">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { first, lowerBound(a, target + <span class="hljs-number">1</span>) - <span class="hljs-number">1</span> };</span><span class="ln" data-line="44">    }</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">findPeak</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a)</span> {</span><span class="ln" data-line="47">        <span class="hljs-type">int</span> <span class="hljs-variable">lo</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, hi = a.length - <span class="hljs-number">1</span>;</span><span class="ln" data-line="48">        <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="49">            <span class="hljs-type">int</span> <span class="hljs-variable">mid</span> <span class="hljs-operator">=</span> lo + (hi - lo) / <span class="hljs-number">2</span>;</span><span class="ln" data-line="50">            <span class="hljs-keyword">if</span> (a[mid] &lt; a[mid + <span class="hljs-number">1</span>]) lo = mid + <span class="hljs-number">1</span>; <span class="hljs-comment">// uphill: a peak is to the right</span></span><span class="ln" data-line="51">            <span class="hljs-keyword">else</span> hi = mid;</span><span class="ln" data-line="52">        }</span><span class="ln" data-line="53">        <span class="hljs-keyword">return</span> lo;</span><span class="ln" data-line="54">    }</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">mySqrt</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> {</span><span class="ln" data-line="57">        <span class="hljs-type">long</span> <span class="hljs-variable">lo</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, hi = x;</span><span class="ln" data-line="58">        <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="59">            <span class="hljs-type">long</span> <span class="hljs-variable">mid</span> <span class="hljs-operator">=</span> lo + (hi - lo + <span class="hljs-number">1</span>) / <span class="hljs-number">2</span>; <span class="hljs-comment">// round up so lo = mid always moves</span></span><span class="ln" data-line="60">            <span class="hljs-keyword">if</span> (mid * mid &lt;= x) lo = mid;</span><span class="ln" data-line="61">            <span class="hljs-keyword">else</span> hi = mid - <span class="hljs-number">1</span>;</span><span class="ln" data-line="62">        }</span><span class="ln" data-line="63">        <span class="hljs-keyword">return</span> (<span class="hljs-type">int</span>) lo;</span><span class="ln" data-line="64">    }</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="67">        <span class="hljs-type">int</span>[] <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> { <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">7</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span> };</span><span class="ln" data-line="68">        System.out.println(<span class="hljs-string">&quot;searchRotated(4 5 6 7 0 1 2, 0) = &quot;</span> + searchRotated(r, <span class="hljs-number">0</span>) + <span class="hljs-string">&quot;, target 3: &quot;</span> + searchRotated(r, <span class="hljs-number">3</span>));</span><span class="ln" data-line="69">        System.out.println(<span class="hljs-string">&quot;findMinRotated(4 5 6 7 0 1 2) = &quot;</span> + findMinRotated(r) + <span class="hljs-string">&quot;, (3 4 5 1 2) = &quot;</span> + findMinRotated(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span> }));</span><span class="ln" data-line="70">        <span class="hljs-type">int</span>[] <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> { <span class="hljs-number">5</span>, <span class="hljs-number">7</span>, <span class="hljs-number">7</span>, <span class="hljs-number">8</span>, <span class="hljs-number">8</span>, <span class="hljs-number">10</span> };</span><span class="ln" data-line="71">        <span class="hljs-type">int</span>[] <span class="hljs-variable">r8</span> <span class="hljs-operator">=</span> searchRange(s, <span class="hljs-number">8</span>), r6 = searchRange(s, <span class="hljs-number">6</span>);</span><span class="ln" data-line="72">        System.out.println(<span class="hljs-string">&quot;searchRange(5 7 7 8 8 10, 8) = [&quot;</span> + r8[<span class="hljs-number">0</span>] + <span class="hljs-string">&quot;, &quot;</span> + r8[<span class="hljs-number">1</span>] + <span class="hljs-string">&quot;], target 6: [&quot;</span> + r6[<span class="hljs-number">0</span>] + <span class="hljs-string">&quot;, &quot;</span> + r6[<span class="hljs-number">1</span>] + <span class="hljs-string">&quot;]&quot;</span>);</span><span class="ln" data-line="73">        System.out.println(<span class="hljs-string">&quot;findPeak(1 2 1 3 5 6 4) = index &quot;</span> + findPeak(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span> }));</span><span class="ln" data-line="74">        System.out.println(<span class="hljs-string">&quot;mySqrt(8) = &quot;</span> + mySqrt(<span class="hljs-number">8</span>) + <span class="hljs-string">&quot;, mySqrt(16) = &quot;</span> + mySqrt(<span class="hljs-number">16</span>) + <span class="hljs-string">&quot;, mySqrt(2147395599) = &quot;</span> + mySqrt(<span class="hljs-number">2147395599</span>));</span><span class="ln" data-line="75">    }</span><span class="ln" data-line="76">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">public class Solution {
+
+    static int searchRotated(int[] a, int target) {
+        int lo = 0, hi = a.length - 1;
+        while (lo &lt;= hi) {
+            int mid = lo + (hi - lo) / 2;
+            if (a[mid] == target) return mid;
+            if (a[lo] &lt;= a[mid]) { // left half is in order
+                if (a[lo] &lt;= target &amp;&amp; target &lt; a[mid]) hi = mid - 1;
+                else lo = mid + 1;
+            } else {               // right half is in order
+                if (a[mid] &lt; target &amp;&amp; target &lt;= a[hi]) lo = mid + 1;
+                else hi = mid - 1;
+            }
+        }
+        return -1;
+    }
+
+    static int findMinRotated(int[] a) {
+        int lo = 0, hi = a.length - 1;
+        while (lo &lt; hi) {
+            int mid = lo + (hi - lo) / 2;
+            if (a[mid] &gt; a[hi]) lo = mid + 1; // the drop is to the right
+            else hi = mid;
+        }
+        return a[lo];
+    }
+
+    /** First index with a[i] &gt;= x. */
+    static int lowerBound(int[] a, int x) {
+        int lo = 0, hi = a.length;
+        while (lo &lt; hi) {
+            int mid = lo + (hi - lo) / 2;
+            if (a[mid] &gt;= x) hi = mid;
+            else lo = mid + 1;
+        }
+        return lo;
+    }
+
+    static int[] searchRange(int[] a, int target) {
+        int first = lowerBound(a, target);
+        if (first == a.length || a[first] != target) return new int[] { -1, -1 };
+        return new int[] { first, lowerBound(a, target + 1) - 1 };
+    }
+
+    static int findPeak(int[] a) {
+        int lo = 0, hi = a.length - 1;
+        while (lo &lt; hi) {
+            int mid = lo + (hi - lo) / 2;
+            if (a[mid] &lt; a[mid + 1]) lo = mid + 1; // uphill: a peak is to the right
+            else hi = mid;
+        }
+        return lo;
+    }
+
+    static int mySqrt(int x) {
+        long lo = 0, hi = x;
+        while (lo &lt; hi) {
+            long mid = lo + (hi - lo + 1) / 2; // round up so lo = mid always moves
+            if (mid * mid &lt;= x) lo = mid;
+            else hi = mid - 1;
+        }
+        return (int) lo;
+    }
+
+    public static void main(String[] args) {
+        int[] r = { 4, 5, 6, 7, 0, 1, 2 };
+        System.out.println(&quot;searchRotated(4 5 6 7 0 1 2, 0) = &quot; + searchRotated(r, 0) + &quot;, target 3: &quot; + searchRotated(r, 3));
+        System.out.println(&quot;findMinRotated(4 5 6 7 0 1 2) = &quot; + findMinRotated(r) + &quot;, (3 4 5 1 2) = &quot; + findMinRotated(new int[] { 3, 4, 5, 1, 2 }));
+        int[] s = { 5, 7, 7, 8, 8, 10 };
+        int[] r8 = searchRange(s, 8), r6 = searchRange(s, 6);
+        System.out.println(&quot;searchRange(5 7 7 8 8 10, 8) = [&quot; + r8[0] + &quot;, &quot; + r8[1] + &quot;], target 6: [&quot; + r6[0] + &quot;, &quot; + r6[1] + &quot;]&quot;);
+        System.out.println(&quot;findPeak(1 2 1 3 5 6 4) = index &quot; + findPeak(new int[] { 1, 2, 1, 3, 5, 6, 4 }));
+        System.out.println(&quot;mySqrt(8) = &quot; + mySqrt(8) + &quot;, mySqrt(16) = &quot; + mySqrt(16) + &quot;, mySqrt(2147395599) = &quot; + mySqrt(2147395599));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-modified-binary-search-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">searchRotated</span>(<span class="hljs-params">a, target</span>) {</span><span class="ln" data-line="2">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="3">  <span class="hljs-keyword">let</span> hi = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="4">  <span class="hljs-keyword">while</span> (lo &lt;= hi) {</span><span class="ln" data-line="5">    <span class="hljs-keyword">const</span> mid = lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>);</span><span class="ln" data-line="6">    <span class="hljs-keyword">if</span> (a[mid] === target) <span class="hljs-keyword">return</span> mid;</span><span class="ln" data-line="7">    <span class="hljs-keyword">if</span> (a[lo] &lt;= a[mid]) {</span><span class="ln" data-line="8">      <span class="hljs-comment">// left half is in order</span></span><span class="ln" data-line="9">      <span class="hljs-keyword">if</span> (a[lo] &lt;= target &amp;&amp; target &lt; a[mid]) hi = mid - <span class="hljs-number">1</span>;</span><span class="ln" data-line="10">      <span class="hljs-keyword">else</span> lo = mid + <span class="hljs-number">1</span>;</span><span class="ln" data-line="11">    } <span class="hljs-keyword">else</span> {</span><span class="ln" data-line="12">      <span class="hljs-comment">// right half is in order</span></span><span class="ln" data-line="13">      <span class="hljs-keyword">if</span> (a[mid] &lt; target &amp;&amp; target &lt;= a[hi]) lo = mid + <span class="hljs-number">1</span>;</span><span class="ln" data-line="14">      <span class="hljs-keyword">else</span> hi = mid - <span class="hljs-number">1</span>;</span><span class="ln" data-line="15">    }</span><span class="ln" data-line="16">  }</span><span class="ln" data-line="17">  <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="18">}</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findMinRotated</span>(<span class="hljs-params">a</span>) {</span><span class="ln" data-line="21">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="22">  <span class="hljs-keyword">let</span> hi = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="23">  <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="24">    <span class="hljs-keyword">const</span> mid = lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>);</span><span class="ln" data-line="25">    <span class="hljs-keyword">if</span> (a[mid] &gt; a[hi]) lo = mid + <span class="hljs-number">1</span>; <span class="hljs-comment">// the drop is to the right</span></span><span class="ln" data-line="26">    <span class="hljs-keyword">else</span> hi = mid;</span><span class="ln" data-line="27">  }</span><span class="ln" data-line="28">  <span class="hljs-keyword">return</span> a[lo];</span><span class="ln" data-line="29">}</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"><span class="hljs-comment">/** First index with a[i] &gt;= x. */</span></span><span class="ln" data-line="32"><span class="hljs-keyword">function</span> <span class="hljs-title function_">lowerBound</span>(<span class="hljs-params">a, x</span>) {</span><span class="ln" data-line="33">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="34">  <span class="hljs-keyword">let</span> hi = a.<span class="hljs-property">length</span>;</span><span class="ln" data-line="35">  <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="36">    <span class="hljs-keyword">const</span> mid = lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>);</span><span class="ln" data-line="37">    <span class="hljs-keyword">if</span> (a[mid] &gt;= x) hi = mid;</span><span class="ln" data-line="38">    <span class="hljs-keyword">else</span> lo = mid + <span class="hljs-number">1</span>;</span><span class="ln" data-line="39">  }</span><span class="ln" data-line="40">  <span class="hljs-keyword">return</span> lo;</span><span class="ln" data-line="41">}</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"><span class="hljs-keyword">function</span> <span class="hljs-title function_">searchRange</span>(<span class="hljs-params">a, target</span>) {</span><span class="ln" data-line="44">  <span class="hljs-keyword">const</span> first = <span class="hljs-title function_">lowerBound</span>(a, target);</span><span class="ln" data-line="45">  <span class="hljs-keyword">if</span> (first === a.<span class="hljs-property">length</span> || a[first] !== target) <span class="hljs-keyword">return</span> [-<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>];</span><span class="ln" data-line="46">  <span class="hljs-keyword">return</span> [first, <span class="hljs-title function_">lowerBound</span>(a, target + <span class="hljs-number">1</span>) - <span class="hljs-number">1</span>];</span><span class="ln" data-line="47">}</span><span class="ln" data-line="48"> </span><span class="ln" data-line="49"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findPeak</span>(<span class="hljs-params">a</span>) {</span><span class="ln" data-line="50">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="51">  <span class="hljs-keyword">let</span> hi = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="52">  <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="53">    <span class="hljs-keyword">const</span> mid = lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>);</span><span class="ln" data-line="54">    <span class="hljs-keyword">if</span> (a[mid] &lt; a[mid + <span class="hljs-number">1</span>]) lo = mid + <span class="hljs-number">1</span>; <span class="hljs-comment">// uphill: a peak is to the right</span></span><span class="ln" data-line="55">    <span class="hljs-keyword">else</span> hi = mid;</span><span class="ln" data-line="56">  }</span><span class="ln" data-line="57">  <span class="hljs-keyword">return</span> lo;</span><span class="ln" data-line="58">}</span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"><span class="hljs-keyword">function</span> <span class="hljs-title function_">mySqrt</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="61">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="62">  <span class="hljs-keyword">let</span> hi = x;</span><span class="ln" data-line="63">  <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="64">    <span class="hljs-keyword">const</span> mid = lo + <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">ceil</span>((hi - lo) / <span class="hljs-number">2</span>); <span class="hljs-comment">// round up so lo = mid always moves</span></span><span class="ln" data-line="65">    <span class="hljs-keyword">if</span> (mid * mid &lt;= x) lo = mid;</span><span class="ln" data-line="66">    <span class="hljs-keyword">else</span> hi = mid - <span class="hljs-number">1</span>;</span><span class="ln" data-line="67">  }</span><span class="ln" data-line="68">  <span class="hljs-keyword">return</span> lo;</span><span class="ln" data-line="69">}</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="72">  <span class="hljs-keyword">const</span> r = [<span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">7</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>];</span><span class="ln" data-line="73">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`searchRotated(4 5 6 7 0 1 2, 0) = <span class="hljs-subst">${searchRotated(r, <span class="hljs-number">0</span>)}</span>, target 3: <span class="hljs-subst">${searchRotated(r, <span class="hljs-number">3</span>)}</span>`</span>);</span><span class="ln" data-line="74">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`findMinRotated(4 5 6 7 0 1 2) = <span class="hljs-subst">${findMinRotated(r)}</span>, (3 4 5 1 2) = <span class="hljs-subst">${findMinRotated([<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="75">  <span class="hljs-keyword">const</span> s = [<span class="hljs-number">5</span>, <span class="hljs-number">7</span>, <span class="hljs-number">7</span>, <span class="hljs-number">8</span>, <span class="hljs-number">8</span>, <span class="hljs-number">10</span>];</span><span class="ln" data-line="76">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`searchRange(5 7 7 8 8 10, 8) = [<span class="hljs-subst">${searchRange(s, <span class="hljs-number">8</span>).join(<span class="hljs-string">&quot;, &quot;</span>)}</span>], target 6: [<span class="hljs-subst">${searchRange(s, <span class="hljs-number">6</span>).join(<span class="hljs-string">&quot;, &quot;</span>)}</span>]`</span>);</span><span class="ln" data-line="77">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`findPeak(1 2 1 3 5 6 4) = index <span class="hljs-subst">${findPeak([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="78">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`mySqrt(8) = <span class="hljs-subst">${mySqrt(<span class="hljs-number">8</span>)}</span>, mySqrt(16) = <span class="hljs-subst">${mySqrt(<span class="hljs-number">16</span>)}</span>, mySqrt(2147395599) = <span class="hljs-subst">${mySqrt(<span class="hljs-number">2147395599</span>)}</span>`</span>);</span><span class="ln" data-line="79">}</span><span class="ln" data-line="80"> </span><span class="ln" data-line="81"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function searchRotated(a, target) {
+  let lo = 0;
+  let hi = a.length - 1;
+  while (lo &lt;= hi) {
+    const mid = lo + ((hi - lo) &gt;&gt; 1);
+    if (a[mid] === target) return mid;
+    if (a[lo] &lt;= a[mid]) {
+      // left half is in order
+      if (a[lo] &lt;= target &amp;&amp; target &lt; a[mid]) hi = mid - 1;
+      else lo = mid + 1;
+    } else {
+      // right half is in order
+      if (a[mid] &lt; target &amp;&amp; target &lt;= a[hi]) lo = mid + 1;
+      else hi = mid - 1;
+    }
+  }
+  return -1;
+}
+
+function findMinRotated(a) {
+  let lo = 0;
+  let hi = a.length - 1;
+  while (lo &lt; hi) {
+    const mid = lo + ((hi - lo) &gt;&gt; 1);
+    if (a[mid] &gt; a[hi]) lo = mid + 1; // the drop is to the right
+    else hi = mid;
+  }
+  return a[lo];
+}
+
+/** First index with a[i] &gt;= x. */
+function lowerBound(a, x) {
+  let lo = 0;
+  let hi = a.length;
+  while (lo &lt; hi) {
+    const mid = lo + ((hi - lo) &gt;&gt; 1);
+    if (a[mid] &gt;= x) hi = mid;
+    else lo = mid + 1;
+  }
+  return lo;
+}
+
+function searchRange(a, target) {
+  const first = lowerBound(a, target);
+  if (first === a.length || a[first] !== target) return [-1, -1];
+  return [first, lowerBound(a, target + 1) - 1];
+}
+
+function findPeak(a) {
+  let lo = 0;
+  let hi = a.length - 1;
+  while (lo &lt; hi) {
+    const mid = lo + ((hi - lo) &gt;&gt; 1);
+    if (a[mid] &lt; a[mid + 1]) lo = mid + 1; // uphill: a peak is to the right
+    else hi = mid;
+  }
+  return lo;
+}
+
+function mySqrt(x) {
+  let lo = 0;
+  let hi = x;
+  while (lo &lt; hi) {
+    const mid = lo + Math.ceil((hi - lo) / 2); // round up so lo = mid always moves
+    if (mid * mid &lt;= x) lo = mid;
+    else hi = mid - 1;
+  }
+  return lo;
+}
+
+function main() {
+  const r = [4, 5, 6, 7, 0, 1, 2];
+  console.log(`searchRotated(4 5 6 7 0 1 2, 0) = ${searchRotated(r, 0)}, target 3: ${searchRotated(r, 3)}`);
+  console.log(`findMinRotated(4 5 6 7 0 1 2) = ${findMinRotated(r)}, (3 4 5 1 2) = ${findMinRotated([3, 4, 5, 1, 2])}`);
+  const s = [5, 7, 7, 8, 8, 10];
+  console.log(`searchRange(5 7 7 8 8 10, 8) = [${searchRange(s, 8).join(&quot;, &quot;)}], target 6: [${searchRange(s, 6).join(&quot;, &quot;)}]`);
+  console.log(`findPeak(1 2 1 3 5 6 4) = index ${findPeak([1, 2, 1, 3, 5, 6, 4])}`);
+  console.log(`mySqrt(8) = ${mySqrt(8)}, mySqrt(16) = ${mySqrt(16)}, mySqrt(2147395599) = ${mySqrt(2147395599)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-modified-binary-search-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">searchRotated</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">target</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="2">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="3">  <span class="hljs-keyword">let</span> hi = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="4">  <span class="hljs-keyword">while</span> (lo &lt;= hi) {</span><span class="ln" data-line="5">    <span class="hljs-keyword">const</span> mid = lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>);</span><span class="ln" data-line="6">    <span class="hljs-keyword">if</span> (a[mid] === target) <span class="hljs-keyword">return</span> mid;</span><span class="ln" data-line="7">    <span class="hljs-keyword">if</span> (a[lo] &lt;= a[mid]) {</span><span class="ln" data-line="8">      <span class="hljs-comment">// left half is in order</span></span><span class="ln" data-line="9">      <span class="hljs-keyword">if</span> (a[lo] &lt;= target &amp;&amp; target &lt; a[mid]) hi = mid - <span class="hljs-number">1</span>;</span><span class="ln" data-line="10">      <span class="hljs-keyword">else</span> lo = mid + <span class="hljs-number">1</span>;</span><span class="ln" data-line="11">    } <span class="hljs-keyword">else</span> {</span><span class="ln" data-line="12">      <span class="hljs-comment">// right half is in order</span></span><span class="ln" data-line="13">      <span class="hljs-keyword">if</span> (a[mid] &lt; target &amp;&amp; target &lt;= a[hi]) lo = mid + <span class="hljs-number">1</span>;</span><span class="ln" data-line="14">      <span class="hljs-keyword">else</span> hi = mid - <span class="hljs-number">1</span>;</span><span class="ln" data-line="15">    }</span><span class="ln" data-line="16">  }</span><span class="ln" data-line="17">  <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="18">}</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findMinRotated</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="21">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="22">  <span class="hljs-keyword">let</span> hi = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="23">  <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="24">    <span class="hljs-keyword">const</span> mid = lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>);</span><span class="ln" data-line="25">    <span class="hljs-keyword">if</span> (a[mid] &gt; a[hi]) lo = mid + <span class="hljs-number">1</span>; <span class="hljs-comment">// the drop is to the right</span></span><span class="ln" data-line="26">    <span class="hljs-keyword">else</span> hi = mid;</span><span class="ln" data-line="27">  }</span><span class="ln" data-line="28">  <span class="hljs-keyword">return</span> a[lo];</span><span class="ln" data-line="29">}</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"><span class="hljs-comment">/** First index with a[i] &gt;= x. */</span></span><span class="ln" data-line="32"><span class="hljs-keyword">function</span> <span class="hljs-title function_">lowerBound</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="33">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="34">  <span class="hljs-keyword">let</span> hi = a.<span class="hljs-property">length</span>;</span><span class="ln" data-line="35">  <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="36">    <span class="hljs-keyword">const</span> mid = lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>);</span><span class="ln" data-line="37">    <span class="hljs-keyword">if</span> (a[mid] &gt;= x) hi = mid;</span><span class="ln" data-line="38">    <span class="hljs-keyword">else</span> lo = mid + <span class="hljs-number">1</span>;</span><span class="ln" data-line="39">  }</span><span class="ln" data-line="40">  <span class="hljs-keyword">return</span> lo;</span><span class="ln" data-line="41">}</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"><span class="hljs-keyword">function</span> <span class="hljs-title function_">searchRange</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">target</span>: <span class="hljs-built_in">number</span></span>): [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>] {</span><span class="ln" data-line="44">  <span class="hljs-keyword">const</span> first = <span class="hljs-title function_">lowerBound</span>(a, target);</span><span class="ln" data-line="45">  <span class="hljs-keyword">if</span> (first === a.<span class="hljs-property">length</span> || a[first] !== target) <span class="hljs-keyword">return</span> [-<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>];</span><span class="ln" data-line="46">  <span class="hljs-keyword">return</span> [first, <span class="hljs-title function_">lowerBound</span>(a, target + <span class="hljs-number">1</span>) - <span class="hljs-number">1</span>];</span><span class="ln" data-line="47">}</span><span class="ln" data-line="48"> </span><span class="ln" data-line="49"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findPeak</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="50">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="51">  <span class="hljs-keyword">let</span> hi = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="52">  <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="53">    <span class="hljs-keyword">const</span> mid = lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>);</span><span class="ln" data-line="54">    <span class="hljs-keyword">if</span> (a[mid] &lt; a[mid + <span class="hljs-number">1</span>]) lo = mid + <span class="hljs-number">1</span>; <span class="hljs-comment">// uphill: a peak is to the right</span></span><span class="ln" data-line="55">    <span class="hljs-keyword">else</span> hi = mid;</span><span class="ln" data-line="56">  }</span><span class="ln" data-line="57">  <span class="hljs-keyword">return</span> lo;</span><span class="ln" data-line="58">}</span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"><span class="hljs-keyword">function</span> <span class="hljs-title function_">mySqrt</span>(<span class="hljs-params"><span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="61">  <span class="hljs-keyword">let</span> lo = <span class="hljs-number">0</span>;</span><span class="ln" data-line="62">  <span class="hljs-keyword">let</span> hi = x;</span><span class="ln" data-line="63">  <span class="hljs-keyword">while</span> (lo &lt; hi) {</span><span class="ln" data-line="64">    <span class="hljs-keyword">const</span> mid = lo + <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">ceil</span>((hi - lo) / <span class="hljs-number">2</span>); <span class="hljs-comment">// round up so lo = mid always moves</span></span><span class="ln" data-line="65">    <span class="hljs-keyword">if</span> (mid * mid &lt;= x) lo = mid;</span><span class="ln" data-line="66">    <span class="hljs-keyword">else</span> hi = mid - <span class="hljs-number">1</span>;</span><span class="ln" data-line="67">  }</span><span class="ln" data-line="68">  <span class="hljs-keyword">return</span> lo;</span><span class="ln" data-line="69">}</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="72">  <span class="hljs-keyword">const</span> r = [<span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">7</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>];</span><span class="ln" data-line="73">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`searchRotated(4 5 6 7 0 1 2, 0) = <span class="hljs-subst">${searchRotated(r, <span class="hljs-number">0</span>)}</span>, target 3: <span class="hljs-subst">${searchRotated(r, <span class="hljs-number">3</span>)}</span>`</span>);</span><span class="ln" data-line="74">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`findMinRotated(4 5 6 7 0 1 2) = <span class="hljs-subst">${findMinRotated(r)}</span>, (3 4 5 1 2) = <span class="hljs-subst">${findMinRotated([<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="75">  <span class="hljs-keyword">const</span> s = [<span class="hljs-number">5</span>, <span class="hljs-number">7</span>, <span class="hljs-number">7</span>, <span class="hljs-number">8</span>, <span class="hljs-number">8</span>, <span class="hljs-number">10</span>];</span><span class="ln" data-line="76">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`searchRange(5 7 7 8 8 10, 8) = [<span class="hljs-subst">${searchRange(s, <span class="hljs-number">8</span>).join(<span class="hljs-string">&quot;, &quot;</span>)}</span>], target 6: [<span class="hljs-subst">${searchRange(s, <span class="hljs-number">6</span>).join(<span class="hljs-string">&quot;, &quot;</span>)}</span>]`</span>);</span><span class="ln" data-line="77">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`findPeak(1 2 1 3 5 6 4) = index <span class="hljs-subst">${findPeak([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="78">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`mySqrt(8) = <span class="hljs-subst">${mySqrt(<span class="hljs-number">8</span>)}</span>, mySqrt(16) = <span class="hljs-subst">${mySqrt(<span class="hljs-number">16</span>)}</span>, mySqrt(2147395599) = <span class="hljs-subst">${mySqrt(<span class="hljs-number">2147395599</span>)}</span>`</span>);</span><span class="ln" data-line="79">}</span><span class="ln" data-line="80"> </span><span class="ln" data-line="81"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function searchRotated(a: readonly number[], target: number): number {
+  let lo = 0;
+  let hi = a.length - 1;
+  while (lo &lt;= hi) {
+    const mid = lo + ((hi - lo) &gt;&gt; 1);
+    if (a[mid] === target) return mid;
+    if (a[lo] &lt;= a[mid]) {
+      // left half is in order
+      if (a[lo] &lt;= target &amp;&amp; target &lt; a[mid]) hi = mid - 1;
+      else lo = mid + 1;
+    } else {
+      // right half is in order
+      if (a[mid] &lt; target &amp;&amp; target &lt;= a[hi]) lo = mid + 1;
+      else hi = mid - 1;
+    }
+  }
+  return -1;
+}
+
+function findMinRotated(a: readonly number[]): number {
+  let lo = 0;
+  let hi = a.length - 1;
+  while (lo &lt; hi) {
+    const mid = lo + ((hi - lo) &gt;&gt; 1);
+    if (a[mid] &gt; a[hi]) lo = mid + 1; // the drop is to the right
+    else hi = mid;
+  }
+  return a[lo];
+}
+
+/** First index with a[i] &gt;= x. */
+function lowerBound(a: readonly number[], x: number): number {
+  let lo = 0;
+  let hi = a.length;
+  while (lo &lt; hi) {
+    const mid = lo + ((hi - lo) &gt;&gt; 1);
+    if (a[mid] &gt;= x) hi = mid;
+    else lo = mid + 1;
+  }
+  return lo;
+}
+
+function searchRange(a: readonly number[], target: number): [number, number] {
+  const first = lowerBound(a, target);
+  if (first === a.length || a[first] !== target) return [-1, -1];
+  return [first, lowerBound(a, target + 1) - 1];
+}
+
+function findPeak(a: readonly number[]): number {
+  let lo = 0;
+  let hi = a.length - 1;
+  while (lo &lt; hi) {
+    const mid = lo + ((hi - lo) &gt;&gt; 1);
+    if (a[mid] &lt; a[mid + 1]) lo = mid + 1; // uphill: a peak is to the right
+    else hi = mid;
+  }
+  return lo;
+}
+
+function mySqrt(x: number): number {
+  let lo = 0;
+  let hi = x;
+  while (lo &lt; hi) {
+    const mid = lo + Math.ceil((hi - lo) / 2); // round up so lo = mid always moves
+    if (mid * mid &lt;= x) lo = mid;
+    else hi = mid - 1;
+  }
+  return lo;
+}
+
+function main(): void {
+  const r = [4, 5, 6, 7, 0, 1, 2];
+  console.log(`searchRotated(4 5 6 7 0 1 2, 0) = ${searchRotated(r, 0)}, target 3: ${searchRotated(r, 3)}`);
+  console.log(`findMinRotated(4 5 6 7 0 1 2) = ${findMinRotated(r)}, (3 4 5 1 2) = ${findMinRotated([3, 4, 5, 1, 2])}`);
+  const s = [5, 7, 7, 8, 8, 10];
+  console.log(`searchRange(5 7 7 8 8 10, 8) = [${searchRange(s, 8).join(&quot;, &quot;)}], target 6: [${searchRange(s, 6).join(&quot;, &quot;)}]`);
+  console.log(`findPeak(1 2 1 3 5 6 4) = index ${findPeak([1, 2, 1, 3, 5, 6, 4])}`);
+  console.log(`mySqrt(8) = ${mySqrt(8)}, mySqrt(16) = ${mySqrt(16)}, mySqrt(2147395599) = ${mySqrt(2147395599)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-modified-binary-search-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">search_rotated</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], target: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="5">    lo, hi = <span class="hljs-number">0</span>, <span class="hljs-built_in">len</span>(a) - <span class="hljs-number">1</span></span><span class="ln" data-line="6">    <span class="hljs-keyword">while</span> lo &lt;= hi:</span><span class="ln" data-line="7">        mid = lo + (hi - lo) // <span class="hljs-number">2</span></span><span class="ln" data-line="8">        <span class="hljs-keyword">if</span> a[mid] == target:</span><span class="ln" data-line="9">            <span class="hljs-keyword">return</span> mid</span><span class="ln" data-line="10">        <span class="hljs-keyword">if</span> a[lo] &lt;= a[mid]:  <span class="hljs-comment"># left half is in order</span></span><span class="ln" data-line="11">            <span class="hljs-keyword">if</span> a[lo] &lt;= target &lt; a[mid]:</span><span class="ln" data-line="12">                hi = mid - <span class="hljs-number">1</span></span><span class="ln" data-line="13">            <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="14">                lo = mid + <span class="hljs-number">1</span></span><span class="ln" data-line="15">        <span class="hljs-keyword">else</span>:  <span class="hljs-comment"># right half is in order</span></span><span class="ln" data-line="16">            <span class="hljs-keyword">if</span> a[mid] &lt; target &lt;= a[hi]:</span><span class="ln" data-line="17">                lo = mid + <span class="hljs-number">1</span></span><span class="ln" data-line="18">            <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="19">                hi = mid - <span class="hljs-number">1</span></span><span class="ln" data-line="20">    <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span></span><span class="ln" data-line="21"> </span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-keyword">def</span> <span class="hljs-title function_">find_min_rotated</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="24">    lo, hi = <span class="hljs-number">0</span>, <span class="hljs-built_in">len</span>(a) - <span class="hljs-number">1</span></span><span class="ln" data-line="25">    <span class="hljs-keyword">while</span> lo &lt; hi:</span><span class="ln" data-line="26">        mid = lo + (hi - lo) // <span class="hljs-number">2</span></span><span class="ln" data-line="27">        <span class="hljs-keyword">if</span> a[mid] &gt; a[hi]:  <span class="hljs-comment"># the drop is to the right</span></span><span class="ln" data-line="28">            lo = mid + <span class="hljs-number">1</span></span><span class="ln" data-line="29">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="30">            hi = mid</span><span class="ln" data-line="31">    <span class="hljs-keyword">return</span> a[lo]</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"> </span><span class="ln" data-line="34"><span class="hljs-keyword">def</span> <span class="hljs-title function_">lower_bound</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="35">    <span class="hljs-string">&quot;&quot;&quot;First index with a[i] &gt;= x.&quot;&quot;&quot;</span></span><span class="ln" data-line="36">    lo, hi = <span class="hljs-number">0</span>, <span class="hljs-built_in">len</span>(a)</span><span class="ln" data-line="37">    <span class="hljs-keyword">while</span> lo &lt; hi:</span><span class="ln" data-line="38">        mid = lo + (hi - lo) // <span class="hljs-number">2</span></span><span class="ln" data-line="39">        <span class="hljs-keyword">if</span> a[mid] &gt;= x:</span><span class="ln" data-line="40">            hi = mid</span><span class="ln" data-line="41">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="42">            lo = mid + <span class="hljs-number">1</span></span><span class="ln" data-line="43">    <span class="hljs-keyword">return</span> lo</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">def</span> <span class="hljs-title function_">search_range</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], target: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="47">    first = lower_bound(a, target)</span><span class="ln" data-line="48">    <span class="hljs-keyword">if</span> first == <span class="hljs-built_in">len</span>(a) <span class="hljs-keyword">or</span> a[first] != target:</span><span class="ln" data-line="49">        <span class="hljs-keyword">return</span> [-<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>]</span><span class="ln" data-line="50">    <span class="hljs-keyword">return</span> [first, lower_bound(a, target + <span class="hljs-number">1</span>) - <span class="hljs-number">1</span>]</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"><span class="hljs-keyword">def</span> <span class="hljs-title function_">find_peak</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="54">    lo, hi = <span class="hljs-number">0</span>, <span class="hljs-built_in">len</span>(a) - <span class="hljs-number">1</span></span><span class="ln" data-line="55">    <span class="hljs-keyword">while</span> lo &lt; hi:</span><span class="ln" data-line="56">        mid = lo + (hi - lo) // <span class="hljs-number">2</span></span><span class="ln" data-line="57">        <span class="hljs-keyword">if</span> a[mid] &lt; a[mid + <span class="hljs-number">1</span>]:  <span class="hljs-comment"># uphill: a peak is to the right</span></span><span class="ln" data-line="58">            lo = mid + <span class="hljs-number">1</span></span><span class="ln" data-line="59">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="60">            hi = mid</span><span class="ln" data-line="61">    <span class="hljs-keyword">return</span> lo</span><span class="ln" data-line="62"> </span><span class="ln" data-line="63"> </span><span class="ln" data-line="64"><span class="hljs-keyword">def</span> <span class="hljs-title function_">my_sqrt</span>(<span class="hljs-params">x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="65">    lo, hi = <span class="hljs-number">0</span>, x</span><span class="ln" data-line="66">    <span class="hljs-keyword">while</span> lo &lt; hi:</span><span class="ln" data-line="67">        mid = lo + (hi - lo + <span class="hljs-number">1</span>) // <span class="hljs-number">2</span>  <span class="hljs-comment"># round up so lo = mid always moves</span></span><span class="ln" data-line="68">        <span class="hljs-keyword">if</span> mid * mid &lt;= x:</span><span class="ln" data-line="69">            lo = mid</span><span class="ln" data-line="70">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="71">            hi = mid - <span class="hljs-number">1</span></span><span class="ln" data-line="72">    <span class="hljs-keyword">return</span> lo</span><span class="ln" data-line="73"> </span><span class="ln" data-line="74"> </span><span class="ln" data-line="75"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="76">    r = [<span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">7</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>]</span><span class="ln" data-line="77">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;searchRotated(4 5 6 7 0 1 2, 0) = <span class="hljs-subst">{search_rotated(r, <span class="hljs-number">0</span>)}</span>, target 3: <span class="hljs-subst">{search_rotated(r, <span class="hljs-number">3</span>)}</span>&quot;</span>)</span><span class="ln" data-line="78">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;findMinRotated(4 5 6 7 0 1 2) = <span class="hljs-subst">{find_min_rotated(r)}</span>, (3 4 5 1 2) = <span class="hljs-subst">{find_min_rotated([<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>])}</span>&quot;</span>)</span><span class="ln" data-line="79">    s = [<span class="hljs-number">5</span>, <span class="hljs-number">7</span>, <span class="hljs-number">7</span>, <span class="hljs-number">8</span>, <span class="hljs-number">8</span>, <span class="hljs-number">10</span>]</span><span class="ln" data-line="80">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;searchRange(5 7 7 8 8 10, 8) = <span class="hljs-subst">{search_range(s, <span class="hljs-number">8</span>)}</span>, target 6: <span class="hljs-subst">{search_range(s, <span class="hljs-number">6</span>)}</span>&quot;</span>)</span><span class="ln" data-line="81">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;findPeak(1 2 1 3 5 6 4) = index <span class="hljs-subst">{find_peak([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span>])}</span>&quot;</span>)</span><span class="ln" data-line="82">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;mySqrt(8) = <span class="hljs-subst">{my_sqrt(<span class="hljs-number">8</span>)}</span>, mySqrt(16) = <span class="hljs-subst">{my_sqrt(<span class="hljs-number">16</span>)}</span>, mySqrt(2147395599) = <span class="hljs-subst">{my_sqrt(<span class="hljs-number">2147395599</span>)}</span>&quot;</span>)</span><span class="ln" data-line="83"> </span><span class="ln" data-line="84"> </span><span class="ln" data-line="85"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="86">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List
+
+
+def search_rotated(a: List[int], target: int) -&gt; int:
+    lo, hi = 0, len(a) - 1
+    while lo &lt;= hi:
+        mid = lo + (hi - lo) // 2
+        if a[mid] == target:
+            return mid
+        if a[lo] &lt;= a[mid]:  # left half is in order
+            if a[lo] &lt;= target &lt; a[mid]:
+                hi = mid - 1
+            else:
+                lo = mid + 1
+        else:  # right half is in order
+            if a[mid] &lt; target &lt;= a[hi]:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+    return -1
+
+
+def find_min_rotated(a: List[int]) -&gt; int:
+    lo, hi = 0, len(a) - 1
+    while lo &lt; hi:
+        mid = lo + (hi - lo) // 2
+        if a[mid] &gt; a[hi]:  # the drop is to the right
+            lo = mid + 1
+        else:
+            hi = mid
+    return a[lo]
+
+
+def lower_bound(a: List[int], x: int) -&gt; int:
+    &quot;&quot;&quot;First index with a[i] &gt;= x.&quot;&quot;&quot;
+    lo, hi = 0, len(a)
+    while lo &lt; hi:
+        mid = lo + (hi - lo) // 2
+        if a[mid] &gt;= x:
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+
+
+def search_range(a: List[int], target: int) -&gt; List[int]:
+    first = lower_bound(a, target)
+    if first == len(a) or a[first] != target:
+        return [-1, -1]
+    return [first, lower_bound(a, target + 1) - 1]
+
+
+def find_peak(a: List[int]) -&gt; int:
+    lo, hi = 0, len(a) - 1
+    while lo &lt; hi:
+        mid = lo + (hi - lo) // 2
+        if a[mid] &lt; a[mid + 1]:  # uphill: a peak is to the right
+            lo = mid + 1
+        else:
+            hi = mid
+    return lo
+
+
+def my_sqrt(x: int) -&gt; int:
+    lo, hi = 0, x
+    while lo &lt; hi:
+        mid = lo + (hi - lo + 1) // 2  # round up so lo = mid always moves
+        if mid * mid &lt;= x:
+            lo = mid
+        else:
+            hi = mid - 1
+    return lo
+
+
+def main() -&gt; None:
+    r = [4, 5, 6, 7, 0, 1, 2]
+    print(f&quot;searchRotated(4 5 6 7 0 1 2, 0) = {search_rotated(r, 0)}, target 3: {search_rotated(r, 3)}&quot;)
+    print(f&quot;findMinRotated(4 5 6 7 0 1 2) = {find_min_rotated(r)}, (3 4 5 1 2) = {find_min_rotated([3, 4, 5, 1, 2])}&quot;)
+    s = [5, 7, 7, 8, 8, 10]
+    print(f&quot;searchRange(5 7 7 8 8 10, 8) = {search_range(s, 8)}, target 6: {search_range(s, 6)}&quot;)
+    print(f&quot;findPeak(1 2 1 3 5 6 4) = index {find_peak([1, 2, 1, 3, 5, 6, 4])}&quot;)
+    print(f&quot;mySqrt(8) = {my_sqrt(8)}, mySqrt(16) = {my_sqrt(16)}, mySqrt(2147395599) = {my_sqrt(2147395599)}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>searchRotated(4 5 6 7 0 1 2, 0) = 4, target 3: -1
+findMinRotated(4 5 6 7 0 1 2) = 0, (3 4 5 1 2) = 1
+searchRange(5 7 7 8 8 10, 8) = [3, 4], target 6: [-1, -1]
+findPeak(1 2 1 3 5 6 4) = index 5
+mySqrt(8) = 2, mySqrt(16) = 4, mySqrt(2147395599) = 46339</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Mixing <code>lo &lt;= hi</code> with <code>hi = mid</code>, which can loop forever.</li><li>In rotated search, using strict <code>&lt;</code> where <code>&lt;=</code> is needed when <code>lo == mid</code>.</li><li>Overflow from <code>mid * mid</code> in square-root search; use <code>long</code> or compare <code>mid &lt;= x / mid</code>.</li><li>Rotated arrays with duplicates break the &quot;one half is sorted&quot; test; you may have to shrink both ends by one.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/sqrtx/" rel="noopener" target="_blank">Sqrt(x)<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>69</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/search-in-rotated-sorted-array/" rel="noopener" target="_blank">Search in Rotated Sorted Array<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>33</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/" rel="noopener" target="_blank">Find Minimum in Rotated Sorted Array<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>153</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-peak-element/" rel="noopener" target="_blank">Find Peak Element<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>162</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/" rel="noopener" target="_blank">Find First and Last Position of Element in Sorted Array<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>34</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/median-of-two-sorted-arrays/" rel="noopener" target="_blank">Median of Two Sorted Arrays<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>4</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/arrays/index.html">Arrays</a>, <a href="../../algorithms/searching/index.html">Searching</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../monotonic-deque/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Monotonic deque</span></a><a class="pn pn-next" href="../top-k/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Top K elements</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

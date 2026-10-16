@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algorithms · DSA Academy</title>
+<meta name="description" content="Reusable techniques. Learn to spot when each one applies, then reuse its template.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="../assets/css/languages.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../intro/index.html">Start here</a></li><li><a href="../roadmap/index.html">Roadmap</a></li><li><a href="../data-structures/index.html">Data structures</a></li><li><a href="index.html" aria-current="page">Algorithms</a></li><li><a href="../patterns/index.html">Patterns</a></li><li><a href="../lld/index.html">Low-level design</a></li><li><a href="../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Home</a></li><li><span aria-current="page">Algorithms</span></li></ol></nav>
+<header class="page-head"><h1>Algorithms</h1><p class="lede">Reusable techniques. Learn to spot when each one applies, then reuse its template.</p></header>
+<ul class="entries"><li class="entry" id="complexity">
+  <h2 class="entry-title"><a href="complexity/index.html">Complexity analysis</a></h2>
+  <p>Big-O, Big-Θ, Big-Ω and amortised cost, with worked examples.</p>
+  
+  
+  
+  
+</li>
+<li class="entry" id="recursion">
+  <h2 class="entry-title"><a href="recursion/index.html">Recursion</a></h2>
+  <p>Base cases, the call stack and how to trust the recursive call.</p>
+  
+  <p class="entry-rel">Used by Tree DFS, Backtracking.</p>
+  
+  
+</li>
+<li class="entry" id="searching">
+  <h2 class="entry-title"><a href="searching/index.html">Searching</a></h2>
+  <p>Linear search, binary search and binary search on the answer.</p>
+  
+  <p class="entry-rel">Used by Modified binary search.</p>
+  
+  
+</li>
+<li class="entry" id="sorting">
+  <h2 class="entry-title"><a href="sorting/index.html">Sorting</a></h2>
+  <p>Eight sorts compared side by side, with stability explained.</p>
+  
+  <p class="entry-rel">Used by Merge intervals, Greedy.</p>
+  
+  
+</li>
+<li class="entry" id="divide-and-conquer">
+  <h2 class="entry-title"><a href="divide-and-conquer/index.html">Divide and conquer</a></h2>
+  <p>Split, solve the halves, combine. Merge sort and beyond.</p>
+  
+  
+  
+  
+</li>
+<li class="entry" id="greedy-technique">
+  <h2 class="entry-title"><a href="greedy-technique/index.html">Greedy</a></h2>
+  <p>Take the best local choice, and prove it never hurts later.</p>
+  
+  <p class="entry-rel">Used by Greedy.</p>
+  
+  
+</li>
+<li class="entry" id="dynamic-programming">
+  <h2 class="entry-title"><a href="dynamic-programming/index.html">Dynamic programming</a></h2>
+  <p>Memoisation and tabulation across 1D, 2D, knapsack, interval and string DP.</p>
+  
+  <p class="entry-rel">Used by Kadane&#39;s algorithm, 1D dynamic programming, 2D dynamic programming, Knapsack and 1 more.</p>
+  
+  
+</li>
+<li class="entry" id="backtracking-technique">
+  <h2 class="entry-title"><a href="backtracking-technique/index.html">Backtracking</a></h2>
+  <p>Build a candidate step by step and undo when it can&#39;t work.</p>
+  
+  <p class="entry-rel">Used by Backtracking.</p>
+  
+  
+</li>
+<li class="entry" id="graph-algorithms">
+  <h2 class="entry-title"><a href="graph-algorithms/index.html">Graph algorithms</a></h2>
+  <p>BFS, DFS, topological sort, Dijkstra, Bellman-Ford, Floyd-Warshall, Prim, Kruskal.</p>
+  
+  <p class="entry-rel">Used by Graph BFS and DFS, Topological sort, Shortest path.</p>
+  
+  
+</li>
+<li class="entry" id="string-algorithms">
+  <h2 class="entry-title"><a href="string-algorithms/index.html">String algorithms</a></h2>
+  <p>KMP, Rabin-Karp and an overview of the Z-algorithm.</p>
+  
+  
+  
+  
+</li>
+<li class="entry" id="bit-manipulation-technique">
+  <h2 class="entry-title"><a href="bit-manipulation-technique/index.html">Bit manipulation</a></h2>
+  <p>Masks, shifts and the tricks that turn loops into one operation.</p>
+  
+  <p class="entry-rel">Used by Bit manipulation.</p>
+  
+  
+</li>
+<li class="entry" id="math-basics">
+  <h2 class="entry-title"><a href="math-basics/index.html">Math basics</a></h2>
+  <p>GCD, primes and the sieve, modular arithmetic, fast power.</p>
+  
+  
+  
+  
+</li></ul>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../data-structures/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Data structures</span></a><a class="pn pn-next" href="../patterns/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Patterns</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../assets/js/visualizers.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

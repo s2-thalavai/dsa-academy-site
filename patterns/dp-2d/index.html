@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2D dynamic programming · DSA Academy</title>
+<meta name="description" content="Grids and two-string problems like edit distance.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">2D dynamic programming</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>2D dynamic programming</h1>
+  <p class="lede">Two-dimensional DP keeps a table indexed by two things: a row and a column of a grid, or a prefix of one string and a prefix of another. Each cell is built from its neighbours above, to the left, or on the diagonal.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Planning a walk across a city laid out in blocks, only going east or south. The cheapest way to reach a corner is its own toll plus the cheaper way to reach the corner just north or just west of it.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>A grid where you move right or down and count paths or minimise cost.</li>
+<li>Two strings compared character by character: subsequences, edits, interleaving.</li>
+<li>Squares, rectangles or palindromes whose answer at (i, j) extends one at (i − 1, j − 1).</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">dp = (rows + 1) × (cols + 1) table with base row and column
+for i in 1..rows:
+    for j in 1..cols:
+        dp[i][j] = f(dp[i − 1][j], dp[i][j − 1], dp[i − 1][j − 1], input[i][j])
+answer = dp[rows][cols]   (or the best cell seen)
+space: keep one row (or two) if each row only reads the previous one
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 200" role="img" aria-label="A 3 by 3 grid of costs and the DP table of cheapest path sums, filled from the top-left corner"><defs></defs><text class="dg-lbl" x="20" y="24">costs</text><rect class="dg-box" x="20" y="34" width="44" height="44" rx="6"/><text class="dg-t" x="42.0" y="56.0">1</text><rect class="dg-box" x="70" y="34" width="44" height="44" rx="6"/><text class="dg-t" x="92.0" y="56.0">3</text><rect class="dg-box" x="120" y="34" width="44" height="44" rx="6"/><text class="dg-t" x="142.0" y="56.0">1</text><rect class="dg-box" x="20" y="84" width="44" height="44" rx="6"/><text class="dg-t" x="42.0" y="106.0">1</text><rect class="dg-box" x="70" y="84" width="44" height="44" rx="6"/><text class="dg-t" x="92.0" y="106.0">5</text><rect class="dg-box" x="120" y="84" width="44" height="44" rx="6"/><text class="dg-t" x="142.0" y="106.0">1</text><rect class="dg-box" x="20" y="134" width="44" height="44" rx="6"/><text class="dg-t" x="42.0" y="156.0">4</text><rect class="dg-box" x="70" y="134" width="44" height="44" rx="6"/><text class="dg-t" x="92.0" y="156.0">2</text><rect class="dg-box" x="120" y="134" width="44" height="44" rx="6"/><text class="dg-t" x="142.0" y="156.0">1</text><text class="dg-lbl" x="300" y="24">dp: cheapest path to each cell</text><rect class="dg-a" x="300" y="34" width="44" height="44" rx="6"/><text class="dg-t" x="322.0" y="56.0">1</text><rect class="dg-a" x="350" y="34" width="44" height="44" rx="6"/><text class="dg-t" x="372.0" y="56.0">4</text><rect class="dg-a" x="400" y="34" width="44" height="44" rx="6"/><text class="dg-t" x="422.0" y="56.0">5</text><rect class="dg-box" x="300" y="84" width="44" height="44" rx="6"/><text class="dg-t" x="322.0" y="106.0">2</text><rect class="dg-box" x="350" y="84" width="44" height="44" rx="6"/><text class="dg-t" x="372.0" y="106.0">7</text><rect class="dg-a" x="400" y="84" width="44" height="44" rx="6"/><text class="dg-t" x="422.0" y="106.0">6</text><rect class="dg-box" x="300" y="134" width="44" height="44" rx="6"/><text class="dg-t" x="322.0" y="156.0">6</text><rect class="dg-box" x="350" y="134" width="44" height="44" rx="6"/><text class="dg-t" x="372.0" y="156.0">8</text><rect class="dg-ok" x="400" y="134" width="44" height="44" rx="6"/><text class="dg-t" x="422.0" y="156.0">7</text><text class="dg-m" x="470" y="120">path 1 → 3 → 1 → 1 → 1</text></svg><figcaption>Each cell of the DP table is its own cost plus the cheaper of the cell above and the cell to the left. The bottom-right cell, 7, is the cheapest path.</figcaption></figure><p>The base cases are the first row and column: in a grid you can only reach them
+one way. An extra row and column of zeros (or of empty-prefix values for string
+problems) keeps the loops free of special cases.</p>
+<ul>
+<li><strong>Unique paths</strong>: <code>dp[i][j] = dp[i − 1][j] + dp[i][j − 1]</code>.</li>
+<li><strong>Longest palindromic subsequence</strong>: compare the string with its reverse using
+the LCS recurrence, or fill <code>dp[i][j]</code> over substrings directly.</li>
+<li><strong>Maximal square</strong>: the largest square ending at a <code>1</code> is one more than the
+smallest of the squares ending above, left and diagonally up-left.</li>
+</ul>
+<p>Because each row only reads the row above, most of these need just one array
+of length <code>cols + 1</code>.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Grid paths and costs</td><td class="nowrap">O(R × C) time, O(C) space</td><td>One cell each; keep a single row.</td></tr><tr><td>Two-string DP (LCS, edit distance)</td><td class="nowrap">O(n × m)</td><td>One cell per pair of prefixes.</td></tr><tr><td>Maximal square</td><td class="nowrap">O(R × C)</td><td>One pass with the min-of-three rule.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Unique paths and minimum path sum use a single rolling row; the others keep the full table for clarity.</p><figure class="codeblock" id="code-dp-2d" aria-label="Pascal&#39;s triangle, unique paths, minimum path sum, longest palindromic subsequence and maximal square">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-dp-2d-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-dp-2d-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-dp-2d-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-dp-2d-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-dp-2d-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">pascalRow</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="4">        <span class="hljs-type">int</span>[] <span class="hljs-variable">row</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n + <span class="hljs-number">1</span>];</span><span class="ln" data-line="5">        row[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="6">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt;= n; i++)</span><span class="ln" data-line="7">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> i; j &gt; <span class="hljs-number">0</span>; j--) row[j] += row[j - <span class="hljs-number">1</span>]; <span class="hljs-comment">// right to left so row[j - 1] is still last row&#x27;s value</span></span><span class="ln" data-line="8">        <span class="hljs-keyword">return</span> row;</span><span class="ln" data-line="9">    }</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">uniquePaths</span><span class="hljs-params">(<span class="hljs-type">int</span> m, <span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="12">        <span class="hljs-type">int</span>[] <span class="hljs-variable">row</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n];</span><span class="ln" data-line="13">        java.util.Arrays.fill(row, <span class="hljs-number">1</span>); <span class="hljs-comment">// the first row: one way to each cell</span></span><span class="ln" data-line="14">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; m; i++)</span><span class="ln" data-line="15">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; j &lt; n; j++) row[j] += row[j - <span class="hljs-number">1</span>]; <span class="hljs-comment">// from above (old row[j]) + from the left</span></span><span class="ln" data-line="16">        <span class="hljs-keyword">return</span> row[n - <span class="hljs-number">1</span>];</span><span class="ln" data-line="17">    }</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">minPathSum</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] g)</span> {</span><span class="ln" data-line="20">        <span class="hljs-type">int</span> <span class="hljs-variable">cols</span> <span class="hljs-operator">=</span> g[<span class="hljs-number">0</span>].length;</span><span class="ln" data-line="21">        <span class="hljs-type">int</span>[] <span class="hljs-variable">dp</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[cols];</span><span class="ln" data-line="22">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; r &lt; g.length; r++)</span><span class="ln" data-line="23">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; c &lt; cols; c++) {</span><span class="ln" data-line="24">                <span class="hljs-keyword">if</span> (r == <span class="hljs-number">0</span> &amp;&amp; c == <span class="hljs-number">0</span>) dp[c] = g[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>];</span><span class="ln" data-line="25">                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (r == <span class="hljs-number">0</span>) dp[c] = dp[c - <span class="hljs-number">1</span>] + g[r][c];</span><span class="ln" data-line="26">                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (c == <span class="hljs-number">0</span>) dp[c] = dp[c] + g[r][c];</span><span class="ln" data-line="27">                <span class="hljs-keyword">else</span> dp[c] = Math.min(dp[c], dp[c - <span class="hljs-number">1</span>]) + g[r][c];</span><span class="ln" data-line="28">            }</span><span class="ln" data-line="29">        <span class="hljs-keyword">return</span> dp[cols - <span class="hljs-number">1</span>];</span><span class="ln" data-line="30">    }</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">longestPalindromeSubseq</span><span class="hljs-params">(String s)</span> {</span><span class="ln" data-line="33">        <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> s.length();</span><span class="ln" data-line="34">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">dp</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n][n]; <span class="hljs-comment">// dp[i][j] = answer for s[i..j]</span></span><span class="ln" data-line="35">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> n - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) {</span><span class="ln" data-line="36">            dp[i][i] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="37">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> i + <span class="hljs-number">1</span>; j &lt; n; j++)</span><span class="ln" data-line="38">                dp[i][j] = s.charAt(i) == s.charAt(j) ? dp[i + <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>] + <span class="hljs-number">2</span> : Math.max(dp[i + <span class="hljs-number">1</span>][j], dp[i][j - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="39">        }</span><span class="ln" data-line="40">        <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][n - <span class="hljs-number">1</span>];</span><span class="ln" data-line="41">    }</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">maximalSquare</span><span class="hljs-params">(<span class="hljs-type">char</span>[][] m)</span> {</span><span class="ln" data-line="44">        <span class="hljs-type">int</span> <span class="hljs-variable">rows</span> <span class="hljs-operator">=</span> m.length, cols = m[<span class="hljs-number">0</span>].length, best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="45">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">dp</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[rows + <span class="hljs-number">1</span>][cols + <span class="hljs-number">1</span>];</span><span class="ln" data-line="46">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt;= rows; i++)</span><span class="ln" data-line="47">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; j &lt;= cols; j++)</span><span class="ln" data-line="48">                <span class="hljs-keyword">if</span> (m[i - <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>] == <span class="hljs-string">&#x27;1&#x27;</span>) {</span><span class="ln" data-line="49">                    dp[i][j] = <span class="hljs-number">1</span> + Math.min(dp[i - <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>], Math.min(dp[i - <span class="hljs-number">1</span>][j], dp[i][j - <span class="hljs-number">1</span>]));</span><span class="ln" data-line="50">                    best = Math.max(best, dp[i][j]);</span><span class="ln" data-line="51">                }</span><span class="ln" data-line="52">        <span class="hljs-keyword">return</span> best * best;</span><span class="ln" data-line="53">    }</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="56">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="57">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : pascalRow(<span class="hljs-number">4</span>)) p.append(p.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(x);</span><span class="ln" data-line="58">        System.out.println(<span class="hljs-string">&quot;pascal row 4: &quot;</span> + p);</span><span class="ln" data-line="59">        System.out.println(<span class="hljs-string">&quot;uniquePaths(3, 7) = &quot;</span> + uniquePaths(<span class="hljs-number">3</span>, <span class="hljs-number">7</span>) + <span class="hljs-string">&quot;, uniquePaths(3, 2) = &quot;</span> + uniquePaths(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>));</span><span class="ln" data-line="60">        System.out.println(<span class="hljs-string">&quot;minPathSum = &quot;</span> + minPathSum(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">4</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span> } }));</span><span class="ln" data-line="61">        System.out.println(<span class="hljs-string">&quot;longestPalindromeSubseq(bbbab) = &quot;</span> + longestPalindromeSubseq(<span class="hljs-string">&quot;bbbab&quot;</span>) + <span class="hljs-string">&quot;, (cbbd) = &quot;</span> + longestPalindromeSubseq(<span class="hljs-string">&quot;cbbd&quot;</span>));</span><span class="ln" data-line="62">        <span class="hljs-type">char</span>[][] <span class="hljs-variable">m</span> <span class="hljs-operator">=</span> { <span class="hljs-string">&quot;10100&quot;</span>.toCharArray(), <span class="hljs-string">&quot;10111&quot;</span>.toCharArray(), <span class="hljs-string">&quot;11111&quot;</span>.toCharArray(), <span class="hljs-string">&quot;10010&quot;</span>.toCharArray() };</span><span class="ln" data-line="63">        System.out.println(<span class="hljs-string">&quot;maximalSquare area = &quot;</span> + maximalSquare(m));</span><span class="ln" data-line="64">    }</span><span class="ln" data-line="65">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">public class Solution {
+
+    static int[] pascalRow(int n) {
+        int[] row = new int[n + 1];
+        row[0] = 1;
+        for (int i = 1; i &lt;= n; i++)
+            for (int j = i; j &gt; 0; j--) row[j] += row[j - 1]; // right to left so row[j - 1] is still last row&#39;s value
+        return row;
+    }
+
+    static int uniquePaths(int m, int n) {
+        int[] row = new int[n];
+        java.util.Arrays.fill(row, 1); // the first row: one way to each cell
+        for (int i = 1; i &lt; m; i++)
+            for (int j = 1; j &lt; n; j++) row[j] += row[j - 1]; // from above (old row[j]) + from the left
+        return row[n - 1];
+    }
+
+    static int minPathSum(int[][] g) {
+        int cols = g[0].length;
+        int[] dp = new int[cols];
+        for (int r = 0; r &lt; g.length; r++)
+            for (int c = 0; c &lt; cols; c++) {
+                if (r == 0 &amp;&amp; c == 0) dp[c] = g[0][0];
+                else if (r == 0) dp[c] = dp[c - 1] + g[r][c];
+                else if (c == 0) dp[c] = dp[c] + g[r][c];
+                else dp[c] = Math.min(dp[c], dp[c - 1]) + g[r][c];
+            }
+        return dp[cols - 1];
+    }
+
+    static int longestPalindromeSubseq(String s) {
+        int n = s.length();
+        int[][] dp = new int[n][n]; // dp[i][j] = answer for s[i..j]
+        for (int i = n - 1; i &gt;= 0; i--) {
+            dp[i][i] = 1;
+            for (int j = i + 1; j &lt; n; j++)
+                dp[i][j] = s.charAt(i) == s.charAt(j) ? dp[i + 1][j - 1] + 2 : Math.max(dp[i + 1][j], dp[i][j - 1]);
+        }
+        return dp[0][n - 1];
+    }
+
+    static int maximalSquare(char[][] m) {
+        int rows = m.length, cols = m[0].length, best = 0;
+        int[][] dp = new int[rows + 1][cols + 1];
+        for (int i = 1; i &lt;= rows; i++)
+            for (int j = 1; j &lt;= cols; j++)
+                if (m[i - 1][j - 1] == &#39;1&#39;) {
+                    dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));
+                    best = Math.max(best, dp[i][j]);
+                }
+        return best * best;
+    }
+
+    public static void main(String[] args) {
+        StringBuilder p = new StringBuilder();
+        for (int x : pascalRow(4)) p.append(p.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(x);
+        System.out.println(&quot;pascal row 4: &quot; + p);
+        System.out.println(&quot;uniquePaths(3, 7) = &quot; + uniquePaths(3, 7) + &quot;, uniquePaths(3, 2) = &quot; + uniquePaths(3, 2));
+        System.out.println(&quot;minPathSum = &quot; + minPathSum(new int[][] { { 1, 3, 1 }, { 1, 5, 1 }, { 4, 2, 1 } }));
+        System.out.println(&quot;longestPalindromeSubseq(bbbab) = &quot; + longestPalindromeSubseq(&quot;bbbab&quot;) + &quot;, (cbbd) = &quot; + longestPalindromeSubseq(&quot;cbbd&quot;));
+        char[][] m = { &quot;10100&quot;.toCharArray(), &quot;10111&quot;.toCharArray(), &quot;11111&quot;.toCharArray(), &quot;10010&quot;.toCharArray() };
+        System.out.println(&quot;maximalSquare area = &quot; + maximalSquare(m));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-dp-2d-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">pascalRow</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> row = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="3">  row[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="4">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt;= n; i++) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = i; j &gt; <span class="hljs-number">0</span>; j--) row[j] += row[j - <span class="hljs-number">1</span>]; <span class="hljs-comment">// right to left keeps last row&#x27;s values</span></span><span class="ln" data-line="5">  <span class="hljs-keyword">return</span> row;</span><span class="ln" data-line="6">}</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">function</span> <span class="hljs-title function_">uniquePaths</span>(<span class="hljs-params">m, n</span>) {</span><span class="ln" data-line="9">  <span class="hljs-keyword">const</span> row = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">1</span>); <span class="hljs-comment">// the first row: one way to each cell</span></span><span class="ln" data-line="10">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; m; i++) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = <span class="hljs-number">1</span>; j &lt; n; j++) row[j] += row[j - <span class="hljs-number">1</span>]; <span class="hljs-comment">// from above + from the left</span></span><span class="ln" data-line="11">  <span class="hljs-keyword">return</span> row[n - <span class="hljs-number">1</span>];</span><span class="ln" data-line="12">}</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minPathSum</span>(<span class="hljs-params">g</span>) {</span><span class="ln" data-line="15">  <span class="hljs-keyword">const</span> cols = g[<span class="hljs-number">0</span>].<span class="hljs-property">length</span>;</span><span class="ln" data-line="16">  <span class="hljs-keyword">const</span> dp = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(cols).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>);</span><span class="ln" data-line="17">  dp[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="18">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> row <span class="hljs-keyword">of</span> g) {</span><span class="ln" data-line="19">    dp[<span class="hljs-number">0</span>] += row[<span class="hljs-number">0</span>];</span><span class="ln" data-line="20">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> c = <span class="hljs-number">1</span>; c &lt; cols; c++) dp[c] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(dp[c], dp[c - <span class="hljs-number">1</span>]) + row[c];</span><span class="ln" data-line="21">  }</span><span class="ln" data-line="22">  <span class="hljs-keyword">return</span> dp[cols - <span class="hljs-number">1</span>];</span><span class="ln" data-line="23">}</span><span class="ln" data-line="24"> </span><span class="ln" data-line="25"><span class="hljs-keyword">function</span> <span class="hljs-title function_">longestPalindromeSubseq</span>(<span class="hljs-params">s</span>) {</span><span class="ln" data-line="26">  <span class="hljs-keyword">const</span> n = s.<span class="hljs-property">length</span>;</span><span class="ln" data-line="27">  <span class="hljs-keyword">const</span> dp = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>)); <span class="hljs-comment">// dp[i][j] = answer for s[i..j]</span></span><span class="ln" data-line="28">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = n - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) {</span><span class="ln" data-line="29">    dp[i][i] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="30">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = i + <span class="hljs-number">1</span>; j &lt; n; j++) dp[i][j] = s[i] === s[j] ? dp[i + <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>] + <span class="hljs-number">2</span> : <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(dp[i + <span class="hljs-number">1</span>][j], dp[i][j - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="31">  }</span><span class="ln" data-line="32">  <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][n - <span class="hljs-number">1</span>];</span><span class="ln" data-line="33">}</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maximalSquare</span>(<span class="hljs-params">m</span>) {</span><span class="ln" data-line="36">  <span class="hljs-keyword">const</span> rows = m.<span class="hljs-property">length</span>;</span><span class="ln" data-line="37">  <span class="hljs-keyword">const</span> cols = m[<span class="hljs-number">0</span>].<span class="hljs-property">length</span>;</span><span class="ln" data-line="38">  <span class="hljs-keyword">const</span> dp = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: rows + <span class="hljs-number">1</span> }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(cols + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>));</span><span class="ln" data-line="39">  <span class="hljs-keyword">let</span> best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="40">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt;= rows; i++) {</span><span class="ln" data-line="41">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = <span class="hljs-number">1</span>; j &lt;= cols; j++) {</span><span class="ln" data-line="42">      <span class="hljs-keyword">if</span> (m[i - <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>] === <span class="hljs-string">&quot;1&quot;</span>) {</span><span class="ln" data-line="43">        dp[i][j] = <span class="hljs-number">1</span> + <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(dp[i - <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>], dp[i - <span class="hljs-number">1</span>][j], dp[i][j - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="44">        best = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(best, dp[i][j]);</span><span class="ln" data-line="45">      }</span><span class="ln" data-line="46">    }</span><span class="ln" data-line="47">  }</span><span class="ln" data-line="48">  <span class="hljs-keyword">return</span> best * best;</span><span class="ln" data-line="49">}</span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="52">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`pascal row 4: <span class="hljs-subst">${pascalRow(<span class="hljs-number">4</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="53">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`uniquePaths(3, 7) = <span class="hljs-subst">${uniquePaths(<span class="hljs-number">3</span>, <span class="hljs-number">7</span>)}</span>, uniquePaths(3, 2) = <span class="hljs-subst">${uniquePaths(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>)}</span>`</span>);</span><span class="ln" data-line="54">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`minPathSum = <span class="hljs-subst">${minPathSum([[<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">4</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>]])}</span>`</span>);</span><span class="ln" data-line="55">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`longestPalindromeSubseq(bbbab) = <span class="hljs-subst">${longestPalindromeSubseq(<span class="hljs-string">&quot;bbbab&quot;</span>)}</span>, (cbbd) = <span class="hljs-subst">${longestPalindromeSubseq(<span class="hljs-string">&quot;cbbd&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="56">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maximalSquare area = <span class="hljs-subst">${maximalSquare([<span class="hljs-string">&quot;10100&quot;</span>, <span class="hljs-string">&quot;10111&quot;</span>, <span class="hljs-string">&quot;11111&quot;</span>, <span class="hljs-string">&quot;10010&quot;</span>])}</span>`</span>);</span><span class="ln" data-line="57">}</span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function pascalRow(n) {
+  const row = new Array(n + 1).fill(0);
+  row[0] = 1;
+  for (let i = 1; i &lt;= n; i++) for (let j = i; j &gt; 0; j--) row[j] += row[j - 1]; // right to left keeps last row&#39;s values
+  return row;
+}
+
+function uniquePaths(m, n) {
+  const row = new Array(n).fill(1); // the first row: one way to each cell
+  for (let i = 1; i &lt; m; i++) for (let j = 1; j &lt; n; j++) row[j] += row[j - 1]; // from above + from the left
+  return row[n - 1];
+}
+
+function minPathSum(g) {
+  const cols = g[0].length;
+  const dp = new Array(cols).fill(Infinity);
+  dp[0] = 0;
+  for (const row of g) {
+    dp[0] += row[0];
+    for (let c = 1; c &lt; cols; c++) dp[c] = Math.min(dp[c], dp[c - 1]) + row[c];
+  }
+  return dp[cols - 1];
+}
+
+function longestPalindromeSubseq(s) {
+  const n = s.length;
+  const dp = Array.from({ length: n }, () =&gt; new Array(n).fill(0)); // dp[i][j] = answer for s[i..j]
+  for (let i = n - 1; i &gt;= 0; i--) {
+    dp[i][i] = 1;
+    for (let j = i + 1; j &lt; n; j++) dp[i][j] = s[i] === s[j] ? dp[i + 1][j - 1] + 2 : Math.max(dp[i + 1][j], dp[i][j - 1]);
+  }
+  return dp[0][n - 1];
+}
+
+function maximalSquare(m) {
+  const rows = m.length;
+  const cols = m[0].length;
+  const dp = Array.from({ length: rows + 1 }, () =&gt; new Array(cols + 1).fill(0));
+  let best = 0;
+  for (let i = 1; i &lt;= rows; i++) {
+    for (let j = 1; j &lt;= cols; j++) {
+      if (m[i - 1][j - 1] === &quot;1&quot;) {
+        dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
+        best = Math.max(best, dp[i][j]);
+      }
+    }
+  }
+  return best * best;
+}
+
+function main() {
+  console.log(`pascal row 4: ${pascalRow(4).join(&quot; &quot;)}`);
+  console.log(`uniquePaths(3, 7) = ${uniquePaths(3, 7)}, uniquePaths(3, 2) = ${uniquePaths(3, 2)}`);
+  console.log(`minPathSum = ${minPathSum([[1, 3, 1], [1, 5, 1], [4, 2, 1]])}`);
+  console.log(`longestPalindromeSubseq(bbbab) = ${longestPalindromeSubseq(&quot;bbbab&quot;)}, (cbbd) = ${longestPalindromeSubseq(&quot;cbbd&quot;)}`);
+  console.log(`maximalSquare area = ${maximalSquare([&quot;10100&quot;, &quot;10111&quot;, &quot;11111&quot;, &quot;10010&quot;])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-dp-2d-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">pascalRow</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> <span class="hljs-attr">row</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="3">  row[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="4">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt;= n; i++) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = i; j &gt; <span class="hljs-number">0</span>; j--) row[j] += row[j - <span class="hljs-number">1</span>]; <span class="hljs-comment">// right to left keeps last row&#x27;s values</span></span><span class="ln" data-line="5">  <span class="hljs-keyword">return</span> row;</span><span class="ln" data-line="6">}</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">function</span> <span class="hljs-title function_">uniquePaths</span>(<span class="hljs-params"><span class="hljs-attr">m</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="9">  <span class="hljs-keyword">const</span> <span class="hljs-attr">row</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">1</span>); <span class="hljs-comment">// the first row: one way to each cell</span></span><span class="ln" data-line="10">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; m; i++) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = <span class="hljs-number">1</span>; j &lt; n; j++) row[j] += row[j - <span class="hljs-number">1</span>]; <span class="hljs-comment">// from above + from the left</span></span><span class="ln" data-line="11">  <span class="hljs-keyword">return</span> row[n - <span class="hljs-number">1</span>];</span><span class="ln" data-line="12">}</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minPathSum</span>(<span class="hljs-params"><span class="hljs-attr">g</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[][]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="15">  <span class="hljs-keyword">const</span> cols = g[<span class="hljs-number">0</span>].<span class="hljs-property">length</span>;</span><span class="ln" data-line="16">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dp</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(cols).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>);</span><span class="ln" data-line="17">  dp[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="18">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> row <span class="hljs-keyword">of</span> g) {</span><span class="ln" data-line="19">    dp[<span class="hljs-number">0</span>] += row[<span class="hljs-number">0</span>];</span><span class="ln" data-line="20">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> c = <span class="hljs-number">1</span>; c &lt; cols; c++) dp[c] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(dp[c], dp[c - <span class="hljs-number">1</span>]) + row[c];</span><span class="ln" data-line="21">  }</span><span class="ln" data-line="22">  <span class="hljs-keyword">return</span> dp[cols - <span class="hljs-number">1</span>];</span><span class="ln" data-line="23">}</span><span class="ln" data-line="24"> </span><span class="ln" data-line="25"><span class="hljs-keyword">function</span> <span class="hljs-title function_">longestPalindromeSubseq</span>(<span class="hljs-params"><span class="hljs-attr">s</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="26">  <span class="hljs-keyword">const</span> n = s.<span class="hljs-property">length</span>;</span><span class="ln" data-line="27">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dp</span>: <span class="hljs-built_in">number</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>)); <span class="hljs-comment">// dp[i][j] = answer for s[i..j]</span></span><span class="ln" data-line="28">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = n - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) {</span><span class="ln" data-line="29">    dp[i][i] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="30">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = i + <span class="hljs-number">1</span>; j &lt; n; j++) dp[i][j] = s[i] === s[j] ? dp[i + <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>] + <span class="hljs-number">2</span> : <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(dp[i + <span class="hljs-number">1</span>][j], dp[i][j - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="31">  }</span><span class="ln" data-line="32">  <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][n - <span class="hljs-number">1</span>];</span><span class="ln" data-line="33">}</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maximalSquare</span>(<span class="hljs-params"><span class="hljs-attr">m</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="36">  <span class="hljs-keyword">const</span> rows = m.<span class="hljs-property">length</span>;</span><span class="ln" data-line="37">  <span class="hljs-keyword">const</span> cols = m[<span class="hljs-number">0</span>].<span class="hljs-property">length</span>;</span><span class="ln" data-line="38">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dp</span>: <span class="hljs-built_in">number</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: rows + <span class="hljs-number">1</span> }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(cols + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>));</span><span class="ln" data-line="39">  <span class="hljs-keyword">let</span> best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="40">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt;= rows; i++) {</span><span class="ln" data-line="41">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = <span class="hljs-number">1</span>; j &lt;= cols; j++) {</span><span class="ln" data-line="42">      <span class="hljs-keyword">if</span> (m[i - <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>] === <span class="hljs-string">&quot;1&quot;</span>) {</span><span class="ln" data-line="43">        dp[i][j] = <span class="hljs-number">1</span> + <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(dp[i - <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>], dp[i - <span class="hljs-number">1</span>][j], dp[i][j - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="44">        best = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(best, dp[i][j]);</span><span class="ln" data-line="45">      }</span><span class="ln" data-line="46">    }</span><span class="ln" data-line="47">  }</span><span class="ln" data-line="48">  <span class="hljs-keyword">return</span> best * best;</span><span class="ln" data-line="49">}</span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="52">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`pascal row 4: <span class="hljs-subst">${pascalRow(<span class="hljs-number">4</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="53">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`uniquePaths(3, 7) = <span class="hljs-subst">${uniquePaths(<span class="hljs-number">3</span>, <span class="hljs-number">7</span>)}</span>, uniquePaths(3, 2) = <span class="hljs-subst">${uniquePaths(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>)}</span>`</span>);</span><span class="ln" data-line="54">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`minPathSum = <span class="hljs-subst">${minPathSum([[<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">4</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>]])}</span>`</span>);</span><span class="ln" data-line="55">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`longestPalindromeSubseq(bbbab) = <span class="hljs-subst">${longestPalindromeSubseq(<span class="hljs-string">&quot;bbbab&quot;</span>)}</span>, (cbbd) = <span class="hljs-subst">${longestPalindromeSubseq(<span class="hljs-string">&quot;cbbd&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="56">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maximalSquare area = <span class="hljs-subst">${maximalSquare([<span class="hljs-string">&quot;10100&quot;</span>, <span class="hljs-string">&quot;10111&quot;</span>, <span class="hljs-string">&quot;11111&quot;</span>, <span class="hljs-string">&quot;10010&quot;</span>])}</span>`</span>);</span><span class="ln" data-line="57">}</span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function pascalRow(n: number): number[] {
+  const row: number[] = new Array(n + 1).fill(0);
+  row[0] = 1;
+  for (let i = 1; i &lt;= n; i++) for (let j = i; j &gt; 0; j--) row[j] += row[j - 1]; // right to left keeps last row&#39;s values
+  return row;
+}
+
+function uniquePaths(m: number, n: number): number {
+  const row: number[] = new Array(n).fill(1); // the first row: one way to each cell
+  for (let i = 1; i &lt; m; i++) for (let j = 1; j &lt; n; j++) row[j] += row[j - 1]; // from above + from the left
+  return row[n - 1];
+}
+
+function minPathSum(g: readonly number[][]): number {
+  const cols = g[0].length;
+  const dp: number[] = new Array(cols).fill(Infinity);
+  dp[0] = 0;
+  for (const row of g) {
+    dp[0] += row[0];
+    for (let c = 1; c &lt; cols; c++) dp[c] = Math.min(dp[c], dp[c - 1]) + row[c];
+  }
+  return dp[cols - 1];
+}
+
+function longestPalindromeSubseq(s: string): number {
+  const n = s.length;
+  const dp: number[][] = Array.from({ length: n }, () =&gt; new Array(n).fill(0)); // dp[i][j] = answer for s[i..j]
+  for (let i = n - 1; i &gt;= 0; i--) {
+    dp[i][i] = 1;
+    for (let j = i + 1; j &lt; n; j++) dp[i][j] = s[i] === s[j] ? dp[i + 1][j - 1] + 2 : Math.max(dp[i + 1][j], dp[i][j - 1]);
+  }
+  return dp[0][n - 1];
+}
+
+function maximalSquare(m: readonly string[]): number {
+  const rows = m.length;
+  const cols = m[0].length;
+  const dp: number[][] = Array.from({ length: rows + 1 }, () =&gt; new Array(cols + 1).fill(0));
+  let best = 0;
+  for (let i = 1; i &lt;= rows; i++) {
+    for (let j = 1; j &lt;= cols; j++) {
+      if (m[i - 1][j - 1] === &quot;1&quot;) {
+        dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
+        best = Math.max(best, dp[i][j]);
+      }
+    }
+  }
+  return best * best;
+}
+
+function main(): void {
+  console.log(`pascal row 4: ${pascalRow(4).join(&quot; &quot;)}`);
+  console.log(`uniquePaths(3, 7) = ${uniquePaths(3, 7)}, uniquePaths(3, 2) = ${uniquePaths(3, 2)}`);
+  console.log(`minPathSum = ${minPathSum([[1, 3, 1], [1, 5, 1], [4, 2, 1]])}`);
+  console.log(`longestPalindromeSubseq(bbbab) = ${longestPalindromeSubseq(&quot;bbbab&quot;)}, (cbbd) = ${longestPalindromeSubseq(&quot;cbbd&quot;)}`);
+  console.log(`maximalSquare area = ${maximalSquare([&quot;10100&quot;, &quot;10111&quot;, &quot;11111&quot;, &quot;10010&quot;])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-dp-2d-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">pascal_row</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="5">    row = [<span class="hljs-number">1</span>] + [<span class="hljs-number">0</span>] * n</span><span class="ln" data-line="6">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, n + <span class="hljs-number">1</span>):</span><span class="ln" data-line="7">        <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(i, <span class="hljs-number">0</span>, -<span class="hljs-number">1</span>):  <span class="hljs-comment"># right to left keeps last row&#x27;s values</span></span><span class="ln" data-line="8">            row[j] += row[j - <span class="hljs-number">1</span>]</span><span class="ln" data-line="9">    <span class="hljs-keyword">return</span> row</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"><span class="hljs-keyword">def</span> <span class="hljs-title function_">unique_paths</span>(<span class="hljs-params">m: <span class="hljs-built_in">int</span>, n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="13">    row = [<span class="hljs-number">1</span>] * n  <span class="hljs-comment"># the first row: one way to each cell</span></span><span class="ln" data-line="14">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, m):</span><span class="ln" data-line="15">        <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, n):</span><span class="ln" data-line="16">            row[j] += row[j - <span class="hljs-number">1</span>]  <span class="hljs-comment"># from above + from the left</span></span><span class="ln" data-line="17">    <span class="hljs-keyword">return</span> row[-<span class="hljs-number">1</span>]</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">def</span> <span class="hljs-title function_">min_path_sum</span>(<span class="hljs-params">g: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="21">    cols = <span class="hljs-built_in">len</span>(g[<span class="hljs-number">0</span>])</span><span class="ln" data-line="22">    dp = [<span class="hljs-number">0</span>] + [<span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;inf&quot;</span>)] * (cols - <span class="hljs-number">1</span>)</span><span class="ln" data-line="23">    <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> g:</span><span class="ln" data-line="24">        dp[<span class="hljs-number">0</span>] += row[<span class="hljs-number">0</span>]</span><span class="ln" data-line="25">        <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, cols):</span><span class="ln" data-line="26">            dp[c] = <span class="hljs-built_in">min</span>(dp[c], dp[c - <span class="hljs-number">1</span>]) + row[c]</span><span class="ln" data-line="27">    <span class="hljs-keyword">return</span> dp[-<span class="hljs-number">1</span>]</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29"> </span><span class="ln" data-line="30"><span class="hljs-keyword">def</span> <span class="hljs-title function_">longest_palindrome_subseq</span>(<span class="hljs-params">s: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="31">    n = <span class="hljs-built_in">len</span>(s)</span><span class="ln" data-line="32">    dp = [[<span class="hljs-number">0</span>] * n <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n)]  <span class="hljs-comment"># dp[i][j] = answer for s[i..j]</span></span><span class="ln" data-line="33">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n - <span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):</span><span class="ln" data-line="34">        dp[i][i] = <span class="hljs-number">1</span></span><span class="ln" data-line="35">        <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(i + <span class="hljs-number">1</span>, n):</span><span class="ln" data-line="36">            dp[i][j] = dp[i + <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>] + <span class="hljs-number">2</span> <span class="hljs-keyword">if</span> s[i] == s[j] <span class="hljs-keyword">else</span> <span class="hljs-built_in">max</span>(dp[i + <span class="hljs-number">1</span>][j], dp[i][j - <span class="hljs-number">1</span>])</span><span class="ln" data-line="37">    <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][n - <span class="hljs-number">1</span>]</span><span class="ln" data-line="38"> </span><span class="ln" data-line="39"> </span><span class="ln" data-line="40"><span class="hljs-keyword">def</span> <span class="hljs-title function_">maximal_square</span>(<span class="hljs-params">m: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="41">    rows, cols, best = <span class="hljs-built_in">len</span>(m), <span class="hljs-built_in">len</span>(m[<span class="hljs-number">0</span>]), <span class="hljs-number">0</span></span><span class="ln" data-line="42">    dp = [[<span class="hljs-number">0</span>] * (cols + <span class="hljs-number">1</span>) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(rows + <span class="hljs-number">1</span>)]</span><span class="ln" data-line="43">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, rows + <span class="hljs-number">1</span>):</span><span class="ln" data-line="44">        <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, cols + <span class="hljs-number">1</span>):</span><span class="ln" data-line="45">            <span class="hljs-keyword">if</span> m[i - <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>] == <span class="hljs-string">&quot;1&quot;</span>:</span><span class="ln" data-line="46">                dp[i][j] = <span class="hljs-number">1</span> + <span class="hljs-built_in">min</span>(dp[i - <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>], dp[i - <span class="hljs-number">1</span>][j], dp[i][j - <span class="hljs-number">1</span>])</span><span class="ln" data-line="47">                best = <span class="hljs-built_in">max</span>(best, dp[i][j])</span><span class="ln" data-line="48">    <span class="hljs-keyword">return</span> best * best</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="52">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;pascal row 4: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, pascal_row(<span class="hljs-number">4</span>)))}</span>&quot;</span>)</span><span class="ln" data-line="53">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;uniquePaths(3, 7) = <span class="hljs-subst">{unique_paths(<span class="hljs-number">3</span>, <span class="hljs-number">7</span>)}</span>, uniquePaths(3, 2) = <span class="hljs-subst">{unique_paths(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>)}</span>&quot;</span>)</span><span class="ln" data-line="54">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;minPathSum = <span class="hljs-subst">{min_path_sum([[<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">4</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>]])}</span>&quot;</span>)</span><span class="ln" data-line="55">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;longestPalindromeSubseq(bbbab) = <span class="hljs-subst">{longest_palindrome_subseq(<span class="hljs-string">&#x27;bbbab&#x27;</span>)}</span>, (cbbd) = <span class="hljs-subst">{longest_palindrome_subseq(<span class="hljs-string">&#x27;cbbd&#x27;</span>)}</span>&quot;</span>)</span><span class="ln" data-line="56">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;maximalSquare area = <span class="hljs-subst">{maximal_square([<span class="hljs-string">&#x27;10100&#x27;</span>, <span class="hljs-string">&#x27;10111&#x27;</span>, <span class="hljs-string">&#x27;11111&#x27;</span>, <span class="hljs-string">&#x27;10010&#x27;</span>])}</span>&quot;</span>)</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="60">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List
+
+
+def pascal_row(n: int) -&gt; List[int]:
+    row = [1] + [0] * n
+    for i in range(1, n + 1):
+        for j in range(i, 0, -1):  # right to left keeps last row&#39;s values
+            row[j] += row[j - 1]
+    return row
+
+
+def unique_paths(m: int, n: int) -&gt; int:
+    row = [1] * n  # the first row: one way to each cell
+    for _ in range(1, m):
+        for j in range(1, n):
+            row[j] += row[j - 1]  # from above + from the left
+    return row[-1]
+
+
+def min_path_sum(g: List[List[int]]) -&gt; int:
+    cols = len(g[0])
+    dp = [0] + [float(&quot;inf&quot;)] * (cols - 1)
+    for row in g:
+        dp[0] += row[0]
+        for c in range(1, cols):
+            dp[c] = min(dp[c], dp[c - 1]) + row[c]
+    return dp[-1]
+
+
+def longest_palindrome_subseq(s: str) -&gt; int:
+    n = len(s)
+    dp = [[0] * n for _ in range(n)]  # dp[i][j] = answer for s[i..j]
+    for i in range(n - 1, -1, -1):
+        dp[i][i] = 1
+        for j in range(i + 1, n):
+            dp[i][j] = dp[i + 1][j - 1] + 2 if s[i] == s[j] else max(dp[i + 1][j], dp[i][j - 1])
+    return dp[0][n - 1]
+
+
+def maximal_square(m: List[str]) -&gt; int:
+    rows, cols, best = len(m), len(m[0]), 0
+    dp = [[0] * (cols + 1) for _ in range(rows + 1)]
+    for i in range(1, rows + 1):
+        for j in range(1, cols + 1):
+            if m[i - 1][j - 1] == &quot;1&quot;:
+                dp[i][j] = 1 + min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1])
+                best = max(best, dp[i][j])
+    return best * best
+
+
+def main() -&gt; None:
+    print(f&quot;pascal row 4: {&#39; &#39;.join(map(str, pascal_row(4)))}&quot;)
+    print(f&quot;uniquePaths(3, 7) = {unique_paths(3, 7)}, uniquePaths(3, 2) = {unique_paths(3, 2)}&quot;)
+    print(f&quot;minPathSum = {min_path_sum([[1, 3, 1], [1, 5, 1], [4, 2, 1]])}&quot;)
+    print(f&quot;longestPalindromeSubseq(bbbab) = {longest_palindrome_subseq(&#39;bbbab&#39;)}, (cbbd) = {longest_palindrome_subseq(&#39;cbbd&#39;)}&quot;)
+    print(f&quot;maximalSquare area = {maximal_square([&#39;10100&#39;, &#39;10111&#39;, &#39;11111&#39;, &#39;10010&#39;])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>pascal row 4: 1 4 6 4 1
+uniquePaths(3, 7) = 28, uniquePaths(3, 2) = 3
+minPathSum = 7
+longestPalindromeSubseq(bbbab) = 4, (cbbd) = 2
+maximalSquare area = 4</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Off-by-one between <code>dp</code> indices (1-based with the padding row) and input indices (0-based).</li><li>Initialising the first row and column wrongly, such as with 0 instead of running sums in minimum path sum.</li><li>When rolling to one row, reading a cell already overwritten in this row when you needed last row&#39;s value (save the diagonal first).</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/pascals-triangle/" rel="noopener" target="_blank">Pascal&#39;s Triangle<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>118</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/unique-paths/" rel="noopener" target="_blank">Unique Paths<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>62</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/minimum-path-sum/" rel="noopener" target="_blank">Minimum Path Sum<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>64</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/longest-palindromic-subsequence/" rel="noopener" target="_blank">Longest Palindromic Subsequence<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>516</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/maximal-square/" rel="noopener" target="_blank">Maximal Square<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>221</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/regular-expression-matching/" rel="noopener" target="_blank">Regular Expression Matching<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>10</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../algorithms/dynamic-programming/index.html">Dynamic programming</a>, <a href="../../data-structures/arrays/index.html">Arrays</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../dp-1d/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">1D dynamic programming</span></a><a class="pn pn-next" href="../knapsack/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Knapsack</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

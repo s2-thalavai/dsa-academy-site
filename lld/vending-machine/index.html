@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vending machine · DSA Academy</title>
+<meta name="description" content="The State pattern, one state per mode.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../index.html" aria-current="page">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Low-level design</a></li><li><span aria-current="page">Vending machine</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Vending machine</h1>
+  <p class="lede">The textbook use of the State pattern. A vending machine reacts to the same buttons differently depending on its mode: with no money, &quot;select&quot; asks for coins; with money, it dispenses; when empty, it refuses everything. One class per mode keeps those rules apart.</p>
+  <p class="tags"><span class="pill">Low-level design</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A ticket barrier. Tap a card when it&#39;s closed and it opens; walk through when it&#39;s open and it closes; when it&#39;s switched off for maintenance, every action just gets an &quot;out of service&quot; light.</p></aside>
+<h2 id="requirements">Requirements</h2>
+<p><strong>Functional</strong></p>
+<ul>
+<li>Accept coins of 5, 10, 25 and 100 cents; return anything else.</li>
+<li>Select an item by code: dispense it if paid for, give change, refuse if sold out or underpaid.</li>
+<li>Cancel returns the balance.</li>
+<li>When every slot is empty the machine goes out of service; restocking brings it back.</li>
+</ul>
+<p><strong>Non-functional</strong></p>
+<ul>
+<li>Adding a mode (maintenance, card payment) means adding a class, not editing <code>if</code> chains in every method.</li>
+<li>Money is in integer cents.</li>
+</ul>
+<h2 id="entities-and-relationships">Entities and relationships</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 674 394" role="img" aria-label="Class diagram: VendingMachine holds the current State, a balance and Slots; Idle, HasMoney and OutOfService implement State"><defs><marker id="ah1-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker><marker id="ah1-dg-head-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head-a" d="M0 0L10 5L0 10z"/></marker></defs><path class="dg-line-a" d="M366.5 147.0 L366.5 195.0" marker-end="url(#ah1-dg-head-a)"/><path class="dg-dash" d="M135.5 345.5 L288.5 278.0" marker-end="url(#ah1-dg-head)"/><path class="dg-dash" d="M366.5 340.0 L366.5 292.0" marker-end="url(#ah1-dg-head)"/><path class="dg-dash" d="M560.3 340.0 L444.5 282.3" marker-end="url(#ah1-dg-head)"/><path class="dg-line" d="M256.0 67.1 L194.0 59.1" marker-end="url(#ah1-dg-head)"/><rect class="dg-box" x="260.0" y="20" width="213" height="123" rx="6"/><rect class="dg-hd" x="260.0" y="20" width="213" height="28" rx="6"/><text class="dg-ch" x="366.5" y="34">VendingMachine</text><text class="dg-c" x="270.0" y="66">- state: State</text><text class="dg-c" x="270.0" y="83">- balance</text><text class="dg-c" x="270.0" y="100">- slots: Map&lt;code, Slot&gt;</text><text class="dg-c" x="270.0" y="117">+ insert / select / cancel</text><text class="dg-c" x="270.0" y="134">+ restock(code, n)</text><rect class="dg-box" x="292.5" y="199" width="148" height="89" rx="6"/><rect class="dg-hd" x="292.5" y="199" width="148" height="28" rx="6"/><text class="dg-ch" x="366.5" y="213">«interface» State</text><text class="dg-c" x="302.5" y="245">+ insert(m, coin)</text><text class="dg-c" x="302.5" y="262">+ select(m, code)</text><text class="dg-c" x="302.5" y="279">+ cancel(m)</text><rect class="dg-box" x="78.5" y="344" width="53" height="30" rx="6"/><rect class="dg-hd" x="78.5" y="344" width="53" height="28" rx="6"/><text class="dg-ch" x="105.0" y="358">Idle</text><rect class="dg-box" x="325.5" y="344" width="82" height="30" rx="6"/><rect class="dg-hd" x="325.5" y="344" width="82" height="28" rx="6"/><text class="dg-ch" x="366.5" y="358">HasMoney</text><rect class="dg-box" x="543.0" y="344" width="111" height="30" rx="6"/><rect class="dg-hd" x="543.0" y="344" width="111" height="28" rx="6"/><text class="dg-ch" x="598.5" y="358">OutOfService</text><rect class="dg-box" x="20.0" y="20" width="170" height="55" rx="6"/><rect class="dg-hd" x="20.0" y="20" width="170" height="28" rx="6"/><text class="dg-ch" x="105.0" y="34">Slot</text><text class="dg-c" x="30.0" y="66">- name, price, count</text><rect class="dg-bg" x="319.5" y="161.0" width="94" height="18" rx="4"/><text class="dg-sq" x="366.5" y="175.0">delegates to</text></svg><figcaption>The machine forwards every button press to its current state object, which may switch the machine to another state.</figcaption></figure><p><strong>State transitions</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>State</th>
+<th>insert(coin)</th>
+<th>select(code)</th>
+<th>cancel()</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Idle</strong></td>
+<td>add to balance → HasMoney</td>
+<td>&quot;insert money first&quot;</td>
+<td>nothing to refund</td>
+</tr>
+<tr>
+<td><strong>HasMoney</strong></td>
+<td>add to balance</td>
+<td>dispense + change → Idle (or OutOfService if all empty); or refuse and stay</td>
+<td>refund → Idle</td>
+</tr>
+<tr>
+<td><strong>OutOfService</strong></td>
+<td>return the coin</td>
+<td>refuse</td>
+<td>nothing to refund</td>
+</tr>
+</tbody></table></div>
+<p><code>restock</code> moves OutOfService back to Idle. Each state is stateless itself, so a
+single shared instance of each is enough.</p>
+<h2 id="design-patterns-used">Design patterns used</h2>
+<ul>
+<li><strong>State</strong>: each mode is a class; the machine&#39;s behaviour changes by swapping its <code>state</code> field.</li>
+<li><strong>Singleton (per state)</strong>: states hold no data, so one instance of each is shared.</li>
+<li><strong>Greedy change-making</strong>: with coin values 100/25/10/5, taking the largest coin first gives the fewest coins.</li>
+</ul>
+<h2 id="how-a-request-flows">How a request flows</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 720 328" role="img" aria-label="Sequence diagram: a user selects A1; the machine forwards to the HasMoney state, which checks the slot and balance, dispenses, computes change and switches the machine to Idle"><defs><marker id="ah2-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker></defs><rect class="dg-hd" x="76.4" y="20" width="57.2" height="30" rx="6"/><text class="dg-ch" x="105.0" y="35">User</text><path class="dg-dash" d="M105.0 50 L105.0 318"/><rect class="dg-hd" x="209.9" y="20" width="130.2" height="30" rx="6"/><text class="dg-ch" x="275.0" y="35">VendingMachine</text><path class="dg-dash" d="M275.0 50 L275.0 318"/><rect class="dg-hd" x="401.8" y="20" width="86.4" height="30" rx="6"/><text class="dg-ch" x="445.0" y="35">HasMoney</text><path class="dg-dash" d="M445.0 50 L445.0 318"/><rect class="dg-hd" x="575.45" y="20" width="79.1" height="30" rx="6"/><text class="dg-ch" x="615.0" y="35">Slot A1</text><path class="dg-dash" d="M615.0 50 L615.0 318"/><path class="dg-line" d="M105.0 88 L271.0 88" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="190.0" y="82">select(&quot;A1&quot;)</text><path class="dg-line" d="M275.0 122 L441.0 122" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="360.0" y="116">select(machine, &quot;A1&quot;)</text><path class="dg-line" d="M445.0 156 L611.0 156" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="530.0" y="150">in stock? price?</text><path class="dg-dash" d="M615.0 190 L449.0 190" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="530.0" y="184">1.25, 2 left</text><path class="dg-line" d="M445.0 224 L611.0 224" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="530.0" y="218">count--</text><path class="dg-line" d="M445.0 258 L279.0 258" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="360.0" y="252">balance = 0; state = Idle</text><path class="dg-dash" d="M445.0 292 L109.0 292" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="275.0" y="286">Chips + change 0.25</text></svg><figcaption>The machine itself contains no <code>if (state == …)</code> checks.</figcaption></figure><h2 id="cost-of-each-operation">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>insert / cancel</td><td class="nowrap">O(1)</td><td>One field update and maybe a state switch.</td></tr><tr><td>select</td><td class="nowrap">O(1)</td><td>One map lookup plus change-making over 4 coin values.</td></tr><tr><td>all sold out check</td><td class="nowrap">O(slots)</td><td>Done only after a sale.</td></tr></tbody></table></div><h2 id="code">Code</h2>
+<p>Each line shows the button pressed, the machine&#39;s answer, and the state it&#39;s in afterwards.</p><figure class="codeblock" id="code-vending-machine" aria-label="A vending machine built with the State pattern">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-vending-machine-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-vending-machine-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-vending-machine-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-vending-machine-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-vending-machine-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.LinkedHashMap;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.Map;</span><span class="ln" data-line="5"><span class="hljs-keyword">import</span> java.util.Set;</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Set</span>&lt;Integer&gt; <span class="hljs-variable">COINS</span> <span class="hljs-operator">=</span> Set.of(<span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>, <span class="hljs-number">100</span>);</span><span class="ln" data-line="10">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span>[] <span class="hljs-variable">CHANGE_COINS</span> <span class="hljs-operator">=</span> { <span class="hljs-number">100</span>, <span class="hljs-number">25</span>, <span class="hljs-number">10</span>, <span class="hljs-number">5</span> };</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Slot</span> {</span><span class="ln" data-line="13">        <span class="hljs-keyword">final</span> String name;</span><span class="ln" data-line="14">        <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> price;</span><span class="ln" data-line="15">        <span class="hljs-type">int</span> count;</span><span class="ln" data-line="16">        Slot(String name, <span class="hljs-type">int</span> price, <span class="hljs-type">int</span> count) { <span class="hljs-built_in">this</span>.name = name; <span class="hljs-built_in">this</span>.price = price; <span class="hljs-built_in">this</span>.count = count; }</span><span class="ln" data-line="17">    }</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19">    <span class="hljs-keyword">interface</span> <span class="hljs-title class_">State</span> {</span><span class="ln" data-line="20">        <span class="hljs-type">String</span> <span class="hljs-title function_">name</span><span class="hljs-params">()</span>;</span><span class="ln" data-line="21">        <span class="hljs-type">String</span> <span class="hljs-title function_">insert</span><span class="hljs-params">(VendingMachine m, <span class="hljs-type">int</span> coin)</span>;</span><span class="ln" data-line="22">        <span class="hljs-type">String</span> <span class="hljs-title function_">select</span><span class="hljs-params">(VendingMachine m, String code)</span>;</span><span class="ln" data-line="23">        <span class="hljs-type">String</span> <span class="hljs-title function_">cancel</span><span class="hljs-params">(VendingMachine m)</span>;</span><span class="ln" data-line="24">    }</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">State</span> <span class="hljs-variable">IDLE</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Idle</span>(), HAS_MONEY = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HasMoney</span>(), OUT_OF_SERVICE = <span class="hljs-keyword">new</span> <span class="hljs-title class_">OutOfService</span>();</span><span class="ln" data-line="27"> </span><span class="ln" data-line="28">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">acceptCoin</span><span class="hljs-params">(VendingMachine m, <span class="hljs-type">int</span> coin)</span> {</span><span class="ln" data-line="29">        <span class="hljs-keyword">if</span> (!COINS.contains(coin)) <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;rejected coin &quot;</span> + coin + <span class="hljs-string">&quot;, returned&quot;</span>;</span><span class="ln" data-line="30">        m.balance += coin;</span><span class="ln" data-line="31">        m.state = HAS_MONEY;</span><span class="ln" data-line="32">        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;balance &quot;</span> + money(m.balance);</span><span class="ln" data-line="33">    }</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Idle</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">State</span> {</span><span class="ln" data-line="36">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">name</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Idle&quot;</span>; }</span><span class="ln" data-line="37">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">insert</span><span class="hljs-params">(VendingMachine m, <span class="hljs-type">int</span> coin)</span> { <span class="hljs-keyword">return</span> acceptCoin(m, coin); }</span><span class="ln" data-line="38">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">select</span><span class="hljs-params">(VendingMachine m, String code)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;insert money first&quot;</span>; }</span><span class="ln" data-line="39">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">cancel</span><span class="hljs-params">(VendingMachine m)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;nothing to refund&quot;</span>; }</span><span class="ln" data-line="40">    }</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">HasMoney</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">State</span> {</span><span class="ln" data-line="43">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">name</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;HasMoney&quot;</span>; }</span><span class="ln" data-line="44">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">insert</span><span class="hljs-params">(VendingMachine m, <span class="hljs-type">int</span> coin)</span> { <span class="hljs-keyword">return</span> acceptCoin(m, coin); }</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">select</span><span class="hljs-params">(VendingMachine m, String code)</span> {</span><span class="ln" data-line="47">            <span class="hljs-type">Slot</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> m.slots.get(code);</span><span class="ln" data-line="48">            <span class="hljs-keyword">if</span> (s == <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;no such item &quot;</span> + code;</span><span class="ln" data-line="49">            <span class="hljs-keyword">if</span> (s.count == <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> s.name + <span class="hljs-string">&quot; is sold out&quot;</span>;</span><span class="ln" data-line="50">            <span class="hljs-keyword">if</span> (m.balance &lt; s.price) <span class="hljs-keyword">return</span> s.name + <span class="hljs-string">&quot; costs &quot;</span> + money(s.price) + <span class="hljs-string">&quot;, balance &quot;</span> + money(m.balance);</span><span class="ln" data-line="51">            s.count--;</span><span class="ln" data-line="52">            <span class="hljs-type">int</span> <span class="hljs-variable">change</span> <span class="hljs-operator">=</span> m.balance - s.price;</span><span class="ln" data-line="53">            m.balance = <span class="hljs-number">0</span>;</span><span class="ln" data-line="54">            m.state = m.allSoldOut() ? OUT_OF_SERVICE : IDLE; <span class="hljs-comment">// only after the sale succeeded</span></span><span class="ln" data-line="55">            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;dispensed &quot;</span> + s.name + (change == <span class="hljs-number">0</span> ? <span class="hljs-string">&quot;, no change&quot;</span> : <span class="hljs-string">&quot;, change &quot;</span> + money(change) + <span class="hljs-string">&quot; (&quot;</span> + coins(change) + <span class="hljs-string">&quot;)&quot;</span>);</span><span class="ln" data-line="56">        }</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">cancel</span><span class="hljs-params">(VendingMachine m)</span> {</span><span class="ln" data-line="59">            <span class="hljs-type">int</span> <span class="hljs-variable">refund</span> <span class="hljs-operator">=</span> m.balance;</span><span class="ln" data-line="60">            m.balance = <span class="hljs-number">0</span>;</span><span class="ln" data-line="61">            m.state = IDLE;</span><span class="ln" data-line="62">            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;refunded &quot;</span> + money(refund) + <span class="hljs-string">&quot; (&quot;</span> + coins(refund) + <span class="hljs-string">&quot;)&quot;</span>;</span><span class="ln" data-line="63">        }</span><span class="ln" data-line="64">    }</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">OutOfService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">State</span> {</span><span class="ln" data-line="67">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">name</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;OutOfService&quot;</span>; }</span><span class="ln" data-line="68">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">insert</span><span class="hljs-params">(VendingMachine m, <span class="hljs-type">int</span> coin)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;out of service, coin &quot;</span> + coin + <span class="hljs-string">&quot; returned&quot;</span>; }</span><span class="ln" data-line="69">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">select</span><span class="hljs-params">(VendingMachine m, String code)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;out of service&quot;</span>; }</span><span class="ln" data-line="70">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">cancel</span><span class="hljs-params">(VendingMachine m)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;nothing to refund&quot;</span>; }</span><span class="ln" data-line="71">    }</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">VendingMachine</span> {</span><span class="ln" data-line="74">        <span class="hljs-type">State</span> <span class="hljs-variable">state</span> <span class="hljs-operator">=</span> IDLE;</span><span class="ln" data-line="75">        <span class="hljs-type">int</span> balance;</span><span class="ln" data-line="76">        <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span>&lt;String, Slot&gt; <span class="hljs-variable">slots</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedHashMap</span>&lt;&gt;();</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78">        <span class="hljs-type">String</span> <span class="hljs-title function_">insert</span><span class="hljs-params">(<span class="hljs-type">int</span> coin)</span> { <span class="hljs-keyword">return</span> state.insert(<span class="hljs-built_in">this</span>, coin); }      <span class="hljs-comment">// every button press goes to the state</span></span><span class="ln" data-line="79">        <span class="hljs-type">String</span> <span class="hljs-title function_">select</span><span class="hljs-params">(String code)</span> { <span class="hljs-keyword">return</span> state.select(<span class="hljs-built_in">this</span>, code); }</span><span class="ln" data-line="80">        <span class="hljs-type">String</span> <span class="hljs-title function_">cancel</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> state.cancel(<span class="hljs-built_in">this</span>); }</span><span class="ln" data-line="81"> </span><span class="ln" data-line="82">        <span class="hljs-type">String</span> <span class="hljs-title function_">restock</span><span class="hljs-params">(String code, <span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="83">            slots.get(code).count += n;</span><span class="ln" data-line="84">            <span class="hljs-keyword">if</span> (state == OUT_OF_SERVICE) state = IDLE;</span><span class="ln" data-line="85">            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;restocked &quot;</span> + slots.get(code).name + <span class="hljs-string">&quot; to &quot;</span> + slots.get(code).count;</span><span class="ln" data-line="86">        }</span><span class="ln" data-line="87"> </span><span class="ln" data-line="88">        <span class="hljs-type">boolean</span> <span class="hljs-title function_">allSoldOut</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="89">            <span class="hljs-keyword">for</span> (Slot s : slots.values()) <span class="hljs-keyword">if</span> (s.count &gt; <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="90">            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="91">        }</span><span class="ln" data-line="92">    }</span><span class="ln" data-line="93"> </span><span class="ln" data-line="94">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">coins</span><span class="hljs-params">(<span class="hljs-type">int</span> cents)</span> {</span><span class="ln" data-line="95">        <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="96">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> c : CHANGE_COINS) <span class="hljs-keyword">while</span> (cents &gt;= c) { out.add(String.valueOf(c)); cents -= c; } <span class="hljs-comment">// largest coin first</span></span><span class="ln" data-line="97">        <span class="hljs-keyword">return</span> String.join(<span class="hljs-string">&quot; &quot;</span>, out);</span><span class="ln" data-line="98">    }</span><span class="ln" data-line="99"> </span><span class="ln" data-line="100">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">money</span><span class="hljs-params">(<span class="hljs-type">int</span> cents)</span> { <span class="hljs-keyword">return</span> (cents / <span class="hljs-number">100</span>) + <span class="hljs-string">&quot;.&quot;</span> + (cents % <span class="hljs-number">100</span> &lt; <span class="hljs-number">10</span> ? <span class="hljs-string">&quot;0&quot;</span> : <span class="hljs-string">&quot;&quot;</span>) + (cents % <span class="hljs-number">100</span>); }</span><span class="ln" data-line="101"> </span><span class="ln" data-line="102">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="103">        <span class="hljs-type">VendingMachine</span> <span class="hljs-variable">vm</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">VendingMachine</span>();</span><span class="ln" data-line="104">        vm.slots.put(<span class="hljs-string">&quot;A1&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Slot</span>(<span class="hljs-string">&quot;Chips&quot;</span>, <span class="hljs-number">125</span>, <span class="hljs-number">2</span>));</span><span class="ln" data-line="105">        vm.slots.put(<span class="hljs-string">&quot;B1&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Slot</span>(<span class="hljs-string">&quot;Soda&quot;</span>, <span class="hljs-number">150</span>, <span class="hljs-number">1</span>));</span><span class="ln" data-line="106">        vm.slots.put(<span class="hljs-string">&quot;C1&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Slot</span>(<span class="hljs-string">&quot;Candy&quot;</span>, <span class="hljs-number">65</span>, <span class="hljs-number">0</span>));</span><span class="ln" data-line="107">        <span class="hljs-type">String</span>[] <span class="hljs-variable">actions</span> <span class="hljs-operator">=</span> {</span><span class="ln" data-line="108">            <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 3&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;insert 25&quot;</span>, <span class="hljs-string">&quot;insert 25&quot;</span>,</span><span class="ln" data-line="109">            <span class="hljs-string">&quot;select C1&quot;</span>, <span class="hljs-string">&quot;select Z9&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;select B1&quot;</span>,</span><span class="ln" data-line="110">            <span class="hljs-string">&quot;cancel&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;select B1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>,</span><span class="ln" data-line="111">            <span class="hljs-string">&quot;insert 25&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;restock A1 5&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>,</span><span class="ln" data-line="112">        };</span><span class="ln" data-line="113">        <span class="hljs-keyword">for</span> (String a : actions) {</span><span class="ln" data-line="114">            <span class="hljs-type">String</span>[] <span class="hljs-variable">w</span> <span class="hljs-operator">=</span> a.split(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="115">            String result;</span><span class="ln" data-line="116">            <span class="hljs-keyword">switch</span> (w[<span class="hljs-number">0</span>]) {</span><span class="ln" data-line="117">                <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;insert&quot;</span>: result = vm.insert(Integer.parseInt(w[<span class="hljs-number">1</span>])); <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="118">                <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;select&quot;</span>: result = vm.select(w[<span class="hljs-number">1</span>]); <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="119">                <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;cancel&quot;</span>: result = vm.cancel(); <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="120">                <span class="hljs-keyword">default</span>: result = vm.restock(w[<span class="hljs-number">1</span>], Integer.parseInt(w[<span class="hljs-number">2</span>]));</span><span class="ln" data-line="121">            }</span><span class="ln" data-line="122">            System.out.println(a + <span class="hljs-string">&quot; -&gt; &quot;</span> + result + <span class="hljs-string">&quot; [&quot;</span> + vm.state.name() + <span class="hljs-string">&quot;]&quot;</span>);</span><span class="ln" data-line="123">        }</span><span class="ln" data-line="124">    }</span><span class="ln" data-line="125">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public class Solution {
+
+    static final Set&lt;Integer&gt; COINS = Set.of(5, 10, 25, 100);
+    static final int[] CHANGE_COINS = { 100, 25, 10, 5 };
+
+    static final class Slot {
+        final String name;
+        final int price;
+        int count;
+        Slot(String name, int price, int count) { this.name = name; this.price = price; this.count = count; }
+    }
+
+    interface State {
+        String name();
+        String insert(VendingMachine m, int coin);
+        String select(VendingMachine m, String code);
+        String cancel(VendingMachine m);
+    }
+
+    static final State IDLE = new Idle(), HAS_MONEY = new HasMoney(), OUT_OF_SERVICE = new OutOfService();
+
+    static String acceptCoin(VendingMachine m, int coin) {
+        if (!COINS.contains(coin)) return &quot;rejected coin &quot; + coin + &quot;, returned&quot;;
+        m.balance += coin;
+        m.state = HAS_MONEY;
+        return &quot;balance &quot; + money(m.balance);
+    }
+
+    static final class Idle implements State {
+        public String name() { return &quot;Idle&quot;; }
+        public String insert(VendingMachine m, int coin) { return acceptCoin(m, coin); }
+        public String select(VendingMachine m, String code) { return &quot;insert money first&quot;; }
+        public String cancel(VendingMachine m) { return &quot;nothing to refund&quot;; }
+    }
+
+    static final class HasMoney implements State {
+        public String name() { return &quot;HasMoney&quot;; }
+        public String insert(VendingMachine m, int coin) { return acceptCoin(m, coin); }
+
+        public String select(VendingMachine m, String code) {
+            Slot s = m.slots.get(code);
+            if (s == null) return &quot;no such item &quot; + code;
+            if (s.count == 0) return s.name + &quot; is sold out&quot;;
+            if (m.balance &lt; s.price) return s.name + &quot; costs &quot; + money(s.price) + &quot;, balance &quot; + money(m.balance);
+            s.count--;
+            int change = m.balance - s.price;
+            m.balance = 0;
+            m.state = m.allSoldOut() ? OUT_OF_SERVICE : IDLE; // only after the sale succeeded
+            return &quot;dispensed &quot; + s.name + (change == 0 ? &quot;, no change&quot; : &quot;, change &quot; + money(change) + &quot; (&quot; + coins(change) + &quot;)&quot;);
+        }
+
+        public String cancel(VendingMachine m) {
+            int refund = m.balance;
+            m.balance = 0;
+            m.state = IDLE;
+            return &quot;refunded &quot; + money(refund) + &quot; (&quot; + coins(refund) + &quot;)&quot;;
+        }
+    }
+
+    static final class OutOfService implements State {
+        public String name() { return &quot;OutOfService&quot;; }
+        public String insert(VendingMachine m, int coin) { return &quot;out of service, coin &quot; + coin + &quot; returned&quot;; }
+        public String select(VendingMachine m, String code) { return &quot;out of service&quot;; }
+        public String cancel(VendingMachine m) { return &quot;nothing to refund&quot;; }
+    }
+
+    static final class VendingMachine {
+        State state = IDLE;
+        int balance;
+        final Map&lt;String, Slot&gt; slots = new LinkedHashMap&lt;&gt;();
+
+        String insert(int coin) { return state.insert(this, coin); }      // every button press goes to the state
+        String select(String code) { return state.select(this, code); }
+        String cancel() { return state.cancel(this); }
+
+        String restock(String code, int n) {
+            slots.get(code).count += n;
+            if (state == OUT_OF_SERVICE) state = IDLE;
+            return &quot;restocked &quot; + slots.get(code).name + &quot; to &quot; + slots.get(code).count;
+        }
+
+        boolean allSoldOut() {
+            for (Slot s : slots.values()) if (s.count &gt; 0) return false;
+            return true;
+        }
+    }
+
+    static String coins(int cents) {
+        List&lt;String&gt; out = new ArrayList&lt;&gt;();
+        for (int c : CHANGE_COINS) while (cents &gt;= c) { out.add(String.valueOf(c)); cents -= c; } // largest coin first
+        return String.join(&quot; &quot;, out);
+    }
+
+    static String money(int cents) { return (cents / 100) + &quot;.&quot; + (cents % 100 &lt; 10 ? &quot;0&quot; : &quot;&quot;) + (cents % 100); }
+
+    public static void main(String[] args) {
+        VendingMachine vm = new VendingMachine();
+        vm.slots.put(&quot;A1&quot;, new Slot(&quot;Chips&quot;, 125, 2));
+        vm.slots.put(&quot;B1&quot;, new Slot(&quot;Soda&quot;, 150, 1));
+        vm.slots.put(&quot;C1&quot;, new Slot(&quot;Candy&quot;, 65, 0));
+        String[] actions = {
+            &quot;select A1&quot;, &quot;insert 3&quot;, &quot;insert 100&quot;, &quot;insert 25&quot;, &quot;insert 25&quot;,
+            &quot;select C1&quot;, &quot;select Z9&quot;, &quot;select A1&quot;, &quot;insert 100&quot;, &quot;select B1&quot;,
+            &quot;cancel&quot;, &quot;insert 100&quot;, &quot;insert 100&quot;, &quot;select B1&quot;, &quot;insert 100&quot;,
+            &quot;insert 25&quot;, &quot;select A1&quot;, &quot;insert 100&quot;, &quot;restock A1 5&quot;, &quot;select A1&quot;,
+        };
+        for (String a : actions) {
+            String[] w = a.split(&quot; &quot;);
+            String result;
+            switch (w[0]) {
+                case &quot;insert&quot;: result = vm.insert(Integer.parseInt(w[1])); break;
+                case &quot;select&quot;: result = vm.select(w[1]); break;
+                case &quot;cancel&quot;: result = vm.cancel(); break;
+                default: result = vm.restock(w[1], Integer.parseInt(w[2]));
+            }
+            System.out.println(a + &quot; -&gt; &quot; + result + &quot; [&quot; + vm.state.name() + &quot;]&quot;);
+        }
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-vending-machine-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">COINS</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>([<span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>, <span class="hljs-number">100</span>]);</span><span class="ln" data-line="2"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">CHANGE_COINS</span> = [<span class="hljs-number">100</span>, <span class="hljs-number">25</span>, <span class="hljs-number">10</span>, <span class="hljs-number">5</span>];</span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">const</span> <span class="hljs-title function_">money</span> = (<span class="hljs-params">cents</span>) =&gt; <span class="hljs-string">`<span class="hljs-subst">${<span class="hljs-built_in">Math</span>.floor(cents / <span class="hljs-number">100</span>)}</span>.<span class="hljs-subst">${<span class="hljs-built_in">String</span>(cents % <span class="hljs-number">100</span>).padStart(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;0&quot;</span>)}</span>`</span>;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"><span class="hljs-keyword">function</span> <span class="hljs-title function_">coins</span>(<span class="hljs-params">cents</span>) {</span><span class="ln" data-line="7">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="8">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> c <span class="hljs-keyword">of</span> <span class="hljs-variable constant_">CHANGE_COINS</span>) {</span><span class="ln" data-line="9">    <span class="hljs-keyword">while</span> (cents &gt;= c) { <span class="hljs-comment">// largest coin first</span></span><span class="ln" data-line="10">      out.<span class="hljs-title function_">push</span>(c);</span><span class="ln" data-line="11">      cents -= c;</span><span class="ln" data-line="12">    }</span><span class="ln" data-line="13">  }</span><span class="ln" data-line="14">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="15">}</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">function</span> <span class="hljs-title function_">acceptCoin</span>(<span class="hljs-params">m, coin</span>) {</span><span class="ln" data-line="18">  <span class="hljs-keyword">if</span> (!<span class="hljs-variable constant_">COINS</span>.<span class="hljs-title function_">has</span>(coin)) <span class="hljs-keyword">return</span> <span class="hljs-string">`rejected coin <span class="hljs-subst">${coin}</span>, returned`</span>;</span><span class="ln" data-line="19">  m.<span class="hljs-property">balance</span> += coin;</span><span class="ln" data-line="20">  m.<span class="hljs-property">state</span> = <span class="hljs-variable constant_">HAS_MONEY</span>;</span><span class="ln" data-line="21">  <span class="hljs-keyword">return</span> <span class="hljs-string">`balance <span class="hljs-subst">${money(m.balance)}</span>`</span>;</span><span class="ln" data-line="22">}</span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">IDLE</span> = {</span><span class="ln" data-line="25">  <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Idle&quot;</span>,</span><span class="ln" data-line="26">  <span class="hljs-attr">insert</span>: <span class="hljs-function">(<span class="hljs-params">m, coin</span>) =&gt;</span> <span class="hljs-title function_">acceptCoin</span>(m, coin),</span><span class="ln" data-line="27">  <span class="hljs-attr">select</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">&quot;insert money first&quot;</span>,</span><span class="ln" data-line="28">  <span class="hljs-attr">cancel</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">&quot;nothing to refund&quot;</span>,</span><span class="ln" data-line="29">};</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">HAS_MONEY</span> = {</span><span class="ln" data-line="32">  <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;HasMoney&quot;</span>,</span><span class="ln" data-line="33">  <span class="hljs-attr">insert</span>: <span class="hljs-function">(<span class="hljs-params">m, coin</span>) =&gt;</span> <span class="hljs-title function_">acceptCoin</span>(m, coin),</span><span class="ln" data-line="34">  <span class="hljs-title function_">select</span>(<span class="hljs-params">m, code</span>) {</span><span class="ln" data-line="35">    <span class="hljs-keyword">const</span> s = m.<span class="hljs-property">slots</span>.<span class="hljs-title function_">get</span>(code);</span><span class="ln" data-line="36">    <span class="hljs-keyword">if</span> (!s) <span class="hljs-keyword">return</span> <span class="hljs-string">`no such item <span class="hljs-subst">${code}</span>`</span>;</span><span class="ln" data-line="37">    <span class="hljs-keyword">if</span> (s.<span class="hljs-property">count</span> === <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${s.name}</span> is sold out`</span>;</span><span class="ln" data-line="38">    <span class="hljs-keyword">if</span> (m.<span class="hljs-property">balance</span> &lt; s.<span class="hljs-property">price</span>) <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${s.name}</span> costs <span class="hljs-subst">${money(s.price)}</span>, balance <span class="hljs-subst">${money(m.balance)}</span>`</span>;</span><span class="ln" data-line="39">    s.<span class="hljs-property">count</span>--;</span><span class="ln" data-line="40">    <span class="hljs-keyword">const</span> change = m.<span class="hljs-property">balance</span> - s.<span class="hljs-property">price</span>;</span><span class="ln" data-line="41">    m.<span class="hljs-property">balance</span> = <span class="hljs-number">0</span>;</span><span class="ln" data-line="42">    m.<span class="hljs-property">state</span> = m.<span class="hljs-title function_">allSoldOut</span>() ? <span class="hljs-variable constant_">OUT_OF_SERVICE</span> : <span class="hljs-variable constant_">IDLE</span>; <span class="hljs-comment">// only after the sale succeeded</span></span><span class="ln" data-line="43">    <span class="hljs-keyword">return</span> <span class="hljs-string">`dispensed <span class="hljs-subst">${s.name}</span><span class="hljs-subst">${change === <span class="hljs-number">0</span> ? <span class="hljs-string">&quot;, no change&quot;</span> : <span class="hljs-string">`, change <span class="hljs-subst">${money(change)}</span> (<span class="hljs-subst">${coins(change)}</span>)`</span>}</span>`</span>;</span><span class="ln" data-line="44">  },</span><span class="ln" data-line="45">  <span class="hljs-title function_">cancel</span>(<span class="hljs-params">m</span>) {</span><span class="ln" data-line="46">    <span class="hljs-keyword">const</span> refund = m.<span class="hljs-property">balance</span>;</span><span class="ln" data-line="47">    m.<span class="hljs-property">balance</span> = <span class="hljs-number">0</span>;</span><span class="ln" data-line="48">    m.<span class="hljs-property">state</span> = <span class="hljs-variable constant_">IDLE</span>;</span><span class="ln" data-line="49">    <span class="hljs-keyword">return</span> <span class="hljs-string">`refunded <span class="hljs-subst">${money(refund)}</span> (<span class="hljs-subst">${coins(refund)}</span>)`</span>;</span><span class="ln" data-line="50">  },</span><span class="ln" data-line="51">};</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">OUT_OF_SERVICE</span> = {</span><span class="ln" data-line="54">  <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;OutOfService&quot;</span>,</span><span class="ln" data-line="55">  <span class="hljs-attr">insert</span>: <span class="hljs-function">(<span class="hljs-params">m, coin</span>) =&gt;</span> <span class="hljs-string">`out of service, coin <span class="hljs-subst">${coin}</span> returned`</span>,</span><span class="ln" data-line="56">  <span class="hljs-attr">select</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">&quot;out of service&quot;</span>,</span><span class="ln" data-line="57">  <span class="hljs-attr">cancel</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">&quot;nothing to refund&quot;</span>,</span><span class="ln" data-line="58">};</span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"><span class="hljs-keyword">class</span> <span class="hljs-title class_">VendingMachine</span> {</span><span class="ln" data-line="61">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="62">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span> = <span class="hljs-variable constant_">IDLE</span>;</span><span class="ln" data-line="63">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">balance</span> = <span class="hljs-number">0</span>;</span><span class="ln" data-line="64">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">slots</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>();</span><span class="ln" data-line="65">  }</span><span class="ln" data-line="66">  <span class="hljs-title function_">insert</span>(<span class="hljs-params">coin</span>) {</span><span class="ln" data-line="67">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span>.<span class="hljs-title function_">insert</span>(<span class="hljs-variable language_">this</span>, coin); <span class="hljs-comment">// every button press goes to the state</span></span><span class="ln" data-line="68">  }</span><span class="ln" data-line="69">  <span class="hljs-title function_">select</span>(<span class="hljs-params">code</span>) {</span><span class="ln" data-line="70">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span>.<span class="hljs-title function_">select</span>(<span class="hljs-variable language_">this</span>, code);</span><span class="ln" data-line="71">  }</span><span class="ln" data-line="72">  <span class="hljs-title function_">cancel</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="73">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span>.<span class="hljs-title function_">cancel</span>(<span class="hljs-variable language_">this</span>);</span><span class="ln" data-line="74">  }</span><span class="ln" data-line="75">  <span class="hljs-title function_">restock</span>(<span class="hljs-params">code, n</span>) {</span><span class="ln" data-line="76">    <span class="hljs-keyword">const</span> s = <span class="hljs-variable language_">this</span>.<span class="hljs-property">slots</span>.<span class="hljs-title function_">get</span>(code);</span><span class="ln" data-line="77">    s.<span class="hljs-property">count</span> += n;</span><span class="ln" data-line="78">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span> === <span class="hljs-variable constant_">OUT_OF_SERVICE</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span> = <span class="hljs-variable constant_">IDLE</span>;</span><span class="ln" data-line="79">    <span class="hljs-keyword">return</span> <span class="hljs-string">`restocked <span class="hljs-subst">${s.name}</span> to <span class="hljs-subst">${s.count}</span>`</span>;</span><span class="ln" data-line="80">  }</span><span class="ln" data-line="81">  <span class="hljs-title function_">allSoldOut</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="82">    <span class="hljs-keyword">return</span> [...<span class="hljs-variable language_">this</span>.<span class="hljs-property">slots</span>.<span class="hljs-title function_">values</span>()].<span class="hljs-title function_">every</span>(<span class="hljs-function">(<span class="hljs-params">s</span>) =&gt;</span> s.<span class="hljs-property">count</span> === <span class="hljs-number">0</span>);</span><span class="ln" data-line="83">  }</span><span class="ln" data-line="84">}</span><span class="ln" data-line="85"> </span><span class="ln" data-line="86"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="87">  <span class="hljs-keyword">const</span> vm = <span class="hljs-keyword">new</span> <span class="hljs-title class_">VendingMachine</span>();</span><span class="ln" data-line="88">  vm.<span class="hljs-property">slots</span>.<span class="hljs-title function_">set</span>(<span class="hljs-string">&quot;A1&quot;</span>, { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Chips&quot;</span>, <span class="hljs-attr">price</span>: <span class="hljs-number">125</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">2</span> });</span><span class="ln" data-line="89">  vm.<span class="hljs-property">slots</span>.<span class="hljs-title function_">set</span>(<span class="hljs-string">&quot;B1&quot;</span>, { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Soda&quot;</span>, <span class="hljs-attr">price</span>: <span class="hljs-number">150</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">1</span> });</span><span class="ln" data-line="90">  vm.<span class="hljs-property">slots</span>.<span class="hljs-title function_">set</span>(<span class="hljs-string">&quot;C1&quot;</span>, { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Candy&quot;</span>, <span class="hljs-attr">price</span>: <span class="hljs-number">65</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">0</span> });</span><span class="ln" data-line="91">  <span class="hljs-keyword">const</span> actions = [</span><span class="ln" data-line="92">    <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 3&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;insert 25&quot;</span>, <span class="hljs-string">&quot;insert 25&quot;</span>,</span><span class="ln" data-line="93">    <span class="hljs-string">&quot;select C1&quot;</span>, <span class="hljs-string">&quot;select Z9&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;select B1&quot;</span>,</span><span class="ln" data-line="94">    <span class="hljs-string">&quot;cancel&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;select B1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>,</span><span class="ln" data-line="95">    <span class="hljs-string">&quot;insert 25&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;restock A1 5&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>,</span><span class="ln" data-line="96">  ];</span><span class="ln" data-line="97">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> a <span class="hljs-keyword">of</span> actions) {</span><span class="ln" data-line="98">    <span class="hljs-keyword">const</span> w = a.<span class="hljs-title function_">split</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="99">    <span class="hljs-keyword">let</span> result;</span><span class="ln" data-line="100">    <span class="hljs-keyword">if</span> (w[<span class="hljs-number">0</span>] === <span class="hljs-string">&quot;insert&quot;</span>) result = vm.<span class="hljs-title function_">insert</span>(<span class="hljs-title class_">Number</span>(w[<span class="hljs-number">1</span>]));</span><span class="ln" data-line="101">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (w[<span class="hljs-number">0</span>] === <span class="hljs-string">&quot;select&quot;</span>) result = vm.<span class="hljs-title function_">select</span>(w[<span class="hljs-number">1</span>]);</span><span class="ln" data-line="102">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (w[<span class="hljs-number">0</span>] === <span class="hljs-string">&quot;cancel&quot;</span>) result = vm.<span class="hljs-title function_">cancel</span>();</span><span class="ln" data-line="103">    <span class="hljs-keyword">else</span> result = vm.<span class="hljs-title function_">restock</span>(w[<span class="hljs-number">1</span>], <span class="hljs-title class_">Number</span>(w[<span class="hljs-number">2</span>]));</span><span class="ln" data-line="104">    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`<span class="hljs-subst">${a}</span> -&gt; <span class="hljs-subst">${result}</span> [<span class="hljs-subst">${vm.state.name}</span>]`</span>);</span><span class="ln" data-line="105">  }</span><span class="ln" data-line="106">}</span><span class="ln" data-line="107"> </span><span class="ln" data-line="108"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">const COINS = new Set([5, 10, 25, 100]);
+const CHANGE_COINS = [100, 25, 10, 5];
+
+const money = (cents) =&gt; `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, &quot;0&quot;)}`;
+
+function coins(cents) {
+  const out = [];
+  for (const c of CHANGE_COINS) {
+    while (cents &gt;= c) { // largest coin first
+      out.push(c);
+      cents -= c;
+    }
+  }
+  return out.join(&quot; &quot;);
+}
+
+function acceptCoin(m, coin) {
+  if (!COINS.has(coin)) return `rejected coin ${coin}, returned`;
+  m.balance += coin;
+  m.state = HAS_MONEY;
+  return `balance ${money(m.balance)}`;
+}
+
+const IDLE = {
+  name: &quot;Idle&quot;,
+  insert: (m, coin) =&gt; acceptCoin(m, coin),
+  select: () =&gt; &quot;insert money first&quot;,
+  cancel: () =&gt; &quot;nothing to refund&quot;,
+};
+
+const HAS_MONEY = {
+  name: &quot;HasMoney&quot;,
+  insert: (m, coin) =&gt; acceptCoin(m, coin),
+  select(m, code) {
+    const s = m.slots.get(code);
+    if (!s) return `no such item ${code}`;
+    if (s.count === 0) return `${s.name} is sold out`;
+    if (m.balance &lt; s.price) return `${s.name} costs ${money(s.price)}, balance ${money(m.balance)}`;
+    s.count--;
+    const change = m.balance - s.price;
+    m.balance = 0;
+    m.state = m.allSoldOut() ? OUT_OF_SERVICE : IDLE; // only after the sale succeeded
+    return `dispensed ${s.name}${change === 0 ? &quot;, no change&quot; : `, change ${money(change)} (${coins(change)})`}`;
+  },
+  cancel(m) {
+    const refund = m.balance;
+    m.balance = 0;
+    m.state = IDLE;
+    return `refunded ${money(refund)} (${coins(refund)})`;
+  },
+};
+
+const OUT_OF_SERVICE = {
+  name: &quot;OutOfService&quot;,
+  insert: (m, coin) =&gt; `out of service, coin ${coin} returned`,
+  select: () =&gt; &quot;out of service&quot;,
+  cancel: () =&gt; &quot;nothing to refund&quot;,
+};
+
+class VendingMachine {
+  constructor() {
+    this.state = IDLE;
+    this.balance = 0;
+    this.slots = new Map();
+  }
+  insert(coin) {
+    return this.state.insert(this, coin); // every button press goes to the state
+  }
+  select(code) {
+    return this.state.select(this, code);
+  }
+  cancel() {
+    return this.state.cancel(this);
+  }
+  restock(code, n) {
+    const s = this.slots.get(code);
+    s.count += n;
+    if (this.state === OUT_OF_SERVICE) this.state = IDLE;
+    return `restocked ${s.name} to ${s.count}`;
+  }
+  allSoldOut() {
+    return [...this.slots.values()].every((s) =&gt; s.count === 0);
+  }
+}
+
+function main() {
+  const vm = new VendingMachine();
+  vm.slots.set(&quot;A1&quot;, { name: &quot;Chips&quot;, price: 125, count: 2 });
+  vm.slots.set(&quot;B1&quot;, { name: &quot;Soda&quot;, price: 150, count: 1 });
+  vm.slots.set(&quot;C1&quot;, { name: &quot;Candy&quot;, price: 65, count: 0 });
+  const actions = [
+    &quot;select A1&quot;, &quot;insert 3&quot;, &quot;insert 100&quot;, &quot;insert 25&quot;, &quot;insert 25&quot;,
+    &quot;select C1&quot;, &quot;select Z9&quot;, &quot;select A1&quot;, &quot;insert 100&quot;, &quot;select B1&quot;,
+    &quot;cancel&quot;, &quot;insert 100&quot;, &quot;insert 100&quot;, &quot;select B1&quot;, &quot;insert 100&quot;,
+    &quot;insert 25&quot;, &quot;select A1&quot;, &quot;insert 100&quot;, &quot;restock A1 5&quot;, &quot;select A1&quot;,
+  ];
+  for (const a of actions) {
+    const w = a.split(&quot; &quot;);
+    let result;
+    if (w[0] === &quot;insert&quot;) result = vm.insert(Number(w[1]));
+    else if (w[0] === &quot;select&quot;) result = vm.select(w[1]);
+    else if (w[0] === &quot;cancel&quot;) result = vm.cancel();
+    else result = vm.restock(w[1], Number(w[2]));
+    console.log(`${a} -&gt; ${result} [${vm.state.name}]`);
+  }
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-vending-machine-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">interface</span> <span class="hljs-title class_">Slot</span> {</span><span class="ln" data-line="2">  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="3">  <span class="hljs-attr">price</span>: <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="4">  <span class="hljs-attr">count</span>: <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="5">}</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">interface</span> <span class="hljs-title class_">State</span> {</span><span class="ln" data-line="8">  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="9">  <span class="hljs-title function_">insert</span>(<span class="hljs-attr">m</span>: <span class="hljs-title class_">VendingMachine</span>, <span class="hljs-attr">coin</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="10">  <span class="hljs-title function_">select</span>(<span class="hljs-attr">m</span>: <span class="hljs-title class_">VendingMachine</span>, <span class="hljs-attr">code</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="11">  <span class="hljs-title function_">cancel</span>(<span class="hljs-attr">m</span>: <span class="hljs-title class_">VendingMachine</span>): <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="12">}</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">COINS</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>([<span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>, <span class="hljs-number">100</span>]);</span><span class="ln" data-line="15"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">CHANGE_COINS</span> = [<span class="hljs-number">100</span>, <span class="hljs-number">25</span>, <span class="hljs-number">10</span>, <span class="hljs-number">5</span>];</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">const</span> money = (<span class="hljs-attr">cents</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">string</span> =&gt;</span> <span class="hljs-string">`<span class="hljs-subst">${<span class="hljs-built_in">Math</span>.floor(cents / <span class="hljs-number">100</span>)}</span>.<span class="hljs-subst">${<span class="hljs-built_in">String</span>(cents % <span class="hljs-number">100</span>).padStart(<span class="hljs-number">2</span>, <span class="hljs-string">&quot;0&quot;</span>)}</span>`</span>;</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"><span class="hljs-keyword">function</span> <span class="hljs-title function_">coins</span>(<span class="hljs-params"><span class="hljs-attr">cents</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="20">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="21">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> c <span class="hljs-keyword">of</span> <span class="hljs-variable constant_">CHANGE_COINS</span>) {</span><span class="ln" data-line="22">    <span class="hljs-keyword">while</span> (cents &gt;= c) { <span class="hljs-comment">// largest coin first</span></span><span class="ln" data-line="23">      out.<span class="hljs-title function_">push</span>(c);</span><span class="ln" data-line="24">      cents -= c;</span><span class="ln" data-line="25">    }</span><span class="ln" data-line="26">  }</span><span class="ln" data-line="27">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="28">}</span><span class="ln" data-line="29"> </span><span class="ln" data-line="30"><span class="hljs-keyword">function</span> <span class="hljs-title function_">acceptCoin</span>(<span class="hljs-params"><span class="hljs-attr">m</span>: <span class="hljs-title class_">VendingMachine</span>, <span class="hljs-attr">coin</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="31">  <span class="hljs-keyword">if</span> (!<span class="hljs-variable constant_">COINS</span>.<span class="hljs-title function_">has</span>(coin)) <span class="hljs-keyword">return</span> <span class="hljs-string">`rejected coin <span class="hljs-subst">${coin}</span>, returned`</span>;</span><span class="ln" data-line="32">  m.<span class="hljs-property">balance</span> += coin;</span><span class="ln" data-line="33">  m.<span class="hljs-property">state</span> = <span class="hljs-variable constant_">HAS_MONEY</span>;</span><span class="ln" data-line="34">  <span class="hljs-keyword">return</span> <span class="hljs-string">`balance <span class="hljs-subst">${money(m.balance)}</span>`</span>;</span><span class="ln" data-line="35">}</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">const</span> <span class="hljs-attr">IDLE</span>: <span class="hljs-title class_">State</span> = {</span><span class="ln" data-line="38">  <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Idle&quot;</span>,</span><span class="ln" data-line="39">  <span class="hljs-attr">insert</span>: <span class="hljs-function">(<span class="hljs-params">m, coin</span>) =&gt;</span> <span class="hljs-title function_">acceptCoin</span>(m, coin),</span><span class="ln" data-line="40">  <span class="hljs-attr">select</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">&quot;insert money first&quot;</span>,</span><span class="ln" data-line="41">  <span class="hljs-attr">cancel</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">&quot;nothing to refund&quot;</span>,</span><span class="ln" data-line="42">};</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"><span class="hljs-keyword">const</span> <span class="hljs-attr">HAS_MONEY</span>: <span class="hljs-title class_">State</span> = {</span><span class="ln" data-line="45">  <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;HasMoney&quot;</span>,</span><span class="ln" data-line="46">  <span class="hljs-attr">insert</span>: <span class="hljs-function">(<span class="hljs-params">m, coin</span>) =&gt;</span> <span class="hljs-title function_">acceptCoin</span>(m, coin),</span><span class="ln" data-line="47">  <span class="hljs-title function_">select</span>(<span class="hljs-params">m, code</span>) {</span><span class="ln" data-line="48">    <span class="hljs-keyword">const</span> s = m.<span class="hljs-property">slots</span>.<span class="hljs-title function_">get</span>(code);</span><span class="ln" data-line="49">    <span class="hljs-keyword">if</span> (!s) <span class="hljs-keyword">return</span> <span class="hljs-string">`no such item <span class="hljs-subst">${code}</span>`</span>;</span><span class="ln" data-line="50">    <span class="hljs-keyword">if</span> (s.<span class="hljs-property">count</span> === <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${s.name}</span> is sold out`</span>;</span><span class="ln" data-line="51">    <span class="hljs-keyword">if</span> (m.<span class="hljs-property">balance</span> &lt; s.<span class="hljs-property">price</span>) <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${s.name}</span> costs <span class="hljs-subst">${money(s.price)}</span>, balance <span class="hljs-subst">${money(m.balance)}</span>`</span>;</span><span class="ln" data-line="52">    s.<span class="hljs-property">count</span>--;</span><span class="ln" data-line="53">    <span class="hljs-keyword">const</span> change = m.<span class="hljs-property">balance</span> - s.<span class="hljs-property">price</span>;</span><span class="ln" data-line="54">    m.<span class="hljs-property">balance</span> = <span class="hljs-number">0</span>;</span><span class="ln" data-line="55">    m.<span class="hljs-property">state</span> = m.<span class="hljs-title function_">allSoldOut</span>() ? <span class="hljs-variable constant_">OUT_OF_SERVICE</span> : <span class="hljs-variable constant_">IDLE</span>; <span class="hljs-comment">// only after the sale succeeded</span></span><span class="ln" data-line="56">    <span class="hljs-keyword">return</span> <span class="hljs-string">`dispensed <span class="hljs-subst">${s.name}</span><span class="hljs-subst">${change === <span class="hljs-number">0</span> ? <span class="hljs-string">&quot;, no change&quot;</span> : <span class="hljs-string">`, change <span class="hljs-subst">${money(change)}</span> (<span class="hljs-subst">${coins(change)}</span>)`</span>}</span>`</span>;</span><span class="ln" data-line="57">  },</span><span class="ln" data-line="58">  <span class="hljs-title function_">cancel</span>(<span class="hljs-params">m</span>) {</span><span class="ln" data-line="59">    <span class="hljs-keyword">const</span> refund = m.<span class="hljs-property">balance</span>;</span><span class="ln" data-line="60">    m.<span class="hljs-property">balance</span> = <span class="hljs-number">0</span>;</span><span class="ln" data-line="61">    m.<span class="hljs-property">state</span> = <span class="hljs-variable constant_">IDLE</span>;</span><span class="ln" data-line="62">    <span class="hljs-keyword">return</span> <span class="hljs-string">`refunded <span class="hljs-subst">${money(refund)}</span> (<span class="hljs-subst">${coins(refund)}</span>)`</span>;</span><span class="ln" data-line="63">  },</span><span class="ln" data-line="64">};</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66"><span class="hljs-keyword">const</span> <span class="hljs-attr">OUT_OF_SERVICE</span>: <span class="hljs-title class_">State</span> = {</span><span class="ln" data-line="67">  <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;OutOfService&quot;</span>,</span><span class="ln" data-line="68">  <span class="hljs-attr">insert</span>: <span class="hljs-function">(<span class="hljs-params">_m, coin</span>) =&gt;</span> <span class="hljs-string">`out of service, coin <span class="hljs-subst">${coin}</span> returned`</span>,</span><span class="ln" data-line="69">  <span class="hljs-attr">select</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">&quot;out of service&quot;</span>,</span><span class="ln" data-line="70">  <span class="hljs-attr">cancel</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-string">&quot;nothing to refund&quot;</span>,</span><span class="ln" data-line="71">};</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73"><span class="hljs-keyword">class</span> <span class="hljs-title class_">VendingMachine</span> {</span><span class="ln" data-line="74">  <span class="hljs-attr">state</span>: <span class="hljs-title class_">State</span> = <span class="hljs-variable constant_">IDLE</span>;</span><span class="ln" data-line="75">  balance = <span class="hljs-number">0</span>;</span><span class="ln" data-line="76">  <span class="hljs-keyword">readonly</span> slots = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">Slot</span>&gt;();</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78">  <span class="hljs-title function_">insert</span>(<span class="hljs-attr">coin</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="79">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span>.<span class="hljs-title function_">insert</span>(<span class="hljs-variable language_">this</span>, coin); <span class="hljs-comment">// every button press goes to the state</span></span><span class="ln" data-line="80">  }</span><span class="ln" data-line="81">  <span class="hljs-title function_">select</span>(<span class="hljs-attr">code</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="82">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span>.<span class="hljs-title function_">select</span>(<span class="hljs-variable language_">this</span>, code);</span><span class="ln" data-line="83">  }</span><span class="ln" data-line="84">  <span class="hljs-title function_">cancel</span>(): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="85">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span>.<span class="hljs-title function_">cancel</span>(<span class="hljs-variable language_">this</span>);</span><span class="ln" data-line="86">  }</span><span class="ln" data-line="87">  <span class="hljs-title function_">restock</span>(<span class="hljs-attr">code</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="88">    <span class="hljs-keyword">const</span> s = <span class="hljs-variable language_">this</span>.<span class="hljs-property">slots</span>.<span class="hljs-title function_">get</span>(code) <span class="hljs-keyword">as</span> <span class="hljs-title class_">Slot</span>;</span><span class="ln" data-line="89">    s.<span class="hljs-property">count</span> += n;</span><span class="ln" data-line="90">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span> === <span class="hljs-variable constant_">OUT_OF_SERVICE</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">state</span> = <span class="hljs-variable constant_">IDLE</span>;</span><span class="ln" data-line="91">    <span class="hljs-keyword">return</span> <span class="hljs-string">`restocked <span class="hljs-subst">${s.name}</span> to <span class="hljs-subst">${s.count}</span>`</span>;</span><span class="ln" data-line="92">  }</span><span class="ln" data-line="93">  <span class="hljs-title function_">allSoldOut</span>(): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="94">    <span class="hljs-keyword">return</span> [...<span class="hljs-variable language_">this</span>.<span class="hljs-property">slots</span>.<span class="hljs-title function_">values</span>()].<span class="hljs-title function_">every</span>(<span class="hljs-function">(<span class="hljs-params">s</span>) =&gt;</span> s.<span class="hljs-property">count</span> === <span class="hljs-number">0</span>);</span><span class="ln" data-line="95">  }</span><span class="ln" data-line="96">}</span><span class="ln" data-line="97"> </span><span class="ln" data-line="98"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="99">  <span class="hljs-keyword">const</span> vm = <span class="hljs-keyword">new</span> <span class="hljs-title class_">VendingMachine</span>();</span><span class="ln" data-line="100">  vm.<span class="hljs-property">slots</span>.<span class="hljs-title function_">set</span>(<span class="hljs-string">&quot;A1&quot;</span>, { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Chips&quot;</span>, <span class="hljs-attr">price</span>: <span class="hljs-number">125</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">2</span> });</span><span class="ln" data-line="101">  vm.<span class="hljs-property">slots</span>.<span class="hljs-title function_">set</span>(<span class="hljs-string">&quot;B1&quot;</span>, { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Soda&quot;</span>, <span class="hljs-attr">price</span>: <span class="hljs-number">150</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">1</span> });</span><span class="ln" data-line="102">  vm.<span class="hljs-property">slots</span>.<span class="hljs-title function_">set</span>(<span class="hljs-string">&quot;C1&quot;</span>, { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Candy&quot;</span>, <span class="hljs-attr">price</span>: <span class="hljs-number">65</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">0</span> });</span><span class="ln" data-line="103">  <span class="hljs-keyword">const</span> <span class="hljs-attr">actions</span>: <span class="hljs-built_in">string</span>[] = [</span><span class="ln" data-line="104">    <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 3&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;insert 25&quot;</span>, <span class="hljs-string">&quot;insert 25&quot;</span>,</span><span class="ln" data-line="105">    <span class="hljs-string">&quot;select C1&quot;</span>, <span class="hljs-string">&quot;select Z9&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;select B1&quot;</span>,</span><span class="ln" data-line="106">    <span class="hljs-string">&quot;cancel&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;select B1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>,</span><span class="ln" data-line="107">    <span class="hljs-string">&quot;insert 25&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;restock A1 5&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>,</span><span class="ln" data-line="108">  ];</span><span class="ln" data-line="109">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> a <span class="hljs-keyword">of</span> actions) {</span><span class="ln" data-line="110">    <span class="hljs-keyword">const</span> w = a.<span class="hljs-title function_">split</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="111">    <span class="hljs-keyword">let</span> <span class="hljs-attr">result</span>: <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="112">    <span class="hljs-keyword">if</span> (w[<span class="hljs-number">0</span>] === <span class="hljs-string">&quot;insert&quot;</span>) result = vm.<span class="hljs-title function_">insert</span>(<span class="hljs-title class_">Number</span>(w[<span class="hljs-number">1</span>]));</span><span class="ln" data-line="113">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (w[<span class="hljs-number">0</span>] === <span class="hljs-string">&quot;select&quot;</span>) result = vm.<span class="hljs-title function_">select</span>(w[<span class="hljs-number">1</span>]);</span><span class="ln" data-line="114">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (w[<span class="hljs-number">0</span>] === <span class="hljs-string">&quot;cancel&quot;</span>) result = vm.<span class="hljs-title function_">cancel</span>();</span><span class="ln" data-line="115">    <span class="hljs-keyword">else</span> result = vm.<span class="hljs-title function_">restock</span>(w[<span class="hljs-number">1</span>], <span class="hljs-title class_">Number</span>(w[<span class="hljs-number">2</span>]));</span><span class="ln" data-line="116">    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`<span class="hljs-subst">${a}</span> -&gt; <span class="hljs-subst">${result}</span> [<span class="hljs-subst">${vm.state.name}</span>]`</span>);</span><span class="ln" data-line="117">  }</span><span class="ln" data-line="118">}</span><span class="ln" data-line="119"> </span><span class="ln" data-line="120"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">interface Slot {
+  name: string;
+  price: number;
+  count: number;
+}
+
+interface State {
+  name: string;
+  insert(m: VendingMachine, coin: number): string;
+  select(m: VendingMachine, code: string): string;
+  cancel(m: VendingMachine): string;
+}
+
+const COINS = new Set([5, 10, 25, 100]);
+const CHANGE_COINS = [100, 25, 10, 5];
+
+const money = (cents: number): string =&gt; `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, &quot;0&quot;)}`;
+
+function coins(cents: number): string {
+  const out: number[] = [];
+  for (const c of CHANGE_COINS) {
+    while (cents &gt;= c) { // largest coin first
+      out.push(c);
+      cents -= c;
+    }
+  }
+  return out.join(&quot; &quot;);
+}
+
+function acceptCoin(m: VendingMachine, coin: number): string {
+  if (!COINS.has(coin)) return `rejected coin ${coin}, returned`;
+  m.balance += coin;
+  m.state = HAS_MONEY;
+  return `balance ${money(m.balance)}`;
+}
+
+const IDLE: State = {
+  name: &quot;Idle&quot;,
+  insert: (m, coin) =&gt; acceptCoin(m, coin),
+  select: () =&gt; &quot;insert money first&quot;,
+  cancel: () =&gt; &quot;nothing to refund&quot;,
+};
+
+const HAS_MONEY: State = {
+  name: &quot;HasMoney&quot;,
+  insert: (m, coin) =&gt; acceptCoin(m, coin),
+  select(m, code) {
+    const s = m.slots.get(code);
+    if (!s) return `no such item ${code}`;
+    if (s.count === 0) return `${s.name} is sold out`;
+    if (m.balance &lt; s.price) return `${s.name} costs ${money(s.price)}, balance ${money(m.balance)}`;
+    s.count--;
+    const change = m.balance - s.price;
+    m.balance = 0;
+    m.state = m.allSoldOut() ? OUT_OF_SERVICE : IDLE; // only after the sale succeeded
+    return `dispensed ${s.name}${change === 0 ? &quot;, no change&quot; : `, change ${money(change)} (${coins(change)})`}`;
+  },
+  cancel(m) {
+    const refund = m.balance;
+    m.balance = 0;
+    m.state = IDLE;
+    return `refunded ${money(refund)} (${coins(refund)})`;
+  },
+};
+
+const OUT_OF_SERVICE: State = {
+  name: &quot;OutOfService&quot;,
+  insert: (_m, coin) =&gt; `out of service, coin ${coin} returned`,
+  select: () =&gt; &quot;out of service&quot;,
+  cancel: () =&gt; &quot;nothing to refund&quot;,
+};
+
+class VendingMachine {
+  state: State = IDLE;
+  balance = 0;
+  readonly slots = new Map&lt;string, Slot&gt;();
+
+  insert(coin: number): string {
+    return this.state.insert(this, coin); // every button press goes to the state
+  }
+  select(code: string): string {
+    return this.state.select(this, code);
+  }
+  cancel(): string {
+    return this.state.cancel(this);
+  }
+  restock(code: string, n: number): string {
+    const s = this.slots.get(code) as Slot;
+    s.count += n;
+    if (this.state === OUT_OF_SERVICE) this.state = IDLE;
+    return `restocked ${s.name} to ${s.count}`;
+  }
+  allSoldOut(): boolean {
+    return [...this.slots.values()].every((s) =&gt; s.count === 0);
+  }
+}
+
+function main(): void {
+  const vm = new VendingMachine();
+  vm.slots.set(&quot;A1&quot;, { name: &quot;Chips&quot;, price: 125, count: 2 });
+  vm.slots.set(&quot;B1&quot;, { name: &quot;Soda&quot;, price: 150, count: 1 });
+  vm.slots.set(&quot;C1&quot;, { name: &quot;Candy&quot;, price: 65, count: 0 });
+  const actions: string[] = [
+    &quot;select A1&quot;, &quot;insert 3&quot;, &quot;insert 100&quot;, &quot;insert 25&quot;, &quot;insert 25&quot;,
+    &quot;select C1&quot;, &quot;select Z9&quot;, &quot;select A1&quot;, &quot;insert 100&quot;, &quot;select B1&quot;,
+    &quot;cancel&quot;, &quot;insert 100&quot;, &quot;insert 100&quot;, &quot;select B1&quot;, &quot;insert 100&quot;,
+    &quot;insert 25&quot;, &quot;select A1&quot;, &quot;insert 100&quot;, &quot;restock A1 5&quot;, &quot;select A1&quot;,
+  ];
+  for (const a of actions) {
+    const w = a.split(&quot; &quot;);
+    let result: string;
+    if (w[0] === &quot;insert&quot;) result = vm.insert(Number(w[1]));
+    else if (w[0] === &quot;select&quot;) result = vm.select(w[1]);
+    else if (w[0] === &quot;cancel&quot;) result = vm.cancel();
+    else result = vm.restock(w[1], Number(w[2]));
+    console.log(`${a} -&gt; ${result} [${vm.state.name}]`);
+  }
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-vending-machine-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Dict</span>, Protocol</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">COINS = {<span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>, <span class="hljs-number">100</span>}</span><span class="ln" data-line="4">CHANGE_COINS = (<span class="hljs-number">100</span>, <span class="hljs-number">25</span>, <span class="hljs-number">10</span>, <span class="hljs-number">5</span>)</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">def</span> <span class="hljs-title function_">money</span>(<span class="hljs-params">cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="8">    <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;<span class="hljs-subst">{cents // <span class="hljs-number">100</span>}</span>.<span class="hljs-subst">{cents % <span class="hljs-number">100</span>:02d}</span>&quot;</span></span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"><span class="hljs-keyword">def</span> <span class="hljs-title function_">coins</span>(<span class="hljs-params">cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="12">    out = []</span><span class="ln" data-line="13">    <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> CHANGE_COINS:</span><span class="ln" data-line="14">        <span class="hljs-keyword">while</span> cents &gt;= c:  <span class="hljs-comment"># largest coin first</span></span><span class="ln" data-line="15">            out.append(<span class="hljs-built_in">str</span>(c))</span><span class="ln" data-line="16">            cents -= c</span><span class="ln" data-line="17">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; &quot;</span>.join(out)</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Slot</span>:</span><span class="ln" data-line="21">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, name: <span class="hljs-built_in">str</span>, price: <span class="hljs-built_in">int</span>, count: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="22">        <span class="hljs-variable language_">self</span>.name, <span class="hljs-variable language_">self</span>.price, <span class="hljs-variable language_">self</span>.count = name, price, count</span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"> </span><span class="ln" data-line="25"><span class="hljs-keyword">class</span> <span class="hljs-title class_">State</span>(<span class="hljs-title class_ inherited__">Protocol</span>):</span><span class="ln" data-line="26">    name: <span class="hljs-built_in">str</span></span><span class="ln" data-line="27"> </span><span class="ln" data-line="28">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">insert</span>(<span class="hljs-params">self, m: <span class="hljs-string">&quot;VendingMachine&quot;</span>, coin: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">str</span>: ...</span><span class="ln" data-line="29">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">select</span>(<span class="hljs-params">self, m: <span class="hljs-string">&quot;VendingMachine&quot;</span>, code: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>: ...</span><span class="ln" data-line="30">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self, m: <span class="hljs-string">&quot;VendingMachine&quot;</span></span>) -&gt; <span class="hljs-built_in">str</span>: ...</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"><span class="hljs-keyword">def</span> <span class="hljs-title function_">accept_coin</span>(<span class="hljs-params">m: <span class="hljs-string">&quot;VendingMachine&quot;</span>, coin: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="34">    <span class="hljs-keyword">if</span> coin <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> COINS:</span><span class="ln" data-line="35">        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;rejected coin <span class="hljs-subst">{coin}</span>, returned&quot;</span></span><span class="ln" data-line="36">    m.balance += coin</span><span class="ln" data-line="37">    m.state = HAS_MONEY</span><span class="ln" data-line="38">    <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;balance <span class="hljs-subst">{money(m.balance)}</span>&quot;</span></span><span class="ln" data-line="39"> </span><span class="ln" data-line="40"> </span><span class="ln" data-line="41"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Idle</span>:</span><span class="ln" data-line="42">    name = <span class="hljs-string">&quot;Idle&quot;</span></span><span class="ln" data-line="43"> </span><span class="ln" data-line="44">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">insert</span>(<span class="hljs-params">self, m, coin</span>):</span><span class="ln" data-line="45">        <span class="hljs-keyword">return</span> accept_coin(m, coin)</span><span class="ln" data-line="46"> </span><span class="ln" data-line="47">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">select</span>(<span class="hljs-params">self, m, code</span>):</span><span class="ln" data-line="48">        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;insert money first&quot;</span></span><span class="ln" data-line="49"> </span><span class="ln" data-line="50">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self, m</span>):</span><span class="ln" data-line="51">        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;nothing to refund&quot;</span></span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-keyword">class</span> <span class="hljs-title class_">HasMoney</span>:</span><span class="ln" data-line="55">    name = <span class="hljs-string">&quot;HasMoney&quot;</span></span><span class="ln" data-line="56"> </span><span class="ln" data-line="57">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">insert</span>(<span class="hljs-params">self, m, coin</span>):</span><span class="ln" data-line="58">        <span class="hljs-keyword">return</span> accept_coin(m, coin)</span><span class="ln" data-line="59"> </span><span class="ln" data-line="60">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">select</span>(<span class="hljs-params">self, m, code</span>):</span><span class="ln" data-line="61">        s = m.slots.get(code)</span><span class="ln" data-line="62">        <span class="hljs-keyword">if</span> s <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="63">            <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;no such item <span class="hljs-subst">{code}</span>&quot;</span></span><span class="ln" data-line="64">        <span class="hljs-keyword">if</span> s.count == <span class="hljs-number">0</span>:</span><span class="ln" data-line="65">            <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;<span class="hljs-subst">{s.name}</span> is sold out&quot;</span></span><span class="ln" data-line="66">        <span class="hljs-keyword">if</span> m.balance &lt; s.price:</span><span class="ln" data-line="67">            <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;<span class="hljs-subst">{s.name}</span> costs <span class="hljs-subst">{money(s.price)}</span>, balance <span class="hljs-subst">{money(m.balance)}</span>&quot;</span></span><span class="ln" data-line="68">        s.count -= <span class="hljs-number">1</span></span><span class="ln" data-line="69">        change, m.balance = m.balance - s.price, <span class="hljs-number">0</span></span><span class="ln" data-line="70">        m.state = OUT_OF_SERVICE <span class="hljs-keyword">if</span> m.all_sold_out() <span class="hljs-keyword">else</span> IDLE  <span class="hljs-comment"># only after the sale succeeded</span></span><span class="ln" data-line="71">        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;dispensed <span class="hljs-subst">{s.name}</span>&quot;</span> + (<span class="hljs-string">&quot;, no change&quot;</span> <span class="hljs-keyword">if</span> change == <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-string">f&quot;, change <span class="hljs-subst">{money(change)}</span> (<span class="hljs-subst">{coins(change)}</span>)&quot;</span>)</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self, m</span>):</span><span class="ln" data-line="74">        refund, m.balance = m.balance, <span class="hljs-number">0</span></span><span class="ln" data-line="75">        m.state = IDLE</span><span class="ln" data-line="76">        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;refunded <span class="hljs-subst">{money(refund)}</span> (<span class="hljs-subst">{coins(refund)}</span>)&quot;</span></span><span class="ln" data-line="77"> </span><span class="ln" data-line="78"> </span><span class="ln" data-line="79"><span class="hljs-keyword">class</span> <span class="hljs-title class_">OutOfService</span>:</span><span class="ln" data-line="80">    name = <span class="hljs-string">&quot;OutOfService&quot;</span></span><span class="ln" data-line="81"> </span><span class="ln" data-line="82">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">insert</span>(<span class="hljs-params">self, m, coin</span>):</span><span class="ln" data-line="83">        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;out of service, coin <span class="hljs-subst">{coin}</span> returned&quot;</span></span><span class="ln" data-line="84"> </span><span class="ln" data-line="85">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">select</span>(<span class="hljs-params">self, m, code</span>):</span><span class="ln" data-line="86">        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;out of service&quot;</span></span><span class="ln" data-line="87"> </span><span class="ln" data-line="88">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self, m</span>):</span><span class="ln" data-line="89">        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;nothing to refund&quot;</span></span><span class="ln" data-line="90"> </span><span class="ln" data-line="91"> </span><span class="ln" data-line="92">IDLE, HAS_MONEY, OUT_OF_SERVICE = Idle(), HasMoney(), OutOfService()</span><span class="ln" data-line="93"> </span><span class="ln" data-line="94"> </span><span class="ln" data-line="95"><span class="hljs-keyword">class</span> <span class="hljs-title class_">VendingMachine</span>:</span><span class="ln" data-line="96">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="97">        <span class="hljs-variable language_">self</span>.state: State = IDLE</span><span class="ln" data-line="98">        <span class="hljs-variable language_">self</span>.balance = <span class="hljs-number">0</span></span><span class="ln" data-line="99">        <span class="hljs-variable language_">self</span>.slots: <span class="hljs-type">Dict</span>[<span class="hljs-built_in">str</span>, Slot] = {}</span><span class="ln" data-line="100"> </span><span class="ln" data-line="101">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">insert</span>(<span class="hljs-params">self, coin: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="102">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.state.insert(<span class="hljs-variable language_">self</span>, coin)  <span class="hljs-comment"># every button press goes to the state</span></span><span class="ln" data-line="103"> </span><span class="ln" data-line="104">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">select</span>(<span class="hljs-params">self, code: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="105">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.state.select(<span class="hljs-variable language_">self</span>, code)</span><span class="ln" data-line="106"> </span><span class="ln" data-line="107">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="108">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.state.cancel(<span class="hljs-variable language_">self</span>)</span><span class="ln" data-line="109"> </span><span class="ln" data-line="110">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">restock</span>(<span class="hljs-params">self, code: <span class="hljs-built_in">str</span>, n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="111">        s = <span class="hljs-variable language_">self</span>.slots[code]</span><span class="ln" data-line="112">        s.count += n</span><span class="ln" data-line="113">        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.state <span class="hljs-keyword">is</span> OUT_OF_SERVICE:</span><span class="ln" data-line="114">            <span class="hljs-variable language_">self</span>.state = IDLE</span><span class="ln" data-line="115">        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;restocked <span class="hljs-subst">{s.name}</span> to <span class="hljs-subst">{s.count}</span>&quot;</span></span><span class="ln" data-line="116"> </span><span class="ln" data-line="117">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">all_sold_out</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="118">        <span class="hljs-keyword">return</span> <span class="hljs-built_in">all</span>(s.count == <span class="hljs-number">0</span> <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.slots.values())</span><span class="ln" data-line="119"> </span><span class="ln" data-line="120"> </span><span class="ln" data-line="121"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="122">    vm = VendingMachine()</span><span class="ln" data-line="123">    vm.slots[<span class="hljs-string">&quot;A1&quot;</span>] = Slot(<span class="hljs-string">&quot;Chips&quot;</span>, <span class="hljs-number">125</span>, <span class="hljs-number">2</span>)</span><span class="ln" data-line="124">    vm.slots[<span class="hljs-string">&quot;B1&quot;</span>] = Slot(<span class="hljs-string">&quot;Soda&quot;</span>, <span class="hljs-number">150</span>, <span class="hljs-number">1</span>)</span><span class="ln" data-line="125">    vm.slots[<span class="hljs-string">&quot;C1&quot;</span>] = Slot(<span class="hljs-string">&quot;Candy&quot;</span>, <span class="hljs-number">65</span>, <span class="hljs-number">0</span>)</span><span class="ln" data-line="126">    actions = [</span><span class="ln" data-line="127">        <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 3&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;insert 25&quot;</span>, <span class="hljs-string">&quot;insert 25&quot;</span>,</span><span class="ln" data-line="128">        <span class="hljs-string">&quot;select C1&quot;</span>, <span class="hljs-string">&quot;select Z9&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;select B1&quot;</span>,</span><span class="ln" data-line="129">        <span class="hljs-string">&quot;cancel&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;select B1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>,</span><span class="ln" data-line="130">        <span class="hljs-string">&quot;insert 25&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>, <span class="hljs-string">&quot;insert 100&quot;</span>, <span class="hljs-string">&quot;restock A1 5&quot;</span>, <span class="hljs-string">&quot;select A1&quot;</span>,</span><span class="ln" data-line="131">    ]</span><span class="ln" data-line="132">    <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> actions:</span><span class="ln" data-line="133">        w = a.split(<span class="hljs-string">&quot; &quot;</span>)</span><span class="ln" data-line="134">        <span class="hljs-keyword">if</span> w[<span class="hljs-number">0</span>] == <span class="hljs-string">&quot;insert&quot;</span>:</span><span class="ln" data-line="135">            result = vm.insert(<span class="hljs-built_in">int</span>(w[<span class="hljs-number">1</span>]))</span><span class="ln" data-line="136">        <span class="hljs-keyword">elif</span> w[<span class="hljs-number">0</span>] == <span class="hljs-string">&quot;select&quot;</span>:</span><span class="ln" data-line="137">            result = vm.select(w[<span class="hljs-number">1</span>])</span><span class="ln" data-line="138">        <span class="hljs-keyword">elif</span> w[<span class="hljs-number">0</span>] == <span class="hljs-string">&quot;cancel&quot;</span>:</span><span class="ln" data-line="139">            result = vm.cancel()</span><span class="ln" data-line="140">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="141">            result = vm.restock(w[<span class="hljs-number">1</span>], <span class="hljs-built_in">int</span>(w[<span class="hljs-number">2</span>]))</span><span class="ln" data-line="142">        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">{a}</span> -&gt; <span class="hljs-subst">{result}</span> [<span class="hljs-subst">{vm.state.name}</span>]&quot;</span>)</span><span class="ln" data-line="143"> </span><span class="ln" data-line="144"> </span><span class="ln" data-line="145"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="146">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import Dict, Protocol
+
+COINS = {5, 10, 25, 100}
+CHANGE_COINS = (100, 25, 10, 5)
+
+
+def money(cents: int) -&gt; str:
+    return f&quot;{cents // 100}.{cents % 100:02d}&quot;
+
+
+def coins(cents: int) -&gt; str:
+    out = []
+    for c in CHANGE_COINS:
+        while cents &gt;= c:  # largest coin first
+            out.append(str(c))
+            cents -= c
+    return &quot; &quot;.join(out)
+
+
+class Slot:
+    def __init__(self, name: str, price: int, count: int) -&gt; None:
+        self.name, self.price, self.count = name, price, count
+
+
+class State(Protocol):
+    name: str
+
+    def insert(self, m: &quot;VendingMachine&quot;, coin: int) -&gt; str: ...
+    def select(self, m: &quot;VendingMachine&quot;, code: str) -&gt; str: ...
+    def cancel(self, m: &quot;VendingMachine&quot;) -&gt; str: ...
+
+
+def accept_coin(m: &quot;VendingMachine&quot;, coin: int) -&gt; str:
+    if coin not in COINS:
+        return f&quot;rejected coin {coin}, returned&quot;
+    m.balance += coin
+    m.state = HAS_MONEY
+    return f&quot;balance {money(m.balance)}&quot;
+
+
+class Idle:
+    name = &quot;Idle&quot;
+
+    def insert(self, m, coin):
+        return accept_coin(m, coin)
+
+    def select(self, m, code):
+        return &quot;insert money first&quot;
+
+    def cancel(self, m):
+        return &quot;nothing to refund&quot;
+
+
+class HasMoney:
+    name = &quot;HasMoney&quot;
+
+    def insert(self, m, coin):
+        return accept_coin(m, coin)
+
+    def select(self, m, code):
+        s = m.slots.get(code)
+        if s is None:
+            return f&quot;no such item {code}&quot;
+        if s.count == 0:
+            return f&quot;{s.name} is sold out&quot;
+        if m.balance &lt; s.price:
+            return f&quot;{s.name} costs {money(s.price)}, balance {money(m.balance)}&quot;
+        s.count -= 1
+        change, m.balance = m.balance - s.price, 0
+        m.state = OUT_OF_SERVICE if m.all_sold_out() else IDLE  # only after the sale succeeded
+        return f&quot;dispensed {s.name}&quot; + (&quot;, no change&quot; if change == 0 else f&quot;, change {money(change)} ({coins(change)})&quot;)
+
+    def cancel(self, m):
+        refund, m.balance = m.balance, 0
+        m.state = IDLE
+        return f&quot;refunded {money(refund)} ({coins(refund)})&quot;
+
+
+class OutOfService:
+    name = &quot;OutOfService&quot;
+
+    def insert(self, m, coin):
+        return f&quot;out of service, coin {coin} returned&quot;
+
+    def select(self, m, code):
+        return &quot;out of service&quot;
+
+    def cancel(self, m):
+        return &quot;nothing to refund&quot;
+
+
+IDLE, HAS_MONEY, OUT_OF_SERVICE = Idle(), HasMoney(), OutOfService()
+
+
+class VendingMachine:
+    def __init__(self) -&gt; None:
+        self.state: State = IDLE
+        self.balance = 0
+        self.slots: Dict[str, Slot] = {}
+
+    def insert(self, coin: int) -&gt; str:
+        return self.state.insert(self, coin)  # every button press goes to the state
+
+    def select(self, code: str) -&gt; str:
+        return self.state.select(self, code)
+
+    def cancel(self) -&gt; str:
+        return self.state.cancel(self)
+
+    def restock(self, code: str, n: int) -&gt; str:
+        s = self.slots[code]
+        s.count += n
+        if self.state is OUT_OF_SERVICE:
+            self.state = IDLE
+        return f&quot;restocked {s.name} to {s.count}&quot;
+
+    def all_sold_out(self) -&gt; bool:
+        return all(s.count == 0 for s in self.slots.values())
+
+
+def main() -&gt; None:
+    vm = VendingMachine()
+    vm.slots[&quot;A1&quot;] = Slot(&quot;Chips&quot;, 125, 2)
+    vm.slots[&quot;B1&quot;] = Slot(&quot;Soda&quot;, 150, 1)
+    vm.slots[&quot;C1&quot;] = Slot(&quot;Candy&quot;, 65, 0)
+    actions = [
+        &quot;select A1&quot;, &quot;insert 3&quot;, &quot;insert 100&quot;, &quot;insert 25&quot;, &quot;insert 25&quot;,
+        &quot;select C1&quot;, &quot;select Z9&quot;, &quot;select A1&quot;, &quot;insert 100&quot;, &quot;select B1&quot;,
+        &quot;cancel&quot;, &quot;insert 100&quot;, &quot;insert 100&quot;, &quot;select B1&quot;, &quot;insert 100&quot;,
+        &quot;insert 25&quot;, &quot;select A1&quot;, &quot;insert 100&quot;, &quot;restock A1 5&quot;, &quot;select A1&quot;,
+    ]
+    for a in actions:
+        w = a.split(&quot; &quot;)
+        if w[0] == &quot;insert&quot;:
+            result = vm.insert(int(w[1]))
+        elif w[0] == &quot;select&quot;:
+            result = vm.select(w[1])
+        elif w[0] == &quot;cancel&quot;:
+            result = vm.cancel()
+        else:
+            result = vm.restock(w[1], int(w[2]))
+        print(f&quot;{a} -&gt; {result} [{vm.state.name}]&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>select A1 -&gt; insert money first [Idle]
+insert 3 -&gt; rejected coin 3, returned [Idle]
+insert 100 -&gt; balance 1.00 [HasMoney]
+insert 25 -&gt; balance 1.25 [HasMoney]
+insert 25 -&gt; balance 1.50 [HasMoney]
+select C1 -&gt; Candy is sold out [HasMoney]
+select Z9 -&gt; no such item Z9 [HasMoney]
+select A1 -&gt; dispensed Chips, change 0.25 (25) [Idle]
+insert 100 -&gt; balance 1.00 [HasMoney]
+select B1 -&gt; Soda costs 1.50, balance 1.00 [HasMoney]
+cancel -&gt; refunded 1.00 (100) [Idle]
+insert 100 -&gt; balance 1.00 [HasMoney]
+insert 100 -&gt; balance 2.00 [HasMoney]
+select B1 -&gt; dispensed Soda, change 0.50 (25 25) [Idle]
+insert 100 -&gt; balance 1.00 [HasMoney]
+insert 25 -&gt; balance 1.25 [HasMoney]
+select A1 -&gt; dispensed Chips, no change [OutOfService]
+insert 100 -&gt; out of service, coin 100 returned [OutOfService]
+restock A1 5 -&gt; restocked Chips to 5 [Idle]
+select A1 -&gt; insert money first [Idle]</samp></pre></div>
+</figure><h2 id="common-mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>One big <code>switch (state)</code> inside every method, so each new mode touches every method.</li><li>Forgetting to reset the balance after dispensing, so the next customer gets free credit.</li><li>Changing state before the action succeeds (moving to Idle when the item was sold out).</li><li>Greedy change with arbitrary coin systems (e.g. 1, 3, 4) can be wrong; then it&#39;s the Coin Change DP.</li></ul><h2 id="interview-follow-ups">Interview follow-ups</h2>
+<ul>
+<li>Track the machine&#39;s own coin inventory and refuse sales it can&#39;t give change for.</li>
+<li>Card payments: a PaymentProcessing state with success and failure transitions.</li>
+<li>Maintenance mode entered by an operator key.</li>
+<li>Concurrent use from a mobile app and the keypad: what needs locking?</li>
+</ul>
+
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/coin-change/" rel="noopener" target="_blank">Coin Change<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">change-making when greedy fails</span></td><td>322</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../library-management/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Library management</span></a><a class="pn pn-next" href="../logging-framework/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Logging framework</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

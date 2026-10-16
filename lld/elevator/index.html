@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elevator system · DSA Academy</title>
+<meta name="description" content="Several elevators and a dispatcher deciding who goes where.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../index.html" aria-current="page">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Low-level design</a></li><li><span aria-current="page">Elevator system</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Elevator system</h1>
+  <p class="lede">Several elevators, hall buttons on every floor, and a dispatcher that decides which car answers each call. The interesting parts are the movement rule (keep going in one direction while there are stops ahead) and the dispatch cost function.</p>
+  <p class="tags"><span class="pill">Low-level design</span><span class="pill">Concurrency</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A team of couriers on one long street. A courier already heading north picks up a parcel further north on the way; a parcel behind them goes to whichever courier can reach it soonest, not necessarily the nearest one.</p></aside>
+<h2 id="requirements">Requirements</h2>
+<p><strong>Functional</strong></p>
+<ul>
+<li>Hall calls: a floor and a direction (up or down) from the buttons on each floor.</li>
+<li>Car calls: a floor pressed inside a particular elevator.</li>
+<li>Assign each hall call to the elevator that can serve it soonest.</li>
+<li>Each elevator serves stops in its current direction before reversing (the LOOK algorithm).</li>
+</ul>
+<p><strong>Non-functional</strong></p>
+<ul>
+<li>Calls arrive from many threads (button panels) while the controller is moving cars.</li>
+<li>Every call is eventually served; no elevator is assigned work it can&#39;t reach.</li>
+<li>The dispatch policy can be swapped (Strategy).</li>
+</ul>
+<h2 id="entities-and-relationships">Entities and relationships</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 842 487" role="img" aria-label="Class diagram: ElevatorSystem holds Elevators and a DispatchStrategy; Elevator has floor, direction and a sorted set of stops; NearestCarCost implements DispatchStrategy"><defs><marker id="ah3-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker><marker id="ah3-dg-head-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head-a" d="M0 0L10 5L0 10z"/></marker></defs><path class="dg-line" d="M305.0 147.0 L228.0 195.0" marker-end="url(#ah3-dg-head)"/><path class="dg-line-a" d="M528.0 138.9 L643.3 195.0" marker-end="url(#ah3-dg-head-a)"/><path class="dg-dash" d="M708.0 374.0 L708.0 258.0" marker-end="url(#ah3-dg-head)"/><rect class="dg-box" x="296.0" y="20" width="228" height="123" rx="6"/><rect class="dg-hd" x="296.0" y="20" width="228" height="28" rx="6"/><text class="dg-ch" x="410.0" y="34">ElevatorSystem</text><text class="dg-c" x="306.0" y="66">- elevators: List&lt;Elevator&gt;</text><text class="dg-c" x="306.0" y="83">- strategy: DispatchStrategy</text><text class="dg-c" x="306.0" y="100">+ hallCall(floor, dir)</text><text class="dg-c" x="306.0" y="117">+ carCall(id, floor)</text><text class="dg-c" x="306.0" y="134">+ tick()</text><rect class="dg-box" x="20.0" y="199" width="206" height="123" rx="6"/><rect class="dg-hd" x="20.0" y="199" width="206" height="28" rx="6"/><text class="dg-ch" x="123.0" y="213">Elevator</text><text class="dg-c" x="30.0" y="245">- id, floor</text><text class="dg-c" x="30.0" y="262">- direction: UP/DOWN/IDLE</text><text class="dg-c" x="30.0" y="279">- stops: TreeSet&lt;Integer&gt;</text><text class="dg-c" x="30.0" y="296">+ addStop(f)</text><text class="dg-c" x="30.0" y="313">+ step(): event</text><rect class="dg-box" x="594.0" y="199" width="228" height="55" rx="6"/><rect class="dg-hd" x="594.0" y="199" width="228" height="28" rx="6"/><text class="dg-ch" x="708.0" y="213">«interface» DispatchStrategy</text><text class="dg-c" x="604.0" y="245">+ cost(elevator, floor, dir)</text><rect class="dg-box" x="623.0" y="378" width="170" height="89" rx="6"/><rect class="dg-hd" x="623.0" y="378" width="170" height="28" rx="6"/><text class="dg-ch" x="708.0" y="392">NearestCarCost</text><text class="dg-c" x="633.0" y="424">idle: distance</text><text class="dg-c" x="633.0" y="441">on the way: distance</text><text class="dg-c" x="633.0" y="458">else: via turn point</text></svg><figcaption>The system is the single entry point and lock; elevators are plain objects it steps forward.</figcaption></figure><ul>
+<li><strong>Movement (LOOK)</strong>: each tick, if the car is at a stop it opens its doors and
+removes the stop. Otherwise it keeps its direction while there are stops
+ahead, reverses when there aren&#39;t, and goes idle when it has none.</li>
+<li><strong>Dispatch cost</strong> (<code>NearestCarCost</code>):<ul>
+<li>idle car: the distance to the call;</li>
+<li>moving toward the call in the same direction: the distance;</li>
+<li>anything else: distance to its turning point (furthest stop), then back to the call.
+Ties go to the lower id.</li>
+</ul>
+</li>
+<li><strong>States</strong> are implicit in <code>direction</code>: IDLE, MOVING_UP, MOVING_DOWN, plus a
+doors-open tick at each stop.</li>
+</ul>
+<h2 id="design-patterns-used">Design patterns used</h2>
+<ul>
+<li><strong>Strategy</strong>: <code>DispatchStrategy</code> makes the assignment rule pluggable (nearest car, zoning, least busy).</li>
+<li><strong>State</strong>: an elevator&#39;s behaviour depends on its direction; a full version adds door states and maintenance mode.</li>
+<li><strong>Command</strong>: hall and car calls are request objects queued for the controller.</li>
+</ul>
+<h2 id="how-a-request-flows">How a request flows</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 720 328" role="img" aria-label="Sequence diagram: a floor panel sends a hall call to the system; the system asks the strategy for each elevator&#x27;s cost and adds the stop to the cheapest; later ticks move that elevator to the floor"><defs><marker id="ah4-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker></defs><rect class="dg-hd" x="50.85" y="20" width="108.3" height="30" rx="6"/><text class="dg-ch" x="105.0" y="35">Floor panel</text><path class="dg-dash" d="M105.0 50 L105.0 318"/><rect class="dg-hd" x="209.9" y="20" width="130.2" height="30" rx="6"/><text class="dg-ch" x="275.0" y="35">ElevatorSystem</text><path class="dg-dash" d="M275.0 50 L275.0 318"/><rect class="dg-hd" x="372.6" y="20" width="144.8" height="30" rx="6"/><text class="dg-ch" x="445.0" y="35">DispatchStrategy</text><path class="dg-dash" d="M445.0 50 L445.0 318"/><rect class="dg-hd" x="560.85" y="20" width="108.3" height="30" rx="6"/><text class="dg-ch" x="615.0" y="35">Elevator E2</text><path class="dg-dash" d="M615.0 50 L615.0 318"/><path class="dg-line" d="M105.0 88 L271.0 88" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="190.0" y="82">hallCall(8, DOWN)</text><path class="dg-line" d="M275.0 122 L441.0 122" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="360.0" y="116">cost(E1), cost(E2)</text><path class="dg-dash" d="M445.0 156 L279.0 156" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="360.0" y="150">8, 2</text><path class="dg-line" d="M275.0 190 L611.0 190" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="445.0" y="184">addStop(8)</text><rect class="dg-a" x="30" y="205" width="660" height="22" rx="4"/><text class="dg-sq" x="360.0" y="220">each tick</text><path class="dg-line" d="M275.0 258 L611.0 258" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="445.0" y="252">step()</text><path class="dg-dash" d="M615.0 292 L279.0 292" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="445.0" y="286">stops at 8</text></svg><figcaption>Calls only add stops; the controller's tick is what moves cars.</figcaption></figure><p>A real controller runs one loop per elevator and reacts to sensors and timers;
+the logic is the same, but the tick is driven by hardware events rather than a
+<code>for</code> loop.</p>
+<h2 id="concurrency">Concurrency</h2>
+<ul>
+<li><code>hallCall</code>, <code>carCall</code> and <code>tick</code> are <code>synchronized</code> on the system: assignment reads every elevator&#39;s state, so it must not interleave with a step.</li>
+<li>Button panels are producers; the controller is the single consumer that changes elevator state, a simple and safe split.</li>
+<li>For many elevators, each could own its lock and run its own thread; then dispatch reads a snapshot of each car, and a car re-checks its assignment when it picks it up.</li>
+<li>Requests counted as served when the assigned car stops at that floor; the demo checks none are lost under concurrent calls.</li>
+</ul>
+<h2 id="cost-of-each-operation">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>hallCall</td><td class="nowrap">O(E)</td><td>One cost evaluation per elevator.</td></tr><tr><td>tick</td><td class="nowrap">O(E log S)</td><td>Each elevator looks up its next stop in a sorted set.</td></tr><tr><td>carCall</td><td class="nowrap">O(log S)</td><td>Insert into the elevator&#39;s stop set.</td></tr></tbody></table></div><h2 id="code">Code</h2>
+<p>The first part is a scripted scenario, printed tick by tick. The second has 8 threads pressing hall buttons while the controller runs; every call is served.</p><figure class="codeblock" id="code-elevator" aria-label="Two elevators with LOOK movement, a cost-based dispatcher and concurrent hall calls">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-elevator-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-elevator-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-elevator-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.HashMap;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.Map;</span><span class="ln" data-line="5"><span class="hljs-keyword">import</span> java.util.TreeSet;</span><span class="ln" data-line="6"><span class="hljs-keyword">import</span> java.util.concurrent.ThreadLocalRandom;</span><span class="ln" data-line="7"><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicBoolean;</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11">    <span class="hljs-keyword">enum</span> <span class="hljs-title class_">Direction</span> { UP, DOWN, IDLE }</span><span class="ln" data-line="12"> </span><span class="ln" data-line="13">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Elevator</span> {</span><span class="ln" data-line="14">        <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> id;</span><span class="ln" data-line="15">        <span class="hljs-type">int</span> floor;</span><span class="ln" data-line="16">        <span class="hljs-type">Direction</span> <span class="hljs-variable">direction</span> <span class="hljs-operator">=</span> Direction.IDLE;</span><span class="ln" data-line="17">        <span class="hljs-keyword">final</span> <span class="hljs-type">TreeSet</span>&lt;Integer&gt; <span class="hljs-variable">stops</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeSet</span>&lt;&gt;();</span><span class="ln" data-line="18">        <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span>&lt;Integer, Integer&gt; <span class="hljs-variable">waiting</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;(); <span class="hljs-comment">// floor -&gt; calls to serve there</span></span><span class="ln" data-line="19"> </span><span class="ln" data-line="20">        Elevator(<span class="hljs-type">int</span> id, <span class="hljs-type">int</span> floor) { <span class="hljs-built_in">this</span>.id = id; <span class="hljs-built_in">this</span>.floor = floor; }</span><span class="ln" data-line="21"> </span><span class="ln" data-line="22">        <span class="hljs-type">void</span> <span class="hljs-title function_">addStop</span><span class="hljs-params">(<span class="hljs-type">int</span> f)</span> {</span><span class="ln" data-line="23">            stops.add(f);</span><span class="ln" data-line="24">            waiting.merge(f, <span class="hljs-number">1</span>, Integer::sum);</span><span class="ln" data-line="25">            <span class="hljs-keyword">if</span> (direction == Direction.IDLE &amp;&amp; f != floor) direction = f &gt; floor ? Direction.UP : Direction.DOWN;</span><span class="ln" data-line="26">        }</span><span class="ln" data-line="27"> </span><span class="ln" data-line="28">        <span class="hljs-comment">/** One tick. Returns the number of calls served if the car stopped, or -1 if it moved or idled. */</span></span><span class="ln" data-line="29">        <span class="hljs-type">int</span> <span class="hljs-title function_">step</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="30">            <span class="hljs-keyword">if</span> (stops.isEmpty()) { direction = Direction.IDLE; <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>; }</span><span class="ln" data-line="31">            <span class="hljs-keyword">if</span> (stops.contains(floor)) { <span class="hljs-comment">// doors open here this tick</span></span><span class="ln" data-line="32">                stops.remove(floor);</span><span class="ln" data-line="33">                <span class="hljs-type">Integer</span> <span class="hljs-variable">served</span> <span class="hljs-operator">=</span> waiting.remove(floor);</span><span class="ln" data-line="34">                <span class="hljs-keyword">if</span> (stops.isEmpty()) direction = Direction.IDLE;</span><span class="ln" data-line="35">                <span class="hljs-keyword">return</span> served == <span class="hljs-literal">null</span> ? <span class="hljs-number">0</span> : served;</span><span class="ln" data-line="36">            }</span><span class="ln" data-line="37">            <span class="hljs-keyword">if</span> (direction == Direction.IDLE) direction = stops.first() &gt; floor ? Direction.UP : Direction.DOWN;</span><span class="ln" data-line="38">            <span class="hljs-keyword">if</span> (direction == Direction.UP &amp;&amp; stops.ceiling(floor) == <span class="hljs-literal">null</span>) direction = Direction.DOWN;   <span class="hljs-comment">// nothing ahead: reverse</span></span><span class="ln" data-line="39">            <span class="hljs-keyword">if</span> (direction == Direction.DOWN &amp;&amp; stops.floor(floor) == <span class="hljs-literal">null</span>) direction = Direction.UP;</span><span class="ln" data-line="40">            floor += direction == Direction.UP ? <span class="hljs-number">1</span> : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="41">            <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="42">        }</span><span class="ln" data-line="43">    }</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45">    <span class="hljs-keyword">interface</span> <span class="hljs-title class_">DispatchStrategy</span> { <span class="hljs-type">int</span> <span class="hljs-title function_">cost</span><span class="hljs-params">(Elevator e, <span class="hljs-type">int</span> floor, Direction dir)</span>; }</span><span class="ln" data-line="46"> </span><span class="ln" data-line="47">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NearestCarCost</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">DispatchStrategy</span> {</span><span class="ln" data-line="48">        <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">cost</span><span class="hljs-params">(Elevator e, <span class="hljs-type">int</span> floor, Direction dir)</span> {</span><span class="ln" data-line="49">            <span class="hljs-keyword">if</span> (e.stops.isEmpty()) <span class="hljs-keyword">return</span> Math.abs(e.floor - floor);</span><span class="ln" data-line="50">            <span class="hljs-keyword">if</span> (e.direction == Direction.UP &amp;&amp; dir == Direction.UP &amp;&amp; floor &gt;= e.floor) <span class="hljs-keyword">return</span> floor - e.floor;       <span class="hljs-comment">// on the way</span></span><span class="ln" data-line="51">            <span class="hljs-keyword">if</span> (e.direction == Direction.DOWN &amp;&amp; dir == Direction.DOWN &amp;&amp; floor &lt;= e.floor) <span class="hljs-keyword">return</span> e.floor - floor;</span><span class="ln" data-line="52">            <span class="hljs-type">int</span> <span class="hljs-variable">turn</span> <span class="hljs-operator">=</span> e.direction == Direction.UP ? e.stops.last() : e.stops.first();                                 <span class="hljs-comment">// finish the run first</span></span><span class="ln" data-line="53">            <span class="hljs-keyword">return</span> Math.abs(e.floor - turn) + Math.abs(turn - floor);</span><span class="ln" data-line="54">        }</span><span class="ln" data-line="55">    }</span><span class="ln" data-line="56"> </span><span class="ln" data-line="57">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ElevatorSystem</span> {</span><span class="ln" data-line="58">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;Elevator&gt; <span class="hljs-variable">elevators</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="59">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> DispatchStrategy strategy;</span><span class="ln" data-line="60">        <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> served;</span><span class="ln" data-line="61"> </span><span class="ln" data-line="62">        ElevatorSystem(DispatchStrategy strategy, <span class="hljs-type">int</span>... startFloors) {</span><span class="ln" data-line="63">            <span class="hljs-built_in">this</span>.strategy = strategy;</span><span class="ln" data-line="64">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; startFloors.length; i++) elevators.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Elevator</span>(i + <span class="hljs-number">1</span>, startFloors[i]));</span><span class="ln" data-line="65">        }</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67">        <span class="hljs-keyword">synchronized</span> <span class="hljs-type">int</span> <span class="hljs-title function_">hallCall</span><span class="hljs-params">(<span class="hljs-type">int</span> floor, Direction dir)</span> {</span><span class="ln" data-line="68">            <span class="hljs-type">Elevator</span> <span class="hljs-variable">best</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;</span><span class="ln" data-line="69">            <span class="hljs-type">int</span> <span class="hljs-variable">bestCost</span> <span class="hljs-operator">=</span> Integer.MAX_VALUE;</span><span class="ln" data-line="70">            <span class="hljs-keyword">for</span> (Elevator e : elevators) {</span><span class="ln" data-line="71">                <span class="hljs-type">int</span> <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> strategy.cost(e, floor, dir);</span><span class="ln" data-line="72">                <span class="hljs-keyword">if</span> (c &lt; bestCost) { best = e; bestCost = c; } <span class="hljs-comment">// ties keep the lower id</span></span><span class="ln" data-line="73">            }</span><span class="ln" data-line="74">            best.addStop(floor);</span><span class="ln" data-line="75">            <span class="hljs-keyword">return</span> best.id;</span><span class="ln" data-line="76">        }</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78">        <span class="hljs-keyword">synchronized</span> <span class="hljs-type">void</span> <span class="hljs-title function_">carCall</span><span class="hljs-params">(<span class="hljs-type">int</span> elevatorId, <span class="hljs-type">int</span> floor)</span> { elevators.get(elevatorId - <span class="hljs-number">1</span>).addStop(floor); }</span><span class="ln" data-line="79"> </span><span class="ln" data-line="80">        <span class="hljs-keyword">synchronized</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">tick</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="81">            <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">events</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="82">            <span class="hljs-keyword">for</span> (Elevator e : elevators) {</span><span class="ln" data-line="83">                <span class="hljs-type">int</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> e.step();</span><span class="ln" data-line="84">                <span class="hljs-keyword">if</span> (s &gt;= <span class="hljs-number">0</span>) { served += s; events.add(<span class="hljs-string">&quot;E&quot;</span> + e.id + <span class="hljs-string">&quot; stops at &quot;</span> + e.floor); }</span><span class="ln" data-line="85">            }</span><span class="ln" data-line="86">            <span class="hljs-keyword">return</span> events;</span><span class="ln" data-line="87">        }</span><span class="ln" data-line="88"> </span><span class="ln" data-line="89">        <span class="hljs-keyword">synchronized</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">idle</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="90">            <span class="hljs-keyword">for</span> (Elevator e : elevators) <span class="hljs-keyword">if</span> (!e.stops.isEmpty()) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="91">            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="92">        }</span><span class="ln" data-line="93"> </span><span class="ln" data-line="94">        <span class="hljs-keyword">synchronized</span> <span class="hljs-type">int</span> <span class="hljs-title function_">served</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> served; }</span><span class="ln" data-line="95"> </span><span class="ln" data-line="96">        <span class="hljs-keyword">synchronized</span> <span class="hljs-type">String</span> <span class="hljs-title function_">positions</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="97">            <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="98">            <span class="hljs-keyword">for</span> (Elevator e : elevators) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot;, &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(<span class="hljs-string">&quot;E&quot;</span>).append(e.id).append(<span class="hljs-string">&quot; at &quot;</span>).append(e.floor);</span><span class="ln" data-line="99">            <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="100">        }</span><span class="ln" data-line="101">    }</span><span class="ln" data-line="102"> </span><span class="ln" data-line="103">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception {</span><span class="ln" data-line="104">        <span class="hljs-type">ElevatorSystem</span> <span class="hljs-variable">sys</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ElevatorSystem</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">NearestCarCost</span>(), <span class="hljs-number">0</span>, <span class="hljs-number">10</span>);</span><span class="ln" data-line="105">        System.out.println(<span class="hljs-string">&quot;start: &quot;</span> + sys.positions());</span><span class="ln" data-line="106">        System.out.println(<span class="hljs-string">&quot;hall call floor 3 UP -&gt; E&quot;</span> + sys.hallCall(<span class="hljs-number">3</span>, Direction.UP));</span><span class="ln" data-line="107">        System.out.println(<span class="hljs-string">&quot;hall call floor 8 DOWN -&gt; E&quot;</span> + sys.hallCall(<span class="hljs-number">8</span>, Direction.DOWN));</span><span class="ln" data-line="108">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">t</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; t &lt;= <span class="hljs-number">14</span>; t++) {</span><span class="ln" data-line="109">            <span class="hljs-keyword">if</span> (t == <span class="hljs-number">2</span>) System.out.println(<span class="hljs-string">&quot;t2: hall call floor 5 UP -&gt; E&quot;</span> + sys.hallCall(<span class="hljs-number">5</span>, Direction.UP));</span><span class="ln" data-line="110">            <span class="hljs-keyword">for</span> (String ev : sys.tick()) {</span><span class="ln" data-line="111">                <span class="hljs-type">String</span> <span class="hljs-variable">extra</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&quot;</span>;</span><span class="ln" data-line="112">                <span class="hljs-keyword">if</span> (ev.equals(<span class="hljs-string">&quot;E1 stops at 3&quot;</span>)) { sys.carCall(<span class="hljs-number">1</span>, <span class="hljs-number">7</span>); extra = <span class="hljs-string">&quot; (passenger presses 7)&quot;</span>; }</span><span class="ln" data-line="113">                <span class="hljs-keyword">if</span> (ev.equals(<span class="hljs-string">&quot;E2 stops at 8&quot;</span>)) { sys.carCall(<span class="hljs-number">2</span>, <span class="hljs-number">1</span>); extra = <span class="hljs-string">&quot; (passenger presses 1)&quot;</span>; }</span><span class="ln" data-line="114">                System.out.println(<span class="hljs-string">&quot;t&quot;</span> + t + <span class="hljs-string">&quot;: &quot;</span> + ev + extra);</span><span class="ln" data-line="115">            }</span><span class="ln" data-line="116">        }</span><span class="ln" data-line="117">        System.out.println(<span class="hljs-string">&quot;end: &quot;</span> + sys.positions() + <span class="hljs-string">&quot;, all calls served: &quot;</span> + sys.idle());</span><span class="ln" data-line="118"> </span><span class="ln" data-line="119">        <span class="hljs-type">ElevatorSystem</span> <span class="hljs-variable">busy</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ElevatorSystem</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">NearestCarCost</span>(), <span class="hljs-number">0</span>, <span class="hljs-number">5</span>, <span class="hljs-number">10</span>);</span><span class="ln" data-line="120">        <span class="hljs-type">AtomicBoolean</span> <span class="hljs-variable">pressing</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicBoolean</span>(<span class="hljs-literal">true</span>);</span><span class="ln" data-line="121">        <span class="hljs-type">List</span>&lt;Thread&gt; <span class="hljs-variable">panels</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="122">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; p &lt; <span class="hljs-number">8</span>; p++) {</span><span class="ln" data-line="123">            <span class="hljs-type">Thread</span> <span class="hljs-variable">t</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; {</span><span class="ln" data-line="124">                <span class="hljs-type">ThreadLocalRandom</span> <span class="hljs-variable">rnd</span> <span class="hljs-operator">=</span> ThreadLocalRandom.current();</span><span class="ln" data-line="125">                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; i++) {</span><span class="ln" data-line="126">                    <span class="hljs-type">int</span> <span class="hljs-variable">floor</span> <span class="hljs-operator">=</span> rnd.nextInt(<span class="hljs-number">11</span>);</span><span class="ln" data-line="127">                    busy.hallCall(floor, rnd.nextBoolean() ? Direction.UP : Direction.DOWN);</span><span class="ln" data-line="128">                    <span class="hljs-keyword">try</span> { Thread.sleep(rnd.nextInt(<span class="hljs-number">3</span>)); } <span class="hljs-keyword">catch</span> (InterruptedException e) { <span class="hljs-keyword">return</span>; }</span><span class="ln" data-line="129">                }</span><span class="ln" data-line="130">            });</span><span class="ln" data-line="131">            t.start();</span><span class="ln" data-line="132">            panels.add(t);</span><span class="ln" data-line="133">        }</span><span class="ln" data-line="134">        <span class="hljs-type">Thread</span> <span class="hljs-variable">controller</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; {</span><span class="ln" data-line="135">            <span class="hljs-keyword">while</span> (pressing.get() || !busy.idle()) busy.tick();</span><span class="ln" data-line="136">        });</span><span class="ln" data-line="137">        controller.start();</span><span class="ln" data-line="138">        <span class="hljs-keyword">for</span> (Thread t : panels) t.join();</span><span class="ln" data-line="139">        pressing.set(<span class="hljs-literal">false</span>);</span><span class="ln" data-line="140">        controller.join();</span><span class="ln" data-line="141">        System.out.println(<span class="hljs-string">&quot;40 hall calls from 8 threads with 3 elevators: served &quot;</span> + busy.served() + <span class="hljs-string">&quot;, all served: &quot;</span> + (busy.served() == <span class="hljs-number">40</span>));</span><span class="ln" data-line="142">    }</span><span class="ln" data-line="143">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class Solution {
+
+    enum Direction { UP, DOWN, IDLE }
+
+    static final class Elevator {
+        final int id;
+        int floor;
+        Direction direction = Direction.IDLE;
+        final TreeSet&lt;Integer&gt; stops = new TreeSet&lt;&gt;();
+        final Map&lt;Integer, Integer&gt; waiting = new HashMap&lt;&gt;(); // floor -&gt; calls to serve there
+
+        Elevator(int id, int floor) { this.id = id; this.floor = floor; }
+
+        void addStop(int f) {
+            stops.add(f);
+            waiting.merge(f, 1, Integer::sum);
+            if (direction == Direction.IDLE &amp;&amp; f != floor) direction = f &gt; floor ? Direction.UP : Direction.DOWN;
+        }
+
+        /** One tick. Returns the number of calls served if the car stopped, or -1 if it moved or idled. */
+        int step() {
+            if (stops.isEmpty()) { direction = Direction.IDLE; return -1; }
+            if (stops.contains(floor)) { // doors open here this tick
+                stops.remove(floor);
+                Integer served = waiting.remove(floor);
+                if (stops.isEmpty()) direction = Direction.IDLE;
+                return served == null ? 0 : served;
+            }
+            if (direction == Direction.IDLE) direction = stops.first() &gt; floor ? Direction.UP : Direction.DOWN;
+            if (direction == Direction.UP &amp;&amp; stops.ceiling(floor) == null) direction = Direction.DOWN;   // nothing ahead: reverse
+            if (direction == Direction.DOWN &amp;&amp; stops.floor(floor) == null) direction = Direction.UP;
+            floor += direction == Direction.UP ? 1 : -1;
+            return -1;
+        }
+    }
+
+    interface DispatchStrategy { int cost(Elevator e, int floor, Direction dir); }
+
+    static final class NearestCarCost implements DispatchStrategy {
+        public int cost(Elevator e, int floor, Direction dir) {
+            if (e.stops.isEmpty()) return Math.abs(e.floor - floor);
+            if (e.direction == Direction.UP &amp;&amp; dir == Direction.UP &amp;&amp; floor &gt;= e.floor) return floor - e.floor;       // on the way
+            if (e.direction == Direction.DOWN &amp;&amp; dir == Direction.DOWN &amp;&amp; floor &lt;= e.floor) return e.floor - floor;
+            int turn = e.direction == Direction.UP ? e.stops.last() : e.stops.first();                                 // finish the run first
+            return Math.abs(e.floor - turn) + Math.abs(turn - floor);
+        }
+    }
+
+    static final class ElevatorSystem {
+        private final List&lt;Elevator&gt; elevators = new ArrayList&lt;&gt;();
+        private final DispatchStrategy strategy;
+        private int served;
+
+        ElevatorSystem(DispatchStrategy strategy, int... startFloors) {
+            this.strategy = strategy;
+            for (int i = 0; i &lt; startFloors.length; i++) elevators.add(new Elevator(i + 1, startFloors[i]));
+        }
+
+        synchronized int hallCall(int floor, Direction dir) {
+            Elevator best = null;
+            int bestCost = Integer.MAX_VALUE;
+            for (Elevator e : elevators) {
+                int c = strategy.cost(e, floor, dir);
+                if (c &lt; bestCost) { best = e; bestCost = c; } // ties keep the lower id
+            }
+            best.addStop(floor);
+            return best.id;
+        }
+
+        synchronized void carCall(int elevatorId, int floor) { elevators.get(elevatorId - 1).addStop(floor); }
+
+        synchronized List&lt;String&gt; tick() {
+            List&lt;String&gt; events = new ArrayList&lt;&gt;();
+            for (Elevator e : elevators) {
+                int s = e.step();
+                if (s &gt;= 0) { served += s; events.add(&quot;E&quot; + e.id + &quot; stops at &quot; + e.floor); }
+            }
+            return events;
+        }
+
+        synchronized boolean idle() {
+            for (Elevator e : elevators) if (!e.stops.isEmpty()) return false;
+            return true;
+        }
+
+        synchronized int served() { return served; }
+
+        synchronized String positions() {
+            StringBuilder sb = new StringBuilder();
+            for (Elevator e : elevators) sb.append(sb.length() &gt; 0 ? &quot;, &quot; : &quot;&quot;).append(&quot;E&quot;).append(e.id).append(&quot; at &quot;).append(e.floor);
+            return sb.toString();
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        ElevatorSystem sys = new ElevatorSystem(new NearestCarCost(), 0, 10);
+        System.out.println(&quot;start: &quot; + sys.positions());
+        System.out.println(&quot;hall call floor 3 UP -&gt; E&quot; + sys.hallCall(3, Direction.UP));
+        System.out.println(&quot;hall call floor 8 DOWN -&gt; E&quot; + sys.hallCall(8, Direction.DOWN));
+        for (int t = 1; t &lt;= 14; t++) {
+            if (t == 2) System.out.println(&quot;t2: hall call floor 5 UP -&gt; E&quot; + sys.hallCall(5, Direction.UP));
+            for (String ev : sys.tick()) {
+                String extra = &quot;&quot;;
+                if (ev.equals(&quot;E1 stops at 3&quot;)) { sys.carCall(1, 7); extra = &quot; (passenger presses 7)&quot;; }
+                if (ev.equals(&quot;E2 stops at 8&quot;)) { sys.carCall(2, 1); extra = &quot; (passenger presses 1)&quot;; }
+                System.out.println(&quot;t&quot; + t + &quot;: &quot; + ev + extra);
+            }
+        }
+        System.out.println(&quot;end: &quot; + sys.positions() + &quot;, all calls served: &quot; + sys.idle());
+
+        ElevatorSystem busy = new ElevatorSystem(new NearestCarCost(), 0, 5, 10);
+        AtomicBoolean pressing = new AtomicBoolean(true);
+        List&lt;Thread&gt; panels = new ArrayList&lt;&gt;();
+        for (int p = 0; p &lt; 8; p++) {
+            Thread t = new Thread(() -&gt; {
+                ThreadLocalRandom rnd = ThreadLocalRandom.current();
+                for (int i = 0; i &lt; 5; i++) {
+                    int floor = rnd.nextInt(11);
+                    busy.hallCall(floor, rnd.nextBoolean() ? Direction.UP : Direction.DOWN);
+                    try { Thread.sleep(rnd.nextInt(3)); } catch (InterruptedException e) { return; }
+                }
+            });
+            t.start();
+            panels.add(t);
+        }
+        Thread controller = new Thread(() -&gt; {
+            while (pressing.get() || !busy.idle()) busy.tick();
+        });
+        controller.start();
+        for (Thread t : panels) t.join();
+        pressing.set(false);
+        controller.join();
+        System.out.println(&quot;40 hall calls from 8 threads with 3 elevators: served &quot; + busy.served() + &quot;, all served: &quot; + (busy.served() == 40));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-elevator-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> random</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> threading</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> time</span><span class="ln" data-line="4"><span class="hljs-keyword">from</span> enum <span class="hljs-keyword">import</span> Enum</span><span class="ln" data-line="5"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Dict</span>, <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span></span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Direction</span>(<span class="hljs-title class_ inherited__">Enum</span>):</span><span class="ln" data-line="9">    UP = <span class="hljs-string">&quot;UP&quot;</span></span><span class="ln" data-line="10">    DOWN = <span class="hljs-string">&quot;DOWN&quot;</span></span><span class="ln" data-line="11">    IDLE = <span class="hljs-string">&quot;IDLE&quot;</span></span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Elevator</span>:</span><span class="ln" data-line="15">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, eid: <span class="hljs-built_in">int</span>, floor: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="16">        <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">id</span>, <span class="hljs-variable language_">self</span>.floor = eid, floor</span><span class="ln" data-line="17">        <span class="hljs-variable language_">self</span>.direction = Direction.IDLE</span><span class="ln" data-line="18">        <span class="hljs-variable language_">self</span>.stops: <span class="hljs-built_in">set</span> = <span class="hljs-built_in">set</span>()</span><span class="ln" data-line="19">        <span class="hljs-variable language_">self</span>.waiting: <span class="hljs-type">Dict</span>[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>] = {}  <span class="hljs-comment"># floor -&gt; calls to serve there</span></span><span class="ln" data-line="20"> </span><span class="ln" data-line="21">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">add_stop</span>(<span class="hljs-params">self, f: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="22">        <span class="hljs-variable language_">self</span>.stops.add(f)</span><span class="ln" data-line="23">        <span class="hljs-variable language_">self</span>.waiting[f] = <span class="hljs-variable language_">self</span>.waiting.get(f, <span class="hljs-number">0</span>) + <span class="hljs-number">1</span></span><span class="ln" data-line="24">        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.direction <span class="hljs-keyword">is</span> Direction.IDLE <span class="hljs-keyword">and</span> f != <span class="hljs-variable language_">self</span>.floor:</span><span class="ln" data-line="25">            <span class="hljs-variable language_">self</span>.direction = Direction.UP <span class="hljs-keyword">if</span> f &gt; <span class="hljs-variable language_">self</span>.floor <span class="hljs-keyword">else</span> Direction.DOWN</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">step</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="28">        <span class="hljs-string">&quot;&quot;&quot;One tick. Returns the number of calls served if the car stopped, or -1 if it moved or idled.&quot;&quot;&quot;</span></span><span class="ln" data-line="29">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.stops:</span><span class="ln" data-line="30">            <span class="hljs-variable language_">self</span>.direction = Direction.IDLE</span><span class="ln" data-line="31">            <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span></span><span class="ln" data-line="32">        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.floor <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.stops:  <span class="hljs-comment"># doors open here this tick</span></span><span class="ln" data-line="33">            <span class="hljs-variable language_">self</span>.stops.discard(<span class="hljs-variable language_">self</span>.floor)</span><span class="ln" data-line="34">            served = <span class="hljs-variable language_">self</span>.waiting.pop(<span class="hljs-variable language_">self</span>.floor, <span class="hljs-number">0</span>)</span><span class="ln" data-line="35">            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.stops:</span><span class="ln" data-line="36">                <span class="hljs-variable language_">self</span>.direction = Direction.IDLE</span><span class="ln" data-line="37">            <span class="hljs-keyword">return</span> served</span><span class="ln" data-line="38">        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.direction <span class="hljs-keyword">is</span> Direction.IDLE:</span><span class="ln" data-line="39">            <span class="hljs-variable language_">self</span>.direction = Direction.UP <span class="hljs-keyword">if</span> <span class="hljs-built_in">min</span>(<span class="hljs-variable language_">self</span>.stops) &gt; <span class="hljs-variable language_">self</span>.floor <span class="hljs-keyword">else</span> Direction.DOWN</span><span class="ln" data-line="40">        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.direction <span class="hljs-keyword">is</span> Direction.UP <span class="hljs-keyword">and</span> <span class="hljs-built_in">max</span>(<span class="hljs-variable language_">self</span>.stops) &lt; <span class="hljs-variable language_">self</span>.floor:  <span class="hljs-comment"># nothing ahead: reverse</span></span><span class="ln" data-line="41">            <span class="hljs-variable language_">self</span>.direction = Direction.DOWN</span><span class="ln" data-line="42">        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.direction <span class="hljs-keyword">is</span> Direction.DOWN <span class="hljs-keyword">and</span> <span class="hljs-built_in">min</span>(<span class="hljs-variable language_">self</span>.stops) &gt; <span class="hljs-variable language_">self</span>.floor:</span><span class="ln" data-line="43">            <span class="hljs-variable language_">self</span>.direction = Direction.UP</span><span class="ln" data-line="44">        <span class="hljs-variable language_">self</span>.floor += <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.direction <span class="hljs-keyword">is</span> Direction.UP <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span></span><span class="ln" data-line="45">        <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span></span><span class="ln" data-line="46"> </span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"><span class="hljs-keyword">class</span> <span class="hljs-title class_">NearestCarCost</span>:</span><span class="ln" data-line="49">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cost</span>(<span class="hljs-params">self, e: Elevator, floor: <span class="hljs-built_in">int</span>, d: Direction</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="50">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> e.stops:</span><span class="ln" data-line="51">            <span class="hljs-keyword">return</span> <span class="hljs-built_in">abs</span>(e.floor - floor)</span><span class="ln" data-line="52">        <span class="hljs-keyword">if</span> e.direction <span class="hljs-keyword">is</span> Direction.UP <span class="hljs-keyword">and</span> d <span class="hljs-keyword">is</span> Direction.UP <span class="hljs-keyword">and</span> floor &gt;= e.floor:  <span class="hljs-comment"># on the way</span></span><span class="ln" data-line="53">            <span class="hljs-keyword">return</span> floor - e.floor</span><span class="ln" data-line="54">        <span class="hljs-keyword">if</span> e.direction <span class="hljs-keyword">is</span> Direction.DOWN <span class="hljs-keyword">and</span> d <span class="hljs-keyword">is</span> Direction.DOWN <span class="hljs-keyword">and</span> floor &lt;= e.floor:</span><span class="ln" data-line="55">            <span class="hljs-keyword">return</span> e.floor - floor</span><span class="ln" data-line="56">        turn = <span class="hljs-built_in">max</span>(e.stops) <span class="hljs-keyword">if</span> e.direction <span class="hljs-keyword">is</span> Direction.UP <span class="hljs-keyword">else</span> <span class="hljs-built_in">min</span>(e.stops)  <span class="hljs-comment"># finish the run first</span></span><span class="ln" data-line="57">        <span class="hljs-keyword">return</span> <span class="hljs-built_in">abs</span>(e.floor - turn) + <span class="hljs-built_in">abs</span>(turn - floor)</span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ElevatorSystem</span>:</span><span class="ln" data-line="61">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, strategy: NearestCarCost, *start_floors: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="62">        <span class="hljs-variable language_">self</span>.strategy = strategy</span><span class="ln" data-line="63">        <span class="hljs-variable language_">self</span>.elevators = [Elevator(i + <span class="hljs-number">1</span>, f) <span class="hljs-keyword">for</span> i, f <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(start_floors)]</span><span class="ln" data-line="64">        <span class="hljs-variable language_">self</span>._served = <span class="hljs-number">0</span></span><span class="ln" data-line="65">        <span class="hljs-variable language_">self</span>._lock = threading.Lock()</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">hall_call</span>(<span class="hljs-params">self, floor: <span class="hljs-built_in">int</span>, d: Direction</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="68">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="69">            best: <span class="hljs-type">Optional</span>[Elevator] = <span class="hljs-literal">None</span></span><span class="ln" data-line="70">            best_cost = <span class="hljs-literal">None</span></span><span class="ln" data-line="71">            <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.elevators:</span><span class="ln" data-line="72">                c = <span class="hljs-variable language_">self</span>.strategy.cost(e, floor, d)</span><span class="ln" data-line="73">                <span class="hljs-keyword">if</span> best_cost <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> c &lt; best_cost:  <span class="hljs-comment"># ties keep the lower id</span></span><span class="ln" data-line="74">                    best, best_cost = e, c</span><span class="ln" data-line="75">            best.add_stop(floor)</span><span class="ln" data-line="76">            <span class="hljs-keyword">return</span> best.<span class="hljs-built_in">id</span></span><span class="ln" data-line="77"> </span><span class="ln" data-line="78">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">car_call</span>(<span class="hljs-params">self, eid: <span class="hljs-built_in">int</span>, floor: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="79">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="80">            <span class="hljs-variable language_">self</span>.elevators[eid - <span class="hljs-number">1</span>].add_stop(floor)</span><span class="ln" data-line="81"> </span><span class="ln" data-line="82">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">tick</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]:</span><span class="ln" data-line="83">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="84">            events = []</span><span class="ln" data-line="85">            <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.elevators:</span><span class="ln" data-line="86">                s = e.step()</span><span class="ln" data-line="87">                <span class="hljs-keyword">if</span> s &gt;= <span class="hljs-number">0</span>:</span><span class="ln" data-line="88">                    <span class="hljs-variable language_">self</span>._served += s</span><span class="ln" data-line="89">                    events.append(<span class="hljs-string">f&quot;E<span class="hljs-subst">{e.<span class="hljs-built_in">id</span>}</span> stops at <span class="hljs-subst">{e.floor}</span>&quot;</span>)</span><span class="ln" data-line="90">            <span class="hljs-keyword">return</span> events</span><span class="ln" data-line="91"> </span><span class="ln" data-line="92">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">idle</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="93">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="94">            <span class="hljs-keyword">return</span> <span class="hljs-built_in">all</span>(<span class="hljs-keyword">not</span> e.stops <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.elevators)</span><span class="ln" data-line="95"> </span><span class="ln" data-line="96">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">served</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="97">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="98">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._served</span><span class="ln" data-line="99"> </span><span class="ln" data-line="100">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">positions</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="101">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="102">            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;, &quot;</span>.join(<span class="hljs-string">f&quot;E<span class="hljs-subst">{e.<span class="hljs-built_in">id</span>}</span> at <span class="hljs-subst">{e.floor}</span>&quot;</span> <span class="hljs-keyword">for</span> e <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.elevators)</span><span class="ln" data-line="103"> </span><span class="ln" data-line="104"> </span><span class="ln" data-line="105"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="106">    sys_ = ElevatorSystem(NearestCarCost(), <span class="hljs-number">0</span>, <span class="hljs-number">10</span>)</span><span class="ln" data-line="107">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;start: <span class="hljs-subst">{sys_.positions()}</span>&quot;</span>)</span><span class="ln" data-line="108">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;hall call floor 3 UP -&gt; E<span class="hljs-subst">{sys_.hall_call(<span class="hljs-number">3</span>, Direction.UP)}</span>&quot;</span>)</span><span class="ln" data-line="109">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;hall call floor 8 DOWN -&gt; E<span class="hljs-subst">{sys_.hall_call(<span class="hljs-number">8</span>, Direction.DOWN)}</span>&quot;</span>)</span><span class="ln" data-line="110">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-number">15</span>):</span><span class="ln" data-line="111">        <span class="hljs-keyword">if</span> t == <span class="hljs-number">2</span>:</span><span class="ln" data-line="112">            <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;t2: hall call floor 5 UP -&gt; E<span class="hljs-subst">{sys_.hall_call(<span class="hljs-number">5</span>, Direction.UP)}</span>&quot;</span>)</span><span class="ln" data-line="113">        <span class="hljs-keyword">for</span> ev <span class="hljs-keyword">in</span> sys_.tick():</span><span class="ln" data-line="114">            extra = <span class="hljs-string">&quot;&quot;</span></span><span class="ln" data-line="115">            <span class="hljs-keyword">if</span> ev == <span class="hljs-string">&quot;E1 stops at 3&quot;</span>:</span><span class="ln" data-line="116">                sys_.car_call(<span class="hljs-number">1</span>, <span class="hljs-number">7</span>)</span><span class="ln" data-line="117">                extra = <span class="hljs-string">&quot; (passenger presses 7)&quot;</span></span><span class="ln" data-line="118">            <span class="hljs-keyword">if</span> ev == <span class="hljs-string">&quot;E2 stops at 8&quot;</span>:</span><span class="ln" data-line="119">                sys_.car_call(<span class="hljs-number">2</span>, <span class="hljs-number">1</span>)</span><span class="ln" data-line="120">                extra = <span class="hljs-string">&quot; (passenger presses 1)&quot;</span></span><span class="ln" data-line="121">            <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;t<span class="hljs-subst">{t}</span>: <span class="hljs-subst">{ev}</span><span class="hljs-subst">{extra}</span>&quot;</span>)</span><span class="ln" data-line="122">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;end: <span class="hljs-subst">{sys_.positions()}</span>, all calls served: <span class="hljs-subst">{<span class="hljs-string">&#x27;true&#x27;</span> <span class="hljs-keyword">if</span> sys_.idle() <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;false&#x27;</span>}</span>&quot;</span>)</span><span class="ln" data-line="123"> </span><span class="ln" data-line="124">    busy = ElevatorSystem(NearestCarCost(), <span class="hljs-number">0</span>, <span class="hljs-number">5</span>, <span class="hljs-number">10</span>)</span><span class="ln" data-line="125">    pressing = threading.Event()</span><span class="ln" data-line="126">    pressing.<span class="hljs-built_in">set</span>()</span><span class="ln" data-line="127"> </span><span class="ln" data-line="128">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">panel</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="129">        rnd = random.Random()</span><span class="ln" data-line="130">        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):</span><span class="ln" data-line="131">            busy.hall_call(rnd.randrange(<span class="hljs-number">11</span>), Direction.UP <span class="hljs-keyword">if</span> rnd.random() &lt; <span class="hljs-number">0.5</span> <span class="hljs-keyword">else</span> Direction.DOWN)</span><span class="ln" data-line="132">            time.sleep(rnd.randrange(<span class="hljs-number">3</span>) / <span class="hljs-number">1000</span>)</span><span class="ln" data-line="133"> </span><span class="ln" data-line="134">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">controller</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="135">        <span class="hljs-keyword">while</span> pressing.is_set() <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> busy.idle():</span><span class="ln" data-line="136">            busy.tick()</span><span class="ln" data-line="137"> </span><span class="ln" data-line="138">    panels = [threading.Thread(target=panel) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">8</span>)]</span><span class="ln" data-line="139">    ctl = threading.Thread(target=controller)</span><span class="ln" data-line="140">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> panels:</span><span class="ln" data-line="141">        t.start()</span><span class="ln" data-line="142">    ctl.start()</span><span class="ln" data-line="143">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> panels:</span><span class="ln" data-line="144">        t.join()</span><span class="ln" data-line="145">    pressing.clear()</span><span class="ln" data-line="146">    ctl.join()</span><span class="ln" data-line="147">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;40 hall calls from 8 threads with 3 elevators: served <span class="hljs-subst">{busy.served()}</span>, all served: <span class="hljs-subst">{<span class="hljs-string">&#x27;true&#x27;</span> <span class="hljs-keyword">if</span> busy.served() == <span class="hljs-number">40</span> <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;false&#x27;</span>}</span>&quot;</span>)</span><span class="ln" data-line="148"> </span><span class="ln" data-line="149"> </span><span class="ln" data-line="150"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="151">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import random
+import threading
+import time
+from enum import Enum
+from typing import Dict, List, Optional
+
+
+class Direction(Enum):
+    UP = &quot;UP&quot;
+    DOWN = &quot;DOWN&quot;
+    IDLE = &quot;IDLE&quot;
+
+
+class Elevator:
+    def __init__(self, eid: int, floor: int) -&gt; None:
+        self.id, self.floor = eid, floor
+        self.direction = Direction.IDLE
+        self.stops: set = set()
+        self.waiting: Dict[int, int] = {}  # floor -&gt; calls to serve there
+
+    def add_stop(self, f: int) -&gt; None:
+        self.stops.add(f)
+        self.waiting[f] = self.waiting.get(f, 0) + 1
+        if self.direction is Direction.IDLE and f != self.floor:
+            self.direction = Direction.UP if f &gt; self.floor else Direction.DOWN
+
+    def step(self) -&gt; int:
+        &quot;&quot;&quot;One tick. Returns the number of calls served if the car stopped, or -1 if it moved or idled.&quot;&quot;&quot;
+        if not self.stops:
+            self.direction = Direction.IDLE
+            return -1
+        if self.floor in self.stops:  # doors open here this tick
+            self.stops.discard(self.floor)
+            served = self.waiting.pop(self.floor, 0)
+            if not self.stops:
+                self.direction = Direction.IDLE
+            return served
+        if self.direction is Direction.IDLE:
+            self.direction = Direction.UP if min(self.stops) &gt; self.floor else Direction.DOWN
+        if self.direction is Direction.UP and max(self.stops) &lt; self.floor:  # nothing ahead: reverse
+            self.direction = Direction.DOWN
+        if self.direction is Direction.DOWN and min(self.stops) &gt; self.floor:
+            self.direction = Direction.UP
+        self.floor += 1 if self.direction is Direction.UP else -1
+        return -1
+
+
+class NearestCarCost:
+    def cost(self, e: Elevator, floor: int, d: Direction) -&gt; int:
+        if not e.stops:
+            return abs(e.floor - floor)
+        if e.direction is Direction.UP and d is Direction.UP and floor &gt;= e.floor:  # on the way
+            return floor - e.floor
+        if e.direction is Direction.DOWN and d is Direction.DOWN and floor &lt;= e.floor:
+            return e.floor - floor
+        turn = max(e.stops) if e.direction is Direction.UP else min(e.stops)  # finish the run first
+        return abs(e.floor - turn) + abs(turn - floor)
+
+
+class ElevatorSystem:
+    def __init__(self, strategy: NearestCarCost, *start_floors: int) -&gt; None:
+        self.strategy = strategy
+        self.elevators = [Elevator(i + 1, f) for i, f in enumerate(start_floors)]
+        self._served = 0
+        self._lock = threading.Lock()
+
+    def hall_call(self, floor: int, d: Direction) -&gt; int:
+        with self._lock:
+            best: Optional[Elevator] = None
+            best_cost = None
+            for e in self.elevators:
+                c = self.strategy.cost(e, floor, d)
+                if best_cost is None or c &lt; best_cost:  # ties keep the lower id
+                    best, best_cost = e, c
+            best.add_stop(floor)
+            return best.id
+
+    def car_call(self, eid: int, floor: int) -&gt; None:
+        with self._lock:
+            self.elevators[eid - 1].add_stop(floor)
+
+    def tick(self) -&gt; List[str]:
+        with self._lock:
+            events = []
+            for e in self.elevators:
+                s = e.step()
+                if s &gt;= 0:
+                    self._served += s
+                    events.append(f&quot;E{e.id} stops at {e.floor}&quot;)
+            return events
+
+    def idle(self) -&gt; bool:
+        with self._lock:
+            return all(not e.stops for e in self.elevators)
+
+    def served(self) -&gt; int:
+        with self._lock:
+            return self._served
+
+    def positions(self) -&gt; str:
+        with self._lock:
+            return &quot;, &quot;.join(f&quot;E{e.id} at {e.floor}&quot; for e in self.elevators)
+
+
+def main() -&gt; None:
+    sys_ = ElevatorSystem(NearestCarCost(), 0, 10)
+    print(f&quot;start: {sys_.positions()}&quot;)
+    print(f&quot;hall call floor 3 UP -&gt; E{sys_.hall_call(3, Direction.UP)}&quot;)
+    print(f&quot;hall call floor 8 DOWN -&gt; E{sys_.hall_call(8, Direction.DOWN)}&quot;)
+    for t in range(1, 15):
+        if t == 2:
+            print(f&quot;t2: hall call floor 5 UP -&gt; E{sys_.hall_call(5, Direction.UP)}&quot;)
+        for ev in sys_.tick():
+            extra = &quot;&quot;
+            if ev == &quot;E1 stops at 3&quot;:
+                sys_.car_call(1, 7)
+                extra = &quot; (passenger presses 7)&quot;
+            if ev == &quot;E2 stops at 8&quot;:
+                sys_.car_call(2, 1)
+                extra = &quot; (passenger presses 1)&quot;
+            print(f&quot;t{t}: {ev}{extra}&quot;)
+    print(f&quot;end: {sys_.positions()}, all calls served: {&#39;true&#39; if sys_.idle() else &#39;false&#39;}&quot;)
+
+    busy = ElevatorSystem(NearestCarCost(), 0, 5, 10)
+    pressing = threading.Event()
+    pressing.set()
+
+    def panel() -&gt; None:
+        rnd = random.Random()
+        for _ in range(5):
+            busy.hall_call(rnd.randrange(11), Direction.UP if rnd.random() &lt; 0.5 else Direction.DOWN)
+            time.sleep(rnd.randrange(3) / 1000)
+
+    def controller() -&gt; None:
+        while pressing.is_set() or not busy.idle():
+            busy.tick()
+
+    panels = [threading.Thread(target=panel) for _ in range(8)]
+    ctl = threading.Thread(target=controller)
+    for t in panels:
+        t.start()
+    ctl.start()
+    for t in panels:
+        t.join()
+    pressing.clear()
+    ctl.join()
+    print(f&quot;40 hall calls from 8 threads with 3 elevators: served {busy.served()}, all served: {&#39;true&#39; if busy.served() == 40 else &#39;false&#39;}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>start: E1 at 0, E2 at 10
+hall call floor 3 UP -&gt; E1
+hall call floor 8 DOWN -&gt; E2
+t2: hall call floor 5 UP -&gt; E1
+t3: E2 stops at 8 (passenger presses 1)
+t4: E1 stops at 3 (passenger presses 7)
+t7: E1 stops at 5
+t10: E1 stops at 7
+t11: E2 stops at 1
+end: E1 at 7, E2 at 1, all calls served: true
+40 hall calls from 8 threads with 3 elevators: served 40, all served: true</samp></pre></div>
+</figure><p class="muted">Shown in Java and Python: JavaScript runs your code on one thread, so locks and conditions have no real equivalent there. Java and Python show the design with real threads.</p><h2 id="common-mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Sending the nearest elevator regardless of its direction, so it turns around mid-journey.</li><li>Serving stops in arrival order (FIFO), which zig-zags the car up and down.</li><li>Letting button threads modify elevator state directly while the controller is stepping it.</li><li>Forgetting the idle state, so a car with no stops keeps moving.</li></ul><h2 id="interview-follow-ups">Interview follow-ups</h2>
+<ul>
+<li>Capacity and weight limits: skip a hall call when full.</li>
+<li>Express elevators and zoning (floors 0–20 vs 21–40).</li>
+<li>Peak modes: park idle cars at the lobby in the morning.</li>
+<li>Emergency and maintenance states, and how they override dispatch.</li>
+</ul>
+
+
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../rw-lock-kv/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Read-write lock and KV store</span></a><a class="pn pn-next" href="../id-generator-logger/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Snowflake IDs and a thread-safe logger</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

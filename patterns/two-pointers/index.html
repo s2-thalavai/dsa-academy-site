@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two pointers · DSA Academy</title>
+<meta name="description" content="Two indices walk the data toward each other or in step.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Two pointers</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Two pointers</h1>
+  <p class="lede">Two indices move through the data, toward each other from both ends or in the same direction at different speeds, so one pass replaces a nested loop.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Two people searching a sorted bookshelf for two books whose prices add up to a budget. One starts at the cheap end, one at the expensive end. If the pair costs too much, the person at the expensive end steps in; too little, the cheap end steps in. They never need to recheck a book.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>The input is <strong>sorted</strong>, or sorting it first doesn&#39;t break the problem.</li>
+<li>You&#39;re looking for a <strong>pair</strong> (or triple) with a target sum, difference or product.</li>
+<li>The problem compares the two ends of a sequence: palindromes, reversing, the widest container.</li>
+<li>You must work <strong>in place</strong> with O(1) extra space: remove duplicates, move zeroes, partition.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">left = 0, right = n − 1
+while left &lt; right:
+    if condition(a[left], a[right]) is met: record answer; move one or both
+    else if we need a bigger value: left += 1
+    else:                            right −= 1
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>Brute force checks every pair, which is O(n²). Two pointers use order to throw
+away candidates: on sorted data, if <code>a[left] + a[right]</code> is too small, then
+<code>a[left]</code> paired with <em>anything</em> to its right is too small too, so <code>left</code> can
+move on for good. Each step discards one element, so the whole scan is O(n).</p>
+<p>There are two flavours:</p>
+<ul>
+<li><strong>Opposite ends</strong> (converging): pair sums, palindromes, container with most
+water, three-sum after fixing one number.</li>
+<li><strong>Same direction</strong> (reader and writer): one pointer reads every element, the
+other marks where the next kept element goes. Remove duplicates and move
+zeroes work this way.</li>
+</ul>
+<p>Step through the converging version below.</p>
+<section class="player" id="player-two-pointers" data-player="{&quot;visualizer&quot;:&quot;two-pointer-sum&quot;,&quot;input&quot;:{&quot;nums&quot;:[1,3,4,6,8,11,15],&quot;target&quot;:14},&quot;codeId&quot;:&quot;code-two-pointers&quot;,&quot;autoplay&quot;:false}" aria-label="Two pointers converging on a pair that sums to the target">
+  <div class="v-stage" aria-hidden="true"></div>
+  <p class="caption" aria-live="polite"></p>
+  <div class="controls">
+    <button type="button" class="ctl" data-act="restart" aria-label="Restart">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5v6h6"/><path d="M5.5 15a7 7 0 1 0 1.6-7.3L4 11"/></svg></button>
+    <button type="button" class="ctl" data-act="back" aria-label="Step back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button type="button" class="ctl ctl-play" data-act="play" aria-label="Play">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="i-play"><path d="M7 4.5v15l12-7.5z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="i-pause"><path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z"/></svg></button>
+    <button type="button" class="ctl" data-act="forward" aria-label="Step forward">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    <span class="counter" data-counter>Step 1 of 1</span>
+    <label class="speed"><span class="vh">Speed</span>
+      <select data-speed aria-label="Animation speed">
+        <option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="650">Fast</option>
+      </select></label>
+  </div>
+  <details class="try" open>
+    <summary>Try your own input</summary>
+    <form class="try-form" novalidate>
+      <label class="field"><span class="field-label">Sorted numbers</span><input type="text" name="nums" value="1, 3, 4, 6, 8, 11, 15" inputmode="text" autocomplete="off" spellcheck="false" aria-describedby="player-two-pointers-nums-hint"><span class="field-hint" id="player-two-pointers-nums-hint">2 to 12 whole numbers, smallest first</span></label><label class="field"><span class="field-label">Target</span><input type="text" name="target" value="14" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="player-two-pointers-target-hint"><span class="field-hint" id="player-two-pointers-target-hint">a whole number</span></label>
+      <button type="submit" class="btn btn-small">Run animation</button>
+      <p class="form-error" role="alert"></p>
+    </form>
+  </details>
+</section>
+
+<h2 id="steps">Dry run</h2>
+<div class="table-wrap"><table class="steps">
+<caption class="vh">Dry run, one row per step</caption>
+<thead><tr><th scope="col">Step</th><th scope="col">left</th><th scope="col">right</th><th scope="col">numbers[left]</th><th scope="col">numbers[right]</th><th scope="col">Sum</th><th scope="col">Decision</th></tr></thead>
+<tbody><tr><td>1</td><td>0</td><td>6</td><td>1</td><td>15</td><td>16</td><td>Too big: right moves to 5</td></tr><tr><td>2</td><td>0</td><td>5</td><td>1</td><td>11</td><td>12</td><td>Too small: left moves to 1</td></tr><tr><td>3</td><td>1</td><td>5</td><td>3</td><td>11</td><td>14</td><td>Equal: return [2, 6]</td></tr></tbody></table></div>
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Pair sum on sorted data</td><td class="nowrap">O(n) time, O(1) space</td><td>Each step moves one pointer inward; they meet after at most n − 1 steps.</td></tr><tr><td>Three-sum</td><td class="nowrap">O(n²)</td><td>Sort once (O(n log n)), then a two-pointer scan for each fixed first number.</td></tr><tr><td>Palindrome check</td><td class="nowrap">O(n)</td><td>Compare the ends, then move both inward.</td></tr><tr><td>If the input isn&#39;t sorted</td><td class="nowrap">+ O(n log n)</td><td>Sorting first usually dominates; a hash map may beat it at O(n) time and O(n) space.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>The pair-sum lines are marked, so the animation highlights them as it runs.</p><figure class="codeblock" id="code-two-pointers" aria-label="Pair sum, palindrome check, container with most water and three-sum">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-two-pointers-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-two-pointers-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-two-pointers-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-two-pointers-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-two-pointers-java" data-lang="java" data-anchors="{&quot;init&quot;:[9],&quot;sum&quot;:[11],&quot;found&quot;:[13],&quot;move-left&quot;:[15],&quot;move-right&quot;:[17],&quot;none&quot;:[20]}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.Arrays;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7">    <span class="hljs-comment">/** 1-based positions of the pair in sorted numbers that sums to target. */</span></span><span class="ln" data-line="8">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">pairSum</span><span class="hljs-params">(<span class="hljs-type">int</span>[] numbers, <span class="hljs-type">int</span> target)</span> {</span><span class="ln" data-line="9">        <span class="hljs-type">int</span> <span class="hljs-variable">left</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, right = numbers.length - <span class="hljs-number">1</span>;</span><span class="ln" data-line="10">        <span class="hljs-keyword">while</span> (left &lt; right) {</span><span class="ln" data-line="11">            <span class="hljs-type">int</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> numbers[left] + numbers[right];</span><span class="ln" data-line="12">            <span class="hljs-keyword">if</span> (sum == target) {</span><span class="ln" data-line="13">                <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { left + <span class="hljs-number">1</span>, right + <span class="hljs-number">1</span> };</span><span class="ln" data-line="14">            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &lt; target) {</span><span class="ln" data-line="15">                left++;</span><span class="ln" data-line="16">            } <span class="hljs-keyword">else</span> {</span><span class="ln" data-line="17">                right--;</span><span class="ln" data-line="18">            }</span><span class="ln" data-line="19">        }</span><span class="ln" data-line="20">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span> };</span><span class="ln" data-line="21">    }</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23">    <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isPalindrome</span><span class="hljs-params">(String s)</span> {</span><span class="ln" data-line="24">        <span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, j = s.length() - <span class="hljs-number">1</span>;</span><span class="ln" data-line="25">        <span class="hljs-keyword">while</span> (i &lt; j) {</span><span class="ln" data-line="26">            <span class="hljs-keyword">while</span> (i &lt; j &amp;&amp; !Character.isLetterOrDigit(s.charAt(i))) i++;</span><span class="ln" data-line="27">            <span class="hljs-keyword">while</span> (i &lt; j &amp;&amp; !Character.isLetterOrDigit(s.charAt(j))) j--;</span><span class="ln" data-line="28">            <span class="hljs-keyword">if</span> (Character.toLowerCase(s.charAt(i)) != Character.toLowerCase(s.charAt(j))) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="29">            i++;</span><span class="ln" data-line="30">            j--;</span><span class="ln" data-line="31">        }</span><span class="ln" data-line="32">        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="33">    }</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">maxArea</span><span class="hljs-params">(<span class="hljs-type">int</span>[] h)</span> {</span><span class="ln" data-line="36">        <span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, j = h.length - <span class="hljs-number">1</span>, best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="37">        <span class="hljs-keyword">while</span> (i &lt; j) {</span><span class="ln" data-line="38">            best = Math.max(best, Math.min(h[i], h[j]) * (j - i));</span><span class="ln" data-line="39">            <span class="hljs-keyword">if</span> (h[i] &lt; h[j]) i++; <span class="hljs-comment">// the shorter wall limits the area: move it</span></span><span class="ln" data-line="40">            <span class="hljs-keyword">else</span> j--;</span><span class="ln" data-line="41">        }</span><span class="ln" data-line="42">        <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="43">    }</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-title function_">threeSum</span><span class="hljs-params">(<span class="hljs-type">int</span>[] input)</span> {</span><span class="ln" data-line="46">        <span class="hljs-type">int</span>[] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> input.clone();</span><span class="ln" data-line="47">        Arrays.sort(a);</span><span class="ln" data-line="48">        <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="49">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">k</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; k &lt; a.length - <span class="hljs-number">2</span>; k++) {</span><span class="ln" data-line="50">            <span class="hljs-keyword">if</span> (k &gt; <span class="hljs-number">0</span> &amp;&amp; a[k] == a[k - <span class="hljs-number">1</span>]) <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// skip duplicate first numbers</span></span><span class="ln" data-line="51">            <span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> k + <span class="hljs-number">1</span>, j = a.length - <span class="hljs-number">1</span>;</span><span class="ln" data-line="52">            <span class="hljs-keyword">while</span> (i &lt; j) {</span><span class="ln" data-line="53">                <span class="hljs-type">int</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> a[k] + a[i] + a[j];</span><span class="ln" data-line="54">                <span class="hljs-keyword">if</span> (sum &lt; <span class="hljs-number">0</span>) i++;</span><span class="ln" data-line="55">                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &gt; <span class="hljs-number">0</span>) j--;</span><span class="ln" data-line="56">                <span class="hljs-keyword">else</span> {</span><span class="ln" data-line="57">                    out.add(Arrays.asList(a[k], a[i], a[j]));</span><span class="ln" data-line="58">                    <span class="hljs-keyword">while</span> (i &lt; j &amp;&amp; a[i] == a[i + <span class="hljs-number">1</span>]) i++;</span><span class="ln" data-line="59">                    <span class="hljs-keyword">while</span> (i &lt; j &amp;&amp; a[j] == a[j - <span class="hljs-number">1</span>]) j--;</span><span class="ln" data-line="60">                    i++;</span><span class="ln" data-line="61">                    j--;</span><span class="ln" data-line="62">                }</span><span class="ln" data-line="63">            }</span><span class="ln" data-line="64">        }</span><span class="ln" data-line="65">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="66">    }</span><span class="ln" data-line="67"> </span><span class="ln" data-line="68">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="69">        System.out.println(<span class="hljs-string">&quot;pairSum([1, 3, 4, 6, 8, 11, 15], 14) = &quot;</span> + Arrays.toString(pairSum(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>, <span class="hljs-number">8</span>, <span class="hljs-number">11</span>, <span class="hljs-number">15</span> }, <span class="hljs-number">14</span>)));</span><span class="ln" data-line="70">        System.out.println(<span class="hljs-string">&quot;isPalindrome(\&quot;A man, a plan, a canal: Panama\&quot;) = &quot;</span> + isPalindrome(<span class="hljs-string">&quot;A man, a plan, a canal: Panama&quot;</span>));</span><span class="ln" data-line="71">        System.out.println(<span class="hljs-string">&quot;maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) = &quot;</span> + maxArea(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">6</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>, <span class="hljs-number">4</span>, <span class="hljs-number">8</span>, <span class="hljs-number">3</span>, <span class="hljs-number">7</span> }));</span><span class="ln" data-line="72">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="73">        <span class="hljs-keyword">for</span> (List&lt;Integer&gt; t : threeSum(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { -<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">4</span> })) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(t.toString().replace(<span class="hljs-string">&quot; &quot;</span>, <span class="hljs-string">&quot;&quot;</span>));</span><span class="ln" data-line="74">        System.out.println(<span class="hljs-string">&quot;threeSum([-1, 0, 1, 2, -1, -4]) = &quot;</span> + sb);</span><span class="ln" data-line="75">    }</span><span class="ln" data-line="76">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Solution {
+
+    /** 1-based positions of the pair in sorted numbers that sums to target. */
+    static int[] pairSum(int[] numbers, int target) {
+        int left = 0, right = numbers.length - 1;
+        while (left &lt; right) {
+            int sum = numbers[left] + numbers[right];
+            if (sum == target) {
+                return new int[] { left + 1, right + 1 };
+            } else if (sum &lt; target) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+        return new int[] { -1, -1 };
+    }
+
+    static boolean isPalindrome(String s) {
+        int i = 0, j = s.length() - 1;
+        while (i &lt; j) {
+            while (i &lt; j &amp;&amp; !Character.isLetterOrDigit(s.charAt(i))) i++;
+            while (i &lt; j &amp;&amp; !Character.isLetterOrDigit(s.charAt(j))) j--;
+            if (Character.toLowerCase(s.charAt(i)) != Character.toLowerCase(s.charAt(j))) return false;
+            i++;
+            j--;
+        }
+        return true;
+    }
+
+    static int maxArea(int[] h) {
+        int i = 0, j = h.length - 1, best = 0;
+        while (i &lt; j) {
+            best = Math.max(best, Math.min(h[i], h[j]) * (j - i));
+            if (h[i] &lt; h[j]) i++; // the shorter wall limits the area: move it
+            else j--;
+        }
+        return best;
+    }
+
+    static List&lt;List&lt;Integer&gt;&gt; threeSum(int[] input) {
+        int[] a = input.clone();
+        Arrays.sort(a);
+        List&lt;List&lt;Integer&gt;&gt; out = new ArrayList&lt;&gt;();
+        for (int k = 0; k &lt; a.length - 2; k++) {
+            if (k &gt; 0 &amp;&amp; a[k] == a[k - 1]) continue; // skip duplicate first numbers
+            int i = k + 1, j = a.length - 1;
+            while (i &lt; j) {
+                int sum = a[k] + a[i] + a[j];
+                if (sum &lt; 0) i++;
+                else if (sum &gt; 0) j--;
+                else {
+                    out.add(Arrays.asList(a[k], a[i], a[j]));
+                    while (i &lt; j &amp;&amp; a[i] == a[i + 1]) i++;
+                    while (i &lt; j &amp;&amp; a[j] == a[j - 1]) j--;
+                    i++;
+                    j--;
+                }
+            }
+        }
+        return out;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;pairSum([1, 3, 4, 6, 8, 11, 15], 14) = &quot; + Arrays.toString(pairSum(new int[] { 1, 3, 4, 6, 8, 11, 15 }, 14)));
+        System.out.println(&quot;isPalindrome(\&quot;A man, a plan, a canal: Panama\&quot;) = &quot; + isPalindrome(&quot;A man, a plan, a canal: Panama&quot;));
+        System.out.println(&quot;maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) = &quot; + maxArea(new int[] { 1, 8, 6, 2, 5, 4, 8, 3, 7 }));
+        StringBuilder sb = new StringBuilder();
+        for (List&lt;Integer&gt; t : threeSum(new int[] { -1, 0, 1, 2, -1, -4 })) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(t.toString().replace(&quot; &quot;, &quot;&quot;));
+        System.out.println(&quot;threeSum([-1, 0, 1, 2, -1, -4]) = &quot; + sb);
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-two-pointers-javascript" data-lang="javascript" data-anchors="{&quot;init&quot;:[3],&quot;sum&quot;:[5],&quot;found&quot;:[7],&quot;move-left&quot;:[9],&quot;move-right&quot;:[11],&quot;none&quot;:[14]}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** 1-based positions of the pair in sorted numbers that sums to target. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">pairSum</span>(<span class="hljs-params">numbers, target</span>) {</span><span class="ln" data-line="3">  <span class="hljs-keyword">let</span> left = <span class="hljs-number">0</span>, right = numbers.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="4">  <span class="hljs-keyword">while</span> (left &lt; right) {</span><span class="ln" data-line="5">    <span class="hljs-keyword">const</span> sum = numbers[left] + numbers[right];</span><span class="ln" data-line="6">    <span class="hljs-keyword">if</span> (sum === target) {</span><span class="ln" data-line="7">      <span class="hljs-keyword">return</span> [left + <span class="hljs-number">1</span>, right + <span class="hljs-number">1</span>];</span><span class="ln" data-line="8">    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &lt; target) {</span><span class="ln" data-line="9">      left++;</span><span class="ln" data-line="10">    } <span class="hljs-keyword">else</span> {</span><span class="ln" data-line="11">      right--;</span><span class="ln" data-line="12">    }</span><span class="ln" data-line="13">  }</span><span class="ln" data-line="14">  <span class="hljs-keyword">return</span> [-<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>];</span><span class="ln" data-line="15">}</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">function</span> <span class="hljs-title function_">isPalindrome</span>(<span class="hljs-params">s</span>) {</span><span class="ln" data-line="18">  <span class="hljs-keyword">const</span> t = s.<span class="hljs-title function_">toLowerCase</span>().<span class="hljs-title function_">replace</span>(<span class="hljs-regexp">/[^a-z0-9]/g</span>, <span class="hljs-string">&quot;&quot;</span>);</span><span class="ln" data-line="19">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>, j = t.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &lt; j; i++, j--) <span class="hljs-keyword">if</span> (t[i] !== t[j]) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="20">  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="21">}</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxArea</span>(<span class="hljs-params">h</span>) {</span><span class="ln" data-line="24">  <span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>;</span><span class="ln" data-line="25">  <span class="hljs-keyword">let</span> j = h.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="26">  <span class="hljs-keyword">let</span> best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="27">  <span class="hljs-keyword">while</span> (i &lt; j) {</span><span class="ln" data-line="28">    best = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(best, <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(h[i], h[j]) * (j - i));</span><span class="ln" data-line="29">    <span class="hljs-keyword">if</span> (h[i] &lt; h[j]) i++; <span class="hljs-comment">// the shorter wall limits the area: move it</span></span><span class="ln" data-line="30">    <span class="hljs-keyword">else</span> j--;</span><span class="ln" data-line="31">  }</span><span class="ln" data-line="32">  <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="33">}</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"><span class="hljs-keyword">function</span> <span class="hljs-title function_">threeSum</span>(<span class="hljs-params">input</span>) {</span><span class="ln" data-line="36">  <span class="hljs-keyword">const</span> a = [...input].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> x - y);</span><span class="ln" data-line="37">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="38">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">0</span>; k &lt; a.<span class="hljs-property">length</span> - <span class="hljs-number">2</span>; k++) {</span><span class="ln" data-line="39">    <span class="hljs-keyword">if</span> (k &gt; <span class="hljs-number">0</span> &amp;&amp; a[k] === a[k - <span class="hljs-number">1</span>]) <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// skip duplicate first numbers</span></span><span class="ln" data-line="40">    <span class="hljs-keyword">let</span> i = k + <span class="hljs-number">1</span>;</span><span class="ln" data-line="41">    <span class="hljs-keyword">let</span> j = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="42">    <span class="hljs-keyword">while</span> (i &lt; j) {</span><span class="ln" data-line="43">      <span class="hljs-keyword">const</span> sum = a[k] + a[i] + a[j];</span><span class="ln" data-line="44">      <span class="hljs-keyword">if</span> (sum &lt; <span class="hljs-number">0</span>) i++;</span><span class="ln" data-line="45">      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &gt; <span class="hljs-number">0</span>) j--;</span><span class="ln" data-line="46">      <span class="hljs-keyword">else</span> {</span><span class="ln" data-line="47">        out.<span class="hljs-title function_">push</span>([a[k], a[i], a[j]]);</span><span class="ln" data-line="48">        <span class="hljs-keyword">while</span> (i &lt; j &amp;&amp; a[i] === a[i + <span class="hljs-number">1</span>]) i++;</span><span class="ln" data-line="49">        <span class="hljs-keyword">while</span> (i &lt; j &amp;&amp; a[j] === a[j - <span class="hljs-number">1</span>]) j--;</span><span class="ln" data-line="50">        i++;</span><span class="ln" data-line="51">        j--;</span><span class="ln" data-line="52">      }</span><span class="ln" data-line="53">    }</span><span class="ln" data-line="54">  }</span><span class="ln" data-line="55">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="56">}</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="59">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`pairSum([1, 3, 4, 6, 8, 11, 15], 14) = [<span class="hljs-subst">${pairSum([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>, <span class="hljs-number">8</span>, <span class="hljs-number">11</span>, <span class="hljs-number">15</span>], <span class="hljs-number">14</span>).join(<span class="hljs-string">&quot;, &quot;</span>)}</span>]`</span>);</span><span class="ln" data-line="60">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`isPalindrome(&quot;A man, a plan, a canal: Panama&quot;) = <span class="hljs-subst">${isPalindrome(<span class="hljs-string">&quot;A man, a plan, a canal: Panama&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="61">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) = <span class="hljs-subst">${maxArea([<span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">6</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>, <span class="hljs-number">4</span>, <span class="hljs-number">8</span>, <span class="hljs-number">3</span>, <span class="hljs-number">7</span>])}</span>`</span>);</span><span class="ln" data-line="62">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`threeSum([-1, 0, 1, 2, -1, -4]) = <span class="hljs-subst">${threeSum([-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">4</span>]).map((t) =&gt; <span class="hljs-string">`[<span class="hljs-subst">${t.join(<span class="hljs-string">&quot;,&quot;</span>)}</span>]`</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="63">}</span><span class="ln" data-line="64"> </span><span class="ln" data-line="65"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** 1-based positions of the pair in sorted numbers that sums to target. */
+function pairSum(numbers, target) {
+  let left = 0, right = numbers.length - 1;
+  while (left &lt; right) {
+    const sum = numbers[left] + numbers[right];
+    if (sum === target) {
+      return [left + 1, right + 1];
+    } else if (sum &lt; target) {
+      left++;
+    } else {
+      right--;
+    }
+  }
+  return [-1, -1];
+}
+
+function isPalindrome(s) {
+  const t = s.toLowerCase().replace(/[^a-z0-9]/g, &quot;&quot;);
+  for (let i = 0, j = t.length - 1; i &lt; j; i++, j--) if (t[i] !== t[j]) return false;
+  return true;
+}
+
+function maxArea(h) {
+  let i = 0;
+  let j = h.length - 1;
+  let best = 0;
+  while (i &lt; j) {
+    best = Math.max(best, Math.min(h[i], h[j]) * (j - i));
+    if (h[i] &lt; h[j]) i++; // the shorter wall limits the area: move it
+    else j--;
+  }
+  return best;
+}
+
+function threeSum(input) {
+  const a = [...input].sort((x, y) =&gt; x - y);
+  const out = [];
+  for (let k = 0; k &lt; a.length - 2; k++) {
+    if (k &gt; 0 &amp;&amp; a[k] === a[k - 1]) continue; // skip duplicate first numbers
+    let i = k + 1;
+    let j = a.length - 1;
+    while (i &lt; j) {
+      const sum = a[k] + a[i] + a[j];
+      if (sum &lt; 0) i++;
+      else if (sum &gt; 0) j--;
+      else {
+        out.push([a[k], a[i], a[j]]);
+        while (i &lt; j &amp;&amp; a[i] === a[i + 1]) i++;
+        while (i &lt; j &amp;&amp; a[j] === a[j - 1]) j--;
+        i++;
+        j--;
+      }
+    }
+  }
+  return out;
+}
+
+function main() {
+  console.log(`pairSum([1, 3, 4, 6, 8, 11, 15], 14) = [${pairSum([1, 3, 4, 6, 8, 11, 15], 14).join(&quot;, &quot;)}]`);
+  console.log(`isPalindrome(&quot;A man, a plan, a canal: Panama&quot;) = ${isPalindrome(&quot;A man, a plan, a canal: Panama&quot;)}`);
+  console.log(`maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) = ${maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7])}`);
+  console.log(`threeSum([-1, 0, 1, 2, -1, -4]) = ${threeSum([-1, 0, 1, 2, -1, -4]).map((t) =&gt; `[${t.join(&quot;,&quot;)}]`).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-two-pointers-typescript" data-lang="typescript" data-anchors="{&quot;init&quot;:[3],&quot;sum&quot;:[5],&quot;found&quot;:[7],&quot;move-left&quot;:[9],&quot;move-right&quot;:[11],&quot;none&quot;:[14]}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** 1-based positions of the pair in sorted numbers that sums to target. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">pairSum</span>(<span class="hljs-params"><span class="hljs-attr">numbers</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">target</span>: <span class="hljs-built_in">number</span></span>): [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>] {</span><span class="ln" data-line="3">  <span class="hljs-keyword">let</span> left = <span class="hljs-number">0</span>, right = numbers.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="4">  <span class="hljs-keyword">while</span> (left &lt; right) {</span><span class="ln" data-line="5">    <span class="hljs-keyword">const</span> sum = numbers[left] + numbers[right];</span><span class="ln" data-line="6">    <span class="hljs-keyword">if</span> (sum === target) {</span><span class="ln" data-line="7">      <span class="hljs-keyword">return</span> [left + <span class="hljs-number">1</span>, right + <span class="hljs-number">1</span>];</span><span class="ln" data-line="8">    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &lt; target) {</span><span class="ln" data-line="9">      left++;</span><span class="ln" data-line="10">    } <span class="hljs-keyword">else</span> {</span><span class="ln" data-line="11">      right--;</span><span class="ln" data-line="12">    }</span><span class="ln" data-line="13">  }</span><span class="ln" data-line="14">  <span class="hljs-keyword">return</span> [-<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>];</span><span class="ln" data-line="15">}</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">function</span> <span class="hljs-title function_">isPalindrome</span>(<span class="hljs-params"><span class="hljs-attr">s</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="18">  <span class="hljs-keyword">const</span> t = s.<span class="hljs-title function_">toLowerCase</span>().<span class="hljs-title function_">replace</span>(<span class="hljs-regexp">/[^a-z0-9]/g</span>, <span class="hljs-string">&quot;&quot;</span>);</span><span class="ln" data-line="19">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>, j = t.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &lt; j; i++, j--) <span class="hljs-keyword">if</span> (t[i] !== t[j]) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="20">  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="21">}</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxArea</span>(<span class="hljs-params"><span class="hljs-attr">h</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="24">  <span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>;</span><span class="ln" data-line="25">  <span class="hljs-keyword">let</span> j = h.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="26">  <span class="hljs-keyword">let</span> best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="27">  <span class="hljs-keyword">while</span> (i &lt; j) {</span><span class="ln" data-line="28">    best = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(best, <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(h[i], h[j]) * (j - i));</span><span class="ln" data-line="29">    <span class="hljs-keyword">if</span> (h[i] &lt; h[j]) i++; <span class="hljs-comment">// the shorter wall limits the area: move it</span></span><span class="ln" data-line="30">    <span class="hljs-keyword">else</span> j--;</span><span class="ln" data-line="31">  }</span><span class="ln" data-line="32">  <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="33">}</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"><span class="hljs-keyword">function</span> <span class="hljs-title function_">threeSum</span>(<span class="hljs-params"><span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span>[][] {</span><span class="ln" data-line="36">  <span class="hljs-keyword">const</span> a = [...input].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> x - y);</span><span class="ln" data-line="37">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[][] = [];</span><span class="ln" data-line="38">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">0</span>; k &lt; a.<span class="hljs-property">length</span> - <span class="hljs-number">2</span>; k++) {</span><span class="ln" data-line="39">    <span class="hljs-keyword">if</span> (k &gt; <span class="hljs-number">0</span> &amp;&amp; a[k] === a[k - <span class="hljs-number">1</span>]) <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// skip duplicate first numbers</span></span><span class="ln" data-line="40">    <span class="hljs-keyword">let</span> i = k + <span class="hljs-number">1</span>;</span><span class="ln" data-line="41">    <span class="hljs-keyword">let</span> j = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>;</span><span class="ln" data-line="42">    <span class="hljs-keyword">while</span> (i &lt; j) {</span><span class="ln" data-line="43">      <span class="hljs-keyword">const</span> sum = a[k] + a[i] + a[j];</span><span class="ln" data-line="44">      <span class="hljs-keyword">if</span> (sum &lt; <span class="hljs-number">0</span>) i++;</span><span class="ln" data-line="45">      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (sum &gt; <span class="hljs-number">0</span>) j--;</span><span class="ln" data-line="46">      <span class="hljs-keyword">else</span> {</span><span class="ln" data-line="47">        out.<span class="hljs-title function_">push</span>([a[k], a[i], a[j]]);</span><span class="ln" data-line="48">        <span class="hljs-keyword">while</span> (i &lt; j &amp;&amp; a[i] === a[i + <span class="hljs-number">1</span>]) i++;</span><span class="ln" data-line="49">        <span class="hljs-keyword">while</span> (i &lt; j &amp;&amp; a[j] === a[j - <span class="hljs-number">1</span>]) j--;</span><span class="ln" data-line="50">        i++;</span><span class="ln" data-line="51">        j--;</span><span class="ln" data-line="52">      }</span><span class="ln" data-line="53">    }</span><span class="ln" data-line="54">  }</span><span class="ln" data-line="55">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="56">}</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="59">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`pairSum([1, 3, 4, 6, 8, 11, 15], 14) = [<span class="hljs-subst">${pairSum([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>, <span class="hljs-number">8</span>, <span class="hljs-number">11</span>, <span class="hljs-number">15</span>], <span class="hljs-number">14</span>).join(<span class="hljs-string">&quot;, &quot;</span>)}</span>]`</span>);</span><span class="ln" data-line="60">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`isPalindrome(&quot;A man, a plan, a canal: Panama&quot;) = <span class="hljs-subst">${isPalindrome(<span class="hljs-string">&quot;A man, a plan, a canal: Panama&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="61">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) = <span class="hljs-subst">${maxArea([<span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">6</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>, <span class="hljs-number">4</span>, <span class="hljs-number">8</span>, <span class="hljs-number">3</span>, <span class="hljs-number">7</span>])}</span>`</span>);</span><span class="ln" data-line="62">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`threeSum([-1, 0, 1, 2, -1, -4]) = <span class="hljs-subst">${threeSum([-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">4</span>]).map((t) =&gt; <span class="hljs-string">`[<span class="hljs-subst">${t.join(<span class="hljs-string">&quot;,&quot;</span>)}</span>]`</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="63">}</span><span class="ln" data-line="64"> </span><span class="ln" data-line="65"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** 1-based positions of the pair in sorted numbers that sums to target. */
+function pairSum(numbers: readonly number[], target: number): [number, number] {
+  let left = 0, right = numbers.length - 1;
+  while (left &lt; right) {
+    const sum = numbers[left] + numbers[right];
+    if (sum === target) {
+      return [left + 1, right + 1];
+    } else if (sum &lt; target) {
+      left++;
+    } else {
+      right--;
+    }
+  }
+  return [-1, -1];
+}
+
+function isPalindrome(s: string): boolean {
+  const t = s.toLowerCase().replace(/[^a-z0-9]/g, &quot;&quot;);
+  for (let i = 0, j = t.length - 1; i &lt; j; i++, j--) if (t[i] !== t[j]) return false;
+  return true;
+}
+
+function maxArea(h: readonly number[]): number {
+  let i = 0;
+  let j = h.length - 1;
+  let best = 0;
+  while (i &lt; j) {
+    best = Math.max(best, Math.min(h[i], h[j]) * (j - i));
+    if (h[i] &lt; h[j]) i++; // the shorter wall limits the area: move it
+    else j--;
+  }
+  return best;
+}
+
+function threeSum(input: readonly number[]): number[][] {
+  const a = [...input].sort((x, y) =&gt; x - y);
+  const out: number[][] = [];
+  for (let k = 0; k &lt; a.length - 2; k++) {
+    if (k &gt; 0 &amp;&amp; a[k] === a[k - 1]) continue; // skip duplicate first numbers
+    let i = k + 1;
+    let j = a.length - 1;
+    while (i &lt; j) {
+      const sum = a[k] + a[i] + a[j];
+      if (sum &lt; 0) i++;
+      else if (sum &gt; 0) j--;
+      else {
+        out.push([a[k], a[i], a[j]]);
+        while (i &lt; j &amp;&amp; a[i] === a[i + 1]) i++;
+        while (i &lt; j &amp;&amp; a[j] === a[j - 1]) j--;
+        i++;
+        j--;
+      }
+    }
+  }
+  return out;
+}
+
+function main(): void {
+  console.log(`pairSum([1, 3, 4, 6, 8, 11, 15], 14) = [${pairSum([1, 3, 4, 6, 8, 11, 15], 14).join(&quot;, &quot;)}]`);
+  console.log(`isPalindrome(&quot;A man, a plan, a canal: Panama&quot;) = ${isPalindrome(&quot;A man, a plan, a canal: Panama&quot;)}`);
+  console.log(`maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) = ${maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7])}`);
+  console.log(`threeSum([-1, 0, 1, 2, -1, -4]) = ${threeSum([-1, 0, 1, 2, -1, -4]).map((t) =&gt; `[${t.join(&quot;,&quot;)}]`).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-two-pointers-python" data-lang="python" data-anchors="{&quot;init&quot;:[6],&quot;sum&quot;:[8],&quot;found&quot;:[10],&quot;move-left&quot;:[12],&quot;move-right&quot;:[14],&quot;none&quot;:[15]}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">pair_sum</span>(<span class="hljs-params">numbers: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], target: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="5">    <span class="hljs-string">&quot;&quot;&quot;1-based positions of the pair in sorted numbers that sums to target.&quot;&quot;&quot;</span></span><span class="ln" data-line="6">    left, right = <span class="hljs-number">0</span>, <span class="hljs-built_in">len</span>(numbers) - <span class="hljs-number">1</span></span><span class="ln" data-line="7">    <span class="hljs-keyword">while</span> left &lt; right:</span><span class="ln" data-line="8">        total = numbers[left] + numbers[right]</span><span class="ln" data-line="9">        <span class="hljs-keyword">if</span> total == target:</span><span class="ln" data-line="10">            <span class="hljs-keyword">return</span> [left + <span class="hljs-number">1</span>, right + <span class="hljs-number">1</span>]</span><span class="ln" data-line="11">        <span class="hljs-keyword">elif</span> total &lt; target:</span><span class="ln" data-line="12">            left += <span class="hljs-number">1</span></span><span class="ln" data-line="13">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="14">            right -= <span class="hljs-number">1</span></span><span class="ln" data-line="15">    <span class="hljs-keyword">return</span> [-<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>]</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-keyword">def</span> <span class="hljs-title function_">is_palindrome</span>(<span class="hljs-params">s: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="19">    t = [c.lower() <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> s <span class="hljs-keyword">if</span> c.isalnum()]</span><span class="ln" data-line="20">    i, j = <span class="hljs-number">0</span>, <span class="hljs-built_in">len</span>(t) - <span class="hljs-number">1</span></span><span class="ln" data-line="21">    <span class="hljs-keyword">while</span> i &lt; j:</span><span class="ln" data-line="22">        <span class="hljs-keyword">if</span> t[i] != t[j]:</span><span class="ln" data-line="23">            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span></span><span class="ln" data-line="24">        i, j = i + <span class="hljs-number">1</span>, j - <span class="hljs-number">1</span></span><span class="ln" data-line="25">    <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span></span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"> </span><span class="ln" data-line="28"><span class="hljs-keyword">def</span> <span class="hljs-title function_">max_area</span>(<span class="hljs-params">h: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="29">    i, j, best = <span class="hljs-number">0</span>, <span class="hljs-built_in">len</span>(h) - <span class="hljs-number">1</span>, <span class="hljs-number">0</span></span><span class="ln" data-line="30">    <span class="hljs-keyword">while</span> i &lt; j:</span><span class="ln" data-line="31">        best = <span class="hljs-built_in">max</span>(best, <span class="hljs-built_in">min</span>(h[i], h[j]) * (j - i))</span><span class="ln" data-line="32">        <span class="hljs-keyword">if</span> h[i] &lt; h[j]:  <span class="hljs-comment"># the shorter wall limits the area: move it</span></span><span class="ln" data-line="33">            i += <span class="hljs-number">1</span></span><span class="ln" data-line="34">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="35">            j -= <span class="hljs-number">1</span></span><span class="ln" data-line="36">    <span class="hljs-keyword">return</span> best</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"> </span><span class="ln" data-line="39"><span class="hljs-keyword">def</span> <span class="hljs-title function_">three_sum</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]:</span><span class="ln" data-line="40">    a, out = <span class="hljs-built_in">sorted</span>(nums), []</span><span class="ln" data-line="41">    <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(a) - <span class="hljs-number">2</span>):</span><span class="ln" data-line="42">        <span class="hljs-keyword">if</span> k &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> a[k] == a[k - <span class="hljs-number">1</span>]:  <span class="hljs-comment"># skip duplicate first numbers</span></span><span class="ln" data-line="43">            <span class="hljs-keyword">continue</span></span><span class="ln" data-line="44">        i, j = k + <span class="hljs-number">1</span>, <span class="hljs-built_in">len</span>(a) - <span class="hljs-number">1</span></span><span class="ln" data-line="45">        <span class="hljs-keyword">while</span> i &lt; j:</span><span class="ln" data-line="46">            s = a[k] + a[i] + a[j]</span><span class="ln" data-line="47">            <span class="hljs-keyword">if</span> s &lt; <span class="hljs-number">0</span>:</span><span class="ln" data-line="48">                i += <span class="hljs-number">1</span></span><span class="ln" data-line="49">            <span class="hljs-keyword">elif</span> s &gt; <span class="hljs-number">0</span>:</span><span class="ln" data-line="50">                j -= <span class="hljs-number">1</span></span><span class="ln" data-line="51">            <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="52">                out.append([a[k], a[i], a[j]])</span><span class="ln" data-line="53">                <span class="hljs-keyword">while</span> i &lt; j <span class="hljs-keyword">and</span> a[i] == a[i + <span class="hljs-number">1</span>]:</span><span class="ln" data-line="54">                    i += <span class="hljs-number">1</span></span><span class="ln" data-line="55">                <span class="hljs-keyword">while</span> i &lt; j <span class="hljs-keyword">and</span> a[j] == a[j - <span class="hljs-number">1</span>]:</span><span class="ln" data-line="56">                    j -= <span class="hljs-number">1</span></span><span class="ln" data-line="57">                i, j = i + <span class="hljs-number">1</span>, j - <span class="hljs-number">1</span></span><span class="ln" data-line="58">    <span class="hljs-keyword">return</span> out</span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"> </span><span class="ln" data-line="61"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="62">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;pairSum([1, 3, 4, 6, 8, 11, 15], 14) = <span class="hljs-subst">{pair_sum([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>, <span class="hljs-number">8</span>, <span class="hljs-number">11</span>, <span class="hljs-number">15</span>], <span class="hljs-number">14</span>)}</span>&quot;</span>)</span><span class="ln" data-line="63">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;isPalindrome(&quot;A man, a plan, a canal: Panama&quot;) = <span class="hljs-subst">{<span class="hljs-built_in">str</span>(is_palindrome(<span class="hljs-string">&quot;A man, a plan, a canal: Panama&quot;</span>)).lower()}</span>&#x27;</span>)</span><span class="ln" data-line="64">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) = <span class="hljs-subst">{max_area([<span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">6</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>, <span class="hljs-number">4</span>, <span class="hljs-number">8</span>, <span class="hljs-number">3</span>, <span class="hljs-number">7</span>])}</span>&quot;</span>)</span><span class="ln" data-line="65">    triples = <span class="hljs-string">&quot; &quot;</span>.join(<span class="hljs-string">&quot;[&quot;</span> + <span class="hljs-string">&quot;,&quot;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, t)) + <span class="hljs-string">&quot;]&quot;</span> <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> three_sum([-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">4</span>]))</span><span class="ln" data-line="66">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;threeSum([-1, 0, 1, 2, -1, -4]) = <span class="hljs-subst">{triples}</span>&quot;</span>)</span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"> </span><span class="ln" data-line="69"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="70">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List
+
+
+def pair_sum(numbers: List[int], target: int) -&gt; List[int]:
+    &quot;&quot;&quot;1-based positions of the pair in sorted numbers that sums to target.&quot;&quot;&quot;
+    left, right = 0, len(numbers) - 1
+    while left &lt; right:
+        total = numbers[left] + numbers[right]
+        if total == target:
+            return [left + 1, right + 1]
+        elif total &lt; target:
+            left += 1
+        else:
+            right -= 1
+    return [-1, -1]
+
+
+def is_palindrome(s: str) -&gt; bool:
+    t = [c.lower() for c in s if c.isalnum()]
+    i, j = 0, len(t) - 1
+    while i &lt; j:
+        if t[i] != t[j]:
+            return False
+        i, j = i + 1, j - 1
+    return True
+
+
+def max_area(h: List[int]) -&gt; int:
+    i, j, best = 0, len(h) - 1, 0
+    while i &lt; j:
+        best = max(best, min(h[i], h[j]) * (j - i))
+        if h[i] &lt; h[j]:  # the shorter wall limits the area: move it
+            i += 1
+        else:
+            j -= 1
+    return best
+
+
+def three_sum(nums: List[int]) -&gt; List[List[int]]:
+    a, out = sorted(nums), []
+    for k in range(len(a) - 2):
+        if k &gt; 0 and a[k] == a[k - 1]:  # skip duplicate first numbers
+            continue
+        i, j = k + 1, len(a) - 1
+        while i &lt; j:
+            s = a[k] + a[i] + a[j]
+            if s &lt; 0:
+                i += 1
+            elif s &gt; 0:
+                j -= 1
+            else:
+                out.append([a[k], a[i], a[j]])
+                while i &lt; j and a[i] == a[i + 1]:
+                    i += 1
+                while i &lt; j and a[j] == a[j - 1]:
+                    j -= 1
+                i, j = i + 1, j - 1
+    return out
+
+
+def main() -&gt; None:
+    print(f&quot;pairSum([1, 3, 4, 6, 8, 11, 15], 14) = {pair_sum([1, 3, 4, 6, 8, 11, 15], 14)}&quot;)
+    print(f&#39;isPalindrome(&quot;A man, a plan, a canal: Panama&quot;) = {str(is_palindrome(&quot;A man, a plan, a canal: Panama&quot;)).lower()}&#39;)
+    print(f&quot;maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) = {max_area([1, 8, 6, 2, 5, 4, 8, 3, 7])}&quot;)
+    triples = &quot; &quot;.join(&quot;[&quot; + &quot;,&quot;.join(map(str, t)) + &quot;]&quot; for t in three_sum([-1, 0, 1, 2, -1, -4]))
+    print(f&quot;threeSum([-1, 0, 1, 2, -1, -4]) = {triples}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>pairSum([1, 3, 4, 6, 8, 11, 15], 14) = [2, 6]
+isPalindrome(&quot;A man, a plan, a canal: Panama&quot;) = true
+maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) = 49
+threeSum([-1, 0, 1, 2, -1, -4]) = [-1,-1,2] [-1,0,1]</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Using converging pointers on unsorted data, where moving one pointer doesn&#39;t rule anything out.</li><li>Loop condition <code>left &lt;= right</code> when the two pointers must be different elements.</li><li>In three-sum, not skipping duplicate values, so the same triple is reported several times.</li><li>Moving the wrong pointer: in container with most water, always move the shorter side.</li></ul>
+<h2 id="practice">Practice</h2>
+<p>Solved on this site: <a href="../../problems/two-sum-ii-sorted/index.html">Two Sum II, sorted input</a>.</p><div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/valid-palindrome/" rel="noopener" target="_blank">Valid Palindrome<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>125</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/" rel="noopener" target="_blank">Two Sum II - Input Array Is Sorted<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Solved step by step on this site.</span></td><td>167</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/3sum/" rel="noopener" target="_blank">3Sum<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>15</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/container-with-most-water/" rel="noopener" target="_blank">Container With Most Water<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>11</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/trapping-rain-water/" rel="noopener" target="_blank">Trapping Rain Water<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>42</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/arrays/index.html">Arrays</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Coding patterns</span></a><a class="pn pn-next" href="../sliding-window/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Sliding window</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

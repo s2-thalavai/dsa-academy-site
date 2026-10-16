@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topological sort · DSA Academy</title>
+<meta name="description" content="Order tasks so every dependency comes first.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Topological sort</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Topological sort</h1>
+  <p class="lede">When tasks depend on other tasks, a topological order lists every task after all of its prerequisites. It exists exactly when the dependency graph has no cycle, so the same algorithm also detects cycles.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Getting dressed: socks before shoes, shirt before jacket. Write each &quot;this before that&quot; as an arrow, then repeatedly put on anything whose prerequisites are already on.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Prerequisites, dependencies, build order, &quot;X must happen before Y&quot;.</li>
+<li>Can all tasks be finished? That&#39;s the same as asking whether the directed graph has a cycle.</li>
+<li>Ordering letters from a sorted alien dictionary, or recipes from ingredients.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">Kahn&#39;s algorithm (BFS):
+    indegree[v] = number of edges into v
+    queue = every v with indegree 0
+    while queue not empty:
+        u = dequeue; append u to order
+        for each v with u → v:
+            indegree[v] −= 1
+            if indegree[v] == 0: enqueue v
+    if order has all V nodes: it&#39;s a valid order, else there&#39;s a cycle
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 170" role="img" aria-label="A course prerequisite graph: course 0 unlocks courses 1 and 2, which both unlock course 3"><defs><marker id="ah3-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker></defs><path class="dg-line" d="M101.19739401185869 79.11183499670592 L236.87557016888144 41.42345273086627" marker-end="url(#ah3-dg-head)"/><path class="dg-line" d="M101.19739401185869 90.88816500329408 L236.87557016888144 128.57654726913373" marker-end="url(#ah3-dg-head)"/><path class="dg-line" d="M281.1973940118587 40.888165003294084 L416.87557016888144 78.57654726913373" marker-end="url(#ah3-dg-head)"/><path class="dg-line" d="M281.1973940118587 129.1118349967059 L416.87557016888144 91.42345273086627" marker-end="url(#ah3-dg-head)"/><circle class="dg-ok" cx="80" cy="85" r="20"/><text class="dg-t" x="80" y="85">0</text><text class="dg-s" x="80" y="123">in 0</text><circle class="dg-box" cx="260" cy="35" r="20"/><text class="dg-t" x="260" y="35">1</text><text class="dg-s" x="260" y="73">in 1</text><circle class="dg-box" cx="260" cy="135" r="20"/><text class="dg-t" x="260" y="135">2</text><text class="dg-s" x="260" y="173">in 1</text><circle class="dg-box" cx="440" cy="85" r="20"/><text class="dg-t" x="440" y="85">3</text><text class="dg-s" x="440" y="123">in 2</text><text class="dg-lbl" x="520" y="60">order: 0 1 2 3</text><text class="dg-m" x="520" y="84">(0 first: in-degree 0)</text></svg><figcaption>An edge u → v means "u before v". Kahn's algorithm starts with courses that need nothing (in-degree 0) and removes them, which unlocks the next ones.</figcaption></figure><p>A node with in-degree 0 has nothing left to wait for, so it can go next.
+Removing it (by decrementing its neighbours) may free up others. If the queue
+empties before every node is output, the remaining nodes all wait on each
+other: that&#39;s a cycle.</p>
+<p>The <strong>DFS alternative</strong> colours nodes white (unvisited), grey (on the current
+path) and black (finished). Reaching a grey node means a cycle. Appending nodes
+as they turn black and then reversing gives a topological order. The same
+colouring finds <strong>eventual safe states</strong>: nodes that can&#39;t reach a cycle.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Kahn&#39;s algorithm</td><td class="nowrap">O(V + E)</td><td>Each node is enqueued once and each edge decrements one in-degree once.</td></tr><tr><td>DFS with colours</td><td class="nowrap">O(V + E)</td><td>Each node turns grey and black once.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Prerequisites use LeetCode&#39;s format: <code>[course, prerequisite]</code> means an edge from the prerequisite to the course.</p><figure class="codeblock" id="code-topological-sort" aria-label="Course schedule, course order and eventual safe states">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-topological-sort-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-topological-sort-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-topological-sort-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-topological-sort-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-topological-sort-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayDeque;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7">    <span class="hljs-comment">/** Kahn&#x27;s algorithm. Returns an order, or an empty array if there&#x27;s a cycle. */</span></span><span class="ln" data-line="8">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">findOrder</span><span class="hljs-params">(<span class="hljs-type">int</span> n, <span class="hljs-type">int</span>[][] prerequisites)</span> {</span><span class="ln" data-line="9">        <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-variable">adj</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="10">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; n; i++) adj.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;());</span><span class="ln" data-line="11">        <span class="hljs-type">int</span>[] <span class="hljs-variable">indegree</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n];</span><span class="ln" data-line="12">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] p : prerequisites) {</span><span class="ln" data-line="13">            adj.get(p[<span class="hljs-number">1</span>]).add(p[<span class="hljs-number">0</span>]); <span class="hljs-comment">// prerequisite -&gt; course</span></span><span class="ln" data-line="14">            indegree[p[<span class="hljs-number">0</span>]]++;</span><span class="ln" data-line="15">        }</span><span class="ln" data-line="16">        <span class="hljs-type">ArrayDeque</span>&lt;Integer&gt; <span class="hljs-variable">queue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;();</span><span class="ln" data-line="17">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; n; i++) <span class="hljs-keyword">if</span> (indegree[i] == <span class="hljs-number">0</span>) queue.add(i);</span><span class="ln" data-line="18">        <span class="hljs-type">int</span>[] <span class="hljs-variable">order</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n];</span><span class="ln" data-line="19">        <span class="hljs-type">int</span> <span class="hljs-variable">k</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="20">        <span class="hljs-keyword">while</span> (!queue.isEmpty()) {</span><span class="ln" data-line="21">            <span class="hljs-type">int</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> queue.poll();</span><span class="ln" data-line="22">            order[k++] = u;</span><span class="ln" data-line="23">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : adj.get(u)) <span class="hljs-keyword">if</span> (--indegree[v] == <span class="hljs-number">0</span>) queue.add(v);</span><span class="ln" data-line="24">        }</span><span class="ln" data-line="25">        <span class="hljs-keyword">return</span> k == n ? order : <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="26">    }</span><span class="ln" data-line="27"> </span><span class="ln" data-line="28">    <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">canFinish</span><span class="hljs-params">(<span class="hljs-type">int</span> n, <span class="hljs-type">int</span>[][] prerequisites)</span> { <span class="hljs-keyword">return</span> findOrder(n, prerequisites).length == n; }</span><span class="ln" data-line="29"> </span><span class="ln" data-line="30">    <span class="hljs-comment">/** Nodes that can&#x27;t reach a cycle. 0 = unvisited, 1 = on the current path, 2 = safe. */</span></span><span class="ln" data-line="31">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-title function_">eventualSafeNodes</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] graph)</span> {</span><span class="ln" data-line="32">        <span class="hljs-type">int</span>[] <span class="hljs-variable">color</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[graph.length];</span><span class="ln" data-line="33">        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">safe</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="34">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; graph.length; i++) <span class="hljs-keyword">if</span> (isSafe(graph, i, color)) safe.add(i);</span><span class="ln" data-line="35">        <span class="hljs-keyword">return</span> safe;</span><span class="ln" data-line="36">    }</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38">    <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isSafe</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] graph, <span class="hljs-type">int</span> u, <span class="hljs-type">int</span>[] color)</span> {</span><span class="ln" data-line="39">        <span class="hljs-keyword">if</span> (color[u] != <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> color[u] == <span class="hljs-number">2</span>; <span class="hljs-comment">// grey: we&#x27;re in a cycle</span></span><span class="ln" data-line="40">        color[u] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="41">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : graph[u]) <span class="hljs-keyword">if</span> (!isSafe(graph, v, color)) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>; <span class="hljs-comment">// stays grey: unsafe</span></span><span class="ln" data-line="42">        color[u] = <span class="hljs-number">2</span>;</span><span class="ln" data-line="43">        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="44">    }</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">join</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a)</span> {</span><span class="ln" data-line="47">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="48">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : a) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(x);</span><span class="ln" data-line="49">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="50">    }</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="53">        System.out.println(<span class="hljs-string">&quot;canFinish(2, [[1,0]]) = &quot;</span> + canFinish(<span class="hljs-number">2</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">0</span> } })</span><span class="ln" data-line="54">                + <span class="hljs-string">&quot;, canFinish(2, [[1,0],[0,1]]) = &quot;</span> + canFinish(<span class="hljs-number">2</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">0</span>, <span class="hljs-number">1</span> } }));</span><span class="ln" data-line="55">        System.out.println(<span class="hljs-string">&quot;findOrder(4, [[1,0],[2,0],[3,1],[3,2]]) = &quot;</span> + join(findOrder(<span class="hljs-number">4</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">3</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">3</span>, <span class="hljs-number">2</span> } })));</span><span class="ln" data-line="56">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="57">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : eventualSafeNodes(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">2</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">3</span> }, { <span class="hljs-number">5</span> }, { <span class="hljs-number">0</span> }, { <span class="hljs-number">5</span> }, {}, {} })) s.append(s.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(x);</span><span class="ln" data-line="58">        System.out.println(<span class="hljs-string">&quot;eventual safe nodes: &quot;</span> + s);</span><span class="ln" data-line="59">    }</span><span class="ln" data-line="60">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Solution {
+
+    /** Kahn&#39;s algorithm. Returns an order, or an empty array if there&#39;s a cycle. */
+    static int[] findOrder(int n, int[][] prerequisites) {
+        List&lt;List&lt;Integer&gt;&gt; adj = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; n; i++) adj.add(new ArrayList&lt;&gt;());
+        int[] indegree = new int[n];
+        for (int[] p : prerequisites) {
+            adj.get(p[1]).add(p[0]); // prerequisite -&gt; course
+            indegree[p[0]]++;
+        }
+        ArrayDeque&lt;Integer&gt; queue = new ArrayDeque&lt;&gt;();
+        for (int i = 0; i &lt; n; i++) if (indegree[i] == 0) queue.add(i);
+        int[] order = new int[n];
+        int k = 0;
+        while (!queue.isEmpty()) {
+            int u = queue.poll();
+            order[k++] = u;
+            for (int v : adj.get(u)) if (--indegree[v] == 0) queue.add(v);
+        }
+        return k == n ? order : new int[0];
+    }
+
+    static boolean canFinish(int n, int[][] prerequisites) { return findOrder(n, prerequisites).length == n; }
+
+    /** Nodes that can&#39;t reach a cycle. 0 = unvisited, 1 = on the current path, 2 = safe. */
+    static List&lt;Integer&gt; eventualSafeNodes(int[][] graph) {
+        int[] color = new int[graph.length];
+        List&lt;Integer&gt; safe = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; graph.length; i++) if (isSafe(graph, i, color)) safe.add(i);
+        return safe;
+    }
+
+    static boolean isSafe(int[][] graph, int u, int[] color) {
+        if (color[u] != 0) return color[u] == 2; // grey: we&#39;re in a cycle
+        color[u] = 1;
+        for (int v : graph[u]) if (!isSafe(graph, v, color)) return false; // stays grey: unsafe
+        color[u] = 2;
+        return true;
+    }
+
+    static String join(int[] a) {
+        StringBuilder sb = new StringBuilder();
+        for (int x : a) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(x);
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;canFinish(2, [[1,0]]) = &quot; + canFinish(2, new int[][] { { 1, 0 } })
+                + &quot;, canFinish(2, [[1,0],[0,1]]) = &quot; + canFinish(2, new int[][] { { 1, 0 }, { 0, 1 } }));
+        System.out.println(&quot;findOrder(4, [[1,0],[2,0],[3,1],[3,2]]) = &quot; + join(findOrder(4, new int[][] { { 1, 0 }, { 2, 0 }, { 3, 1 }, { 3, 2 } })));
+        StringBuilder s = new StringBuilder();
+        for (int x : eventualSafeNodes(new int[][] { { 1, 2 }, { 2, 3 }, { 5 }, { 0 }, { 5 }, {}, {} })) s.append(s.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(x);
+        System.out.println(&quot;eventual safe nodes: &quot; + s);
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-topological-sort-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Kahn&#x27;s algorithm. Returns an order, or an empty array if there&#x27;s a cycle. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findOrder</span>(<span class="hljs-params">n, prerequisites</span>) {</span><span class="ln" data-line="3">  <span class="hljs-keyword">const</span> adj = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> []);</span><span class="ln" data-line="4">  <span class="hljs-keyword">const</span> indegree = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="5">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [course, pre] <span class="hljs-keyword">of</span> prerequisites) {</span><span class="ln" data-line="6">    adj[pre].<span class="hljs-title function_">push</span>(course); <span class="hljs-comment">// prerequisite -&gt; course</span></span><span class="ln" data-line="7">    indegree[course]++;</span><span class="ln" data-line="8">  }</span><span class="ln" data-line="9">  <span class="hljs-keyword">const</span> order = [];</span><span class="ln" data-line="10">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) <span class="hljs-keyword">if</span> (indegree[i] === <span class="hljs-number">0</span>) order.<span class="hljs-title function_">push</span>(i);</span><span class="ln" data-line="11">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> head = <span class="hljs-number">0</span>; head &lt; order.<span class="hljs-property">length</span>; head++) {</span><span class="ln" data-line="12">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> adj[order[head]]) <span class="hljs-keyword">if</span> (--indegree[v] === <span class="hljs-number">0</span>) order.<span class="hljs-title function_">push</span>(v);</span><span class="ln" data-line="13">  }</span><span class="ln" data-line="14">  <span class="hljs-keyword">return</span> order.<span class="hljs-property">length</span> === n ? order : [];</span><span class="ln" data-line="15">}</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">const</span> <span class="hljs-title function_">canFinish</span> = (<span class="hljs-params">n, prerequisites</span>) =&gt; <span class="hljs-title function_">findOrder</span>(n, prerequisites).<span class="hljs-property">length</span> === n;</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"><span class="hljs-comment">/** Nodes that can&#x27;t reach a cycle. 0 = unvisited, 1 = on the current path, 2 = safe. */</span></span><span class="ln" data-line="20"><span class="hljs-keyword">function</span> <span class="hljs-title function_">eventualSafeNodes</span>(<span class="hljs-params">graph</span>) {</span><span class="ln" data-line="21">  <span class="hljs-keyword">const</span> color = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(graph.<span class="hljs-property">length</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="22">  <span class="hljs-keyword">const</span> <span class="hljs-title function_">isSafe</span> = (<span class="hljs-params">u</span>) =&gt; {</span><span class="ln" data-line="23">    <span class="hljs-keyword">if</span> (color[u] !== <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> color[u] === <span class="hljs-number">2</span>; <span class="hljs-comment">// grey: we&#x27;re in a cycle</span></span><span class="ln" data-line="24">    color[u] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="25">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> graph[u]) <span class="hljs-keyword">if</span> (!<span class="hljs-title function_">isSafe</span>(v)) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>; <span class="hljs-comment">// stays grey: unsafe</span></span><span class="ln" data-line="26">    color[u] = <span class="hljs-number">2</span>;</span><span class="ln" data-line="27">    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="28">  };</span><span class="ln" data-line="29">  <span class="hljs-keyword">return</span> graph.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">_, i</span>) =&gt;</span> i).<span class="hljs-title function_">filter</span>(isSafe);</span><span class="ln" data-line="30">}</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="33">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`canFinish(2, [[1,0]]) = <span class="hljs-subst">${canFinish(<span class="hljs-number">2</span>, [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>]])}</span>, canFinish(2, [[1,0],[0,1]]) = <span class="hljs-subst">${canFinish(<span class="hljs-number">2</span>, [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]])}</span>`</span>);</span><span class="ln" data-line="34">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`findOrder(4, [[1,0],[2,0],[3,1],[3,2]]) = <span class="hljs-subst">${findOrder(<span class="hljs-number">4</span>, [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">2</span>]]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="35">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`eventual safe nodes: <span class="hljs-subst">${eventualSafeNodes([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">5</span>], [<span class="hljs-number">0</span>], [<span class="hljs-number">5</span>], [], []]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="36">}</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Kahn&#39;s algorithm. Returns an order, or an empty array if there&#39;s a cycle. */
+function findOrder(n, prerequisites) {
+  const adj = Array.from({ length: n }, () =&gt; []);
+  const indegree = new Array(n).fill(0);
+  for (const [course, pre] of prerequisites) {
+    adj[pre].push(course); // prerequisite -&gt; course
+    indegree[course]++;
+  }
+  const order = [];
+  for (let i = 0; i &lt; n; i++) if (indegree[i] === 0) order.push(i);
+  for (let head = 0; head &lt; order.length; head++) {
+    for (const v of adj[order[head]]) if (--indegree[v] === 0) order.push(v);
+  }
+  return order.length === n ? order : [];
+}
+
+const canFinish = (n, prerequisites) =&gt; findOrder(n, prerequisites).length === n;
+
+/** Nodes that can&#39;t reach a cycle. 0 = unvisited, 1 = on the current path, 2 = safe. */
+function eventualSafeNodes(graph) {
+  const color = new Array(graph.length).fill(0);
+  const isSafe = (u) =&gt; {
+    if (color[u] !== 0) return color[u] === 2; // grey: we&#39;re in a cycle
+    color[u] = 1;
+    for (const v of graph[u]) if (!isSafe(v)) return false; // stays grey: unsafe
+    color[u] = 2;
+    return true;
+  };
+  return graph.map((_, i) =&gt; i).filter(isSafe);
+}
+
+function main() {
+  console.log(`canFinish(2, [[1,0]]) = ${canFinish(2, [[1, 0]])}, canFinish(2, [[1,0],[0,1]]) = ${canFinish(2, [[1, 0], [0, 1]])}`);
+  console.log(`findOrder(4, [[1,0],[2,0],[3,1],[3,2]]) = ${findOrder(4, [[1, 0], [2, 0], [3, 1], [3, 2]]).join(&quot; &quot;)}`);
+  console.log(`eventual safe nodes: ${eventualSafeNodes([[1, 2], [2, 3], [5], [0], [5], [], []]).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-topological-sort-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Kahn&#x27;s algorithm. Returns an order, or an empty array if there&#x27;s a cycle. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findOrder</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">prerequisites</span>: <span class="hljs-keyword">readonly</span> [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="3">  <span class="hljs-keyword">const</span> <span class="hljs-attr">adj</span>: <span class="hljs-built_in">number</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> []);</span><span class="ln" data-line="4">  <span class="hljs-keyword">const</span> <span class="hljs-attr">indegree</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="5">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [course, pre] <span class="hljs-keyword">of</span> prerequisites) {</span><span class="ln" data-line="6">    adj[pre].<span class="hljs-title function_">push</span>(course); <span class="hljs-comment">// prerequisite -&gt; course</span></span><span class="ln" data-line="7">    indegree[course]++;</span><span class="ln" data-line="8">  }</span><span class="ln" data-line="9">  <span class="hljs-keyword">const</span> <span class="hljs-attr">order</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="10">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) <span class="hljs-keyword">if</span> (indegree[i] === <span class="hljs-number">0</span>) order.<span class="hljs-title function_">push</span>(i);</span><span class="ln" data-line="11">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> head = <span class="hljs-number">0</span>; head &lt; order.<span class="hljs-property">length</span>; head++) {</span><span class="ln" data-line="12">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> adj[order[head]]) <span class="hljs-keyword">if</span> (--indegree[v] === <span class="hljs-number">0</span>) order.<span class="hljs-title function_">push</span>(v);</span><span class="ln" data-line="13">  }</span><span class="ln" data-line="14">  <span class="hljs-keyword">return</span> order.<span class="hljs-property">length</span> === n ? order : [];</span><span class="ln" data-line="15">}</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">const</span> canFinish = (<span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">prerequisites</span>: <span class="hljs-keyword">readonly</span> [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][]): <span class="hljs-function"><span class="hljs-params">boolean</span> =&gt;</span> <span class="hljs-title function_">findOrder</span>(n, prerequisites).<span class="hljs-property">length</span> === n;</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"><span class="hljs-comment">/** Nodes that can&#x27;t reach a cycle. 0 = unvisited, 1 = on the current path, 2 = safe. */</span></span><span class="ln" data-line="20"><span class="hljs-keyword">function</span> <span class="hljs-title function_">eventualSafeNodes</span>(<span class="hljs-params"><span class="hljs-attr">graph</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[][]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="21">  <span class="hljs-keyword">const</span> <span class="hljs-attr">color</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(graph.<span class="hljs-property">length</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="22">  <span class="hljs-keyword">const</span> isSafe = (<span class="hljs-attr">u</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">boolean</span> =&gt;</span> {</span><span class="ln" data-line="23">    <span class="hljs-keyword">if</span> (color[u] !== <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> color[u] === <span class="hljs-number">2</span>; <span class="hljs-comment">// grey: we&#x27;re in a cycle</span></span><span class="ln" data-line="24">    color[u] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="25">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> graph[u]) <span class="hljs-keyword">if</span> (!<span class="hljs-title function_">isSafe</span>(v)) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>; <span class="hljs-comment">// stays grey: unsafe</span></span><span class="ln" data-line="26">    color[u] = <span class="hljs-number">2</span>;</span><span class="ln" data-line="27">    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="28">  };</span><span class="ln" data-line="29">  <span class="hljs-keyword">return</span> graph.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">_, i</span>) =&gt;</span> i).<span class="hljs-title function_">filter</span>(isSafe);</span><span class="ln" data-line="30">}</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="33">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`canFinish(2, [[1,0]]) = <span class="hljs-subst">${canFinish(<span class="hljs-number">2</span>, [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>]])}</span>, canFinish(2, [[1,0],[0,1]]) = <span class="hljs-subst">${canFinish(<span class="hljs-number">2</span>, [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]])}</span>`</span>);</span><span class="ln" data-line="34">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`findOrder(4, [[1,0],[2,0],[3,1],[3,2]]) = <span class="hljs-subst">${findOrder(<span class="hljs-number">4</span>, [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">2</span>]]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="35">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`eventual safe nodes: <span class="hljs-subst">${eventualSafeNodes([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">5</span>], [<span class="hljs-number">0</span>], [<span class="hljs-number">5</span>], [], []]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="36">}</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Kahn&#39;s algorithm. Returns an order, or an empty array if there&#39;s a cycle. */
+function findOrder(n: number, prerequisites: readonly [number, number][]): number[] {
+  const adj: number[][] = Array.from({ length: n }, () =&gt; []);
+  const indegree: number[] = new Array(n).fill(0);
+  for (const [course, pre] of prerequisites) {
+    adj[pre].push(course); // prerequisite -&gt; course
+    indegree[course]++;
+  }
+  const order: number[] = [];
+  for (let i = 0; i &lt; n; i++) if (indegree[i] === 0) order.push(i);
+  for (let head = 0; head &lt; order.length; head++) {
+    for (const v of adj[order[head]]) if (--indegree[v] === 0) order.push(v);
+  }
+  return order.length === n ? order : [];
+}
+
+const canFinish = (n: number, prerequisites: readonly [number, number][]): boolean =&gt; findOrder(n, prerequisites).length === n;
+
+/** Nodes that can&#39;t reach a cycle. 0 = unvisited, 1 = on the current path, 2 = safe. */
+function eventualSafeNodes(graph: readonly number[][]): number[] {
+  const color: number[] = new Array(graph.length).fill(0);
+  const isSafe = (u: number): boolean =&gt; {
+    if (color[u] !== 0) return color[u] === 2; // grey: we&#39;re in a cycle
+    color[u] = 1;
+    for (const v of graph[u]) if (!isSafe(v)) return false; // stays grey: unsafe
+    color[u] = 2;
+    return true;
+  };
+  return graph.map((_, i) =&gt; i).filter(isSafe);
+}
+
+function main(): void {
+  console.log(`canFinish(2, [[1,0]]) = ${canFinish(2, [[1, 0]])}, canFinish(2, [[1,0],[0,1]]) = ${canFinish(2, [[1, 0], [0, 1]])}`);
+  console.log(`findOrder(4, [[1,0],[2,0],[3,1],[3,2]]) = ${findOrder(4, [[1, 0], [2, 0], [3, 1], [3, 2]]).join(&quot; &quot;)}`);
+  console.log(`eventual safe nodes: ${eventualSafeNodes([[1, 2], [2, 3], [5], [0], [5], [], []]).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-topological-sort-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">def</span> <span class="hljs-title function_">find_order</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span>, prerequisites: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="6">    <span class="hljs-string">&quot;&quot;&quot;Kahn&#x27;s algorithm. Returns an order, or [] if there&#x27;s a cycle.&quot;&quot;&quot;</span></span><span class="ln" data-line="7">    adj: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]] = [[] <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n)]</span><span class="ln" data-line="8">    indegree = [<span class="hljs-number">0</span>] * n</span><span class="ln" data-line="9">    <span class="hljs-keyword">for</span> course, pre <span class="hljs-keyword">in</span> prerequisites:</span><span class="ln" data-line="10">        adj[pre].append(course)  <span class="hljs-comment"># prerequisite -&gt; course</span></span><span class="ln" data-line="11">        indegree[course] += <span class="hljs-number">1</span></span><span class="ln" data-line="12">    queue = deque(i <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n) <span class="hljs-keyword">if</span> indegree[i] == <span class="hljs-number">0</span>)</span><span class="ln" data-line="13">    order = []</span><span class="ln" data-line="14">    <span class="hljs-keyword">while</span> queue:</span><span class="ln" data-line="15">        u = queue.popleft()</span><span class="ln" data-line="16">        order.append(u)</span><span class="ln" data-line="17">        <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> adj[u]:</span><span class="ln" data-line="18">            indegree[v] -= <span class="hljs-number">1</span></span><span class="ln" data-line="19">            <span class="hljs-keyword">if</span> indegree[v] == <span class="hljs-number">0</span>:</span><span class="ln" data-line="20">                queue.append(v)</span><span class="ln" data-line="21">    <span class="hljs-keyword">return</span> order <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(order) == n <span class="hljs-keyword">else</span> []</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">def</span> <span class="hljs-title function_">can_finish</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span>, prerequisites: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="25">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(find_order(n, prerequisites)) == n</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"> </span><span class="ln" data-line="28"><span class="hljs-keyword">def</span> <span class="hljs-title function_">eventual_safe_nodes</span>(<span class="hljs-params">graph: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="29">    <span class="hljs-string">&quot;&quot;&quot;Nodes that can&#x27;t reach a cycle. 0 = unvisited, 1 = on the current path, 2 = safe.&quot;&quot;&quot;</span></span><span class="ln" data-line="30">    color = [<span class="hljs-number">0</span>] * <span class="hljs-built_in">len</span>(graph)</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">is_safe</span>(<span class="hljs-params">u: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="33">        <span class="hljs-keyword">if</span> color[u] != <span class="hljs-number">0</span>:</span><span class="ln" data-line="34">            <span class="hljs-keyword">return</span> color[u] == <span class="hljs-number">2</span>  <span class="hljs-comment"># grey: we&#x27;re in a cycle</span></span><span class="ln" data-line="35">        color[u] = <span class="hljs-number">1</span></span><span class="ln" data-line="36">        <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(<span class="hljs-keyword">not</span> is_safe(v) <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> graph[u]):</span><span class="ln" data-line="37">            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>  <span class="hljs-comment"># stays grey: unsafe</span></span><span class="ln" data-line="38">        color[u] = <span class="hljs-number">2</span></span><span class="ln" data-line="39">        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span></span><span class="ln" data-line="40"> </span><span class="ln" data-line="41">    <span class="hljs-keyword">return</span> [i <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(graph)) <span class="hljs-keyword">if</span> is_safe(i)]</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"><span class="hljs-keyword">def</span> <span class="hljs-title function_">b</span>(<span class="hljs-params">x: <span class="hljs-built_in">bool</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="45">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;true&quot;</span> <span class="hljs-keyword">if</span> x <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;false&quot;</span></span><span class="ln" data-line="46"> </span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="49">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;canFinish(2, [[1,0]]) = <span class="hljs-subst">{b(can_finish(<span class="hljs-number">2</span>, [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>]]))}</span>, canFinish(2, [[1,0],[0,1]]) = <span class="hljs-subst">{b(can_finish(<span class="hljs-number">2</span>, [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]]))}</span>&quot;</span>)</span><span class="ln" data-line="50">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;findOrder(4, [[1,0],[2,0],[3,1],[3,2]]) = <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, find_order(<span class="hljs-number">4</span>, [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">2</span>]])))}</span>&quot;</span>)</span><span class="ln" data-line="51">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;eventual safe nodes: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, eventual_safe_nodes([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">5</span>], [<span class="hljs-number">0</span>], [<span class="hljs-number">5</span>], [], []])))}</span>&quot;</span>)</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="55">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from collections import deque
+from typing import List
+
+
+def find_order(n: int, prerequisites: List[List[int]]) -&gt; List[int]:
+    &quot;&quot;&quot;Kahn&#39;s algorithm. Returns an order, or [] if there&#39;s a cycle.&quot;&quot;&quot;
+    adj: List[List[int]] = [[] for _ in range(n)]
+    indegree = [0] * n
+    for course, pre in prerequisites:
+        adj[pre].append(course)  # prerequisite -&gt; course
+        indegree[course] += 1
+    queue = deque(i for i in range(n) if indegree[i] == 0)
+    order = []
+    while queue:
+        u = queue.popleft()
+        order.append(u)
+        for v in adj[u]:
+            indegree[v] -= 1
+            if indegree[v] == 0:
+                queue.append(v)
+    return order if len(order) == n else []
+
+
+def can_finish(n: int, prerequisites: List[List[int]]) -&gt; bool:
+    return len(find_order(n, prerequisites)) == n
+
+
+def eventual_safe_nodes(graph: List[List[int]]) -&gt; List[int]:
+    &quot;&quot;&quot;Nodes that can&#39;t reach a cycle. 0 = unvisited, 1 = on the current path, 2 = safe.&quot;&quot;&quot;
+    color = [0] * len(graph)
+
+    def is_safe(u: int) -&gt; bool:
+        if color[u] != 0:
+            return color[u] == 2  # grey: we&#39;re in a cycle
+        color[u] = 1
+        if any(not is_safe(v) for v in graph[u]):
+            return False  # stays grey: unsafe
+        color[u] = 2
+        return True
+
+    return [i for i in range(len(graph)) if is_safe(i)]
+
+
+def b(x: bool) -&gt; str:
+    return &quot;true&quot; if x else &quot;false&quot;
+
+
+def main() -&gt; None:
+    print(f&quot;canFinish(2, [[1,0]]) = {b(can_finish(2, [[1, 0]]))}, canFinish(2, [[1,0],[0,1]]) = {b(can_finish(2, [[1, 0], [0, 1]]))}&quot;)
+    print(f&quot;findOrder(4, [[1,0],[2,0],[3,1],[3,2]]) = {&#39; &#39;.join(map(str, find_order(4, [[1, 0], [2, 0], [3, 1], [3, 2]])))}&quot;)
+    print(f&quot;eventual safe nodes: {&#39; &#39;.join(map(str, eventual_safe_nodes([[1, 2], [2, 3], [5], [0], [5], [], []])))}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>canFinish(2, [[1,0]]) = true, canFinish(2, [[1,0],[0,1]]) = false
+findOrder(4, [[1,0],[2,0],[3,1],[3,2]]) = 0 1 2 3
+eventual safe nodes: 2 4 5 6</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Getting edge direction backwards. In LeetCode&#39;s course schedule, <code>[a, b]</code> means b must come before a, so the edge is b → a.</li><li>Forgetting to check that every node was output, and returning a partial order when there&#39;s a cycle.</li><li>In the DFS version, treating any visited node as a cycle; only nodes on the current path (grey) are.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/course-schedule/" rel="noopener" target="_blank">Course Schedule<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>207</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/course-schedule-ii/" rel="noopener" target="_blank">Course Schedule II<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>210</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-eventual-safe-states/" rel="noopener" target="_blank">Find Eventual Safe States<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>802</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/" rel="noopener" target="_blank">Find All Possible Recipes from Given Supplies<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>2115</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/longest-increasing-path-in-a-matrix/" rel="noopener" target="_blank">Longest Increasing Path in a Matrix<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>329</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/graphs/index.html">Graphs</a>, <a href="../../algorithms/graph-algorithms/index.html">Graph algorithms</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../graph-bfs-dfs/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Graph BFS and DFS</span></a><a class="pn pn-next" href="../union-find/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Union-Find</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

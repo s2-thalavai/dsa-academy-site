@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>In-place list reversal · DSA Academy</title>
+<meta name="description" content="Reverse links in place with three pointers.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">In-place list reversal</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>In-place list reversal</h1>
+  <p class="lede">Reverse all or part of a linked list by rewiring <code>next</code> pointers as you walk, using three pointers and no extra memory.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Turning a conga line around. Each person lets go of the shoulder in front and grabs the person behind instead. You only need to remember who was behind you, who you are, and who was in front before you let go.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>The problem asks to reverse a linked list, a sub-range of it, or every group of k nodes.</li>
+<li>You need to compare a list with its reverse (palindrome list) in O(1) space.</li>
+<li>Reordering a list by interleaving its halves.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">prev = null, curr = head
+while curr:
+    next = curr.next        ← save the rest
+    curr.next = prev        ← flip one pointer
+    prev = curr; curr = next
+prev is the new head
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>Reversing a whole list flips one pointer per node. Reversing a <strong>sub-range</strong>
+needs a little bookkeeping: walk to the node just before the range (a dummy
+head makes this work even when the range starts at the first node), reverse the
+range, then reconnect both ends.</p>
+<pre><code class="language-text">reverse positions 2..4 of 1 → 2 → 3 → 4 → 5
+before  = node 1, first = node 2
+reverse 2 → 3 → 4 into 4 → 3 → 2
+before.next = node 4; first.next = node 5
+result: 1 → 4 → 3 → 2 → 5
+</code></pre>
+<p><strong>k-group reversal</strong> repeats that for every full block of k nodes and leaves
+a final short block as it is.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Reverse a whole list</td><td class="nowrap">O(n) time, O(1) space</td><td>One pointer flip per node.</td></tr><tr><td>Reverse a sub-range</td><td class="nowrap">O(n)</td><td>Walk to the range, reverse it, reconnect.</td></tr><tr><td>Reverse in groups of k</td><td class="nowrap">O(n)</td><td>Each node is visited a constant number of times.</td></tr><tr><td>Palindrome list</td><td class="nowrap">O(n) time, O(1) space</td><td>Find the middle, reverse the second half, compare.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Each function returns the new head. <code>build</code> and <code>str</code> convert between arrays and lists for the demo.</p><figure class="codeblock" id="code-in-place-reversal" aria-label="Reverse a list, a range, groups of k, and check a palindrome">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-in-place-reversal-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-in-place-reversal-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-in-place-reversal-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-in-place-reversal-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-in-place-reversal-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ListNode</span> {</span><span class="ln" data-line="4">        <span class="hljs-type">int</span> val;</span><span class="ln" data-line="5">        ListNode next;</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7">        ListNode(<span class="hljs-type">int</span> val) { <span class="hljs-built_in">this</span>.val = val; }</span><span class="ln" data-line="8">    }</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10">    <span class="hljs-keyword">static</span> <span class="hljs-type">ListNode</span> <span class="hljs-title function_">build</span><span class="hljs-params">(<span class="hljs-type">int</span>... vals)</span> {</span><span class="ln" data-line="11">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">dummy</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>), t = dummy;</span><span class="ln" data-line="12">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : vals) { t.next = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(v); t = t.next; }</span><span class="ln" data-line="13">        <span class="hljs-keyword">return</span> dummy.next;</span><span class="ln" data-line="14">    }</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">str</span><span class="hljs-params">(ListNode n)</span> {</span><span class="ln" data-line="17">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="18">        <span class="hljs-keyword">for</span> (; n != <span class="hljs-literal">null</span>; n = n.next) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(n.val);</span><span class="ln" data-line="19">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="20">    }</span><span class="ln" data-line="21"> </span><span class="ln" data-line="22">    <span class="hljs-keyword">static</span> <span class="hljs-type">ListNode</span> <span class="hljs-title function_">reverse</span><span class="hljs-params">(ListNode head)</span> {</span><span class="ln" data-line="23">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">prev</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>, curr = head;</span><span class="ln" data-line="24">        <span class="hljs-keyword">while</span> (curr != <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="25">            <span class="hljs-type">ListNode</span> <span class="hljs-variable">next</span> <span class="hljs-operator">=</span> curr.next; <span class="hljs-comment">// save the rest</span></span><span class="ln" data-line="26">            curr.next = prev;          <span class="hljs-comment">// flip one pointer</span></span><span class="ln" data-line="27">            prev = curr;</span><span class="ln" data-line="28">            curr = next;</span><span class="ln" data-line="29">        }</span><span class="ln" data-line="30">        <span class="hljs-keyword">return</span> prev;</span><span class="ln" data-line="31">    }</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33">    <span class="hljs-comment">/** Reverses positions left..right (1-based). */</span></span><span class="ln" data-line="34">    <span class="hljs-keyword">static</span> <span class="hljs-type">ListNode</span> <span class="hljs-title function_">reverseBetween</span><span class="hljs-params">(ListNode head, <span class="hljs-type">int</span> left, <span class="hljs-type">int</span> right)</span> {</span><span class="ln" data-line="35">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">dummy</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="36">        dummy.next = head;</span><span class="ln" data-line="37">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">before</span> <span class="hljs-operator">=</span> dummy;</span><span class="ln" data-line="38">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; left; i++) before = before.next;</span><span class="ln" data-line="39">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">first</span> <span class="hljs-operator">=</span> before.next, prev = <span class="hljs-literal">null</span>, curr = first;</span><span class="ln" data-line="40">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> left; i &lt;= right; i++) {</span><span class="ln" data-line="41">            <span class="hljs-type">ListNode</span> <span class="hljs-variable">next</span> <span class="hljs-operator">=</span> curr.next;</span><span class="ln" data-line="42">            curr.next = prev;</span><span class="ln" data-line="43">            prev = curr;</span><span class="ln" data-line="44">            curr = next;</span><span class="ln" data-line="45">        }</span><span class="ln" data-line="46">        before.next = prev; <span class="hljs-comment">// reconnect the front</span></span><span class="ln" data-line="47">        first.next = curr;  <span class="hljs-comment">// reconnect the back</span></span><span class="ln" data-line="48">        <span class="hljs-keyword">return</span> dummy.next;</span><span class="ln" data-line="49">    }</span><span class="ln" data-line="50"> </span><span class="ln" data-line="51">    <span class="hljs-keyword">static</span> <span class="hljs-type">ListNode</span> <span class="hljs-title function_">reverseKGroup</span><span class="hljs-params">(ListNode head, <span class="hljs-type">int</span> k)</span> {</span><span class="ln" data-line="52">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">dummy</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="53">        dummy.next = head;</span><span class="ln" data-line="54">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">before</span> <span class="hljs-operator">=</span> dummy;</span><span class="ln" data-line="55">        <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="56">            <span class="hljs-type">ListNode</span> <span class="hljs-variable">check</span> <span class="hljs-operator">=</span> before;</span><span class="ln" data-line="57">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; k &amp;&amp; check != <span class="hljs-literal">null</span>; i++) check = check.next;</span><span class="ln" data-line="58">            <span class="hljs-keyword">if</span> (check == <span class="hljs-literal">null</span>) <span class="hljs-keyword">break</span>; <span class="hljs-comment">// fewer than k left: leave them</span></span><span class="ln" data-line="59">            <span class="hljs-type">ListNode</span> <span class="hljs-variable">first</span> <span class="hljs-operator">=</span> before.next, prev = <span class="hljs-literal">null</span>, curr = first;</span><span class="ln" data-line="60">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; k; i++) {</span><span class="ln" data-line="61">                <span class="hljs-type">ListNode</span> <span class="hljs-variable">next</span> <span class="hljs-operator">=</span> curr.next;</span><span class="ln" data-line="62">                curr.next = prev;</span><span class="ln" data-line="63">                prev = curr;</span><span class="ln" data-line="64">                curr = next;</span><span class="ln" data-line="65">            }</span><span class="ln" data-line="66">            before.next = prev;</span><span class="ln" data-line="67">            first.next = curr;</span><span class="ln" data-line="68">            before = first;</span><span class="ln" data-line="69">        }</span><span class="ln" data-line="70">        <span class="hljs-keyword">return</span> dummy.next;</span><span class="ln" data-line="71">    }</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73">    <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isPalindrome</span><span class="hljs-params">(ListNode head)</span> {</span><span class="ln" data-line="74">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">slow</span> <span class="hljs-operator">=</span> head, fast = head;</span><span class="ln" data-line="75">        <span class="hljs-keyword">while</span> (fast != <span class="hljs-literal">null</span> &amp;&amp; fast.next != <span class="hljs-literal">null</span>) { slow = slow.next; fast = fast.next.next; }</span><span class="ln" data-line="76">        <span class="hljs-keyword">for</span> (<span class="hljs-type">ListNode</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> head, b = reverse(slow); b != <span class="hljs-literal">null</span>; a = a.next, b = b.next) {</span><span class="ln" data-line="77">            <span class="hljs-keyword">if</span> (a.val != b.val) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="78">        }</span><span class="ln" data-line="79">        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="80">    }</span><span class="ln" data-line="81"> </span><span class="ln" data-line="82">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="83">        System.out.println(<span class="hljs-string">&quot;reverse 1 2 3 4 5: &quot;</span> + str(reverse(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>))));</span><span class="ln" data-line="84">        System.out.println(<span class="hljs-string">&quot;reverse positions 2..4: &quot;</span> + str(reverseBetween(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">2</span>, <span class="hljs-number">4</span>)));</span><span class="ln" data-line="85">        System.out.println(<span class="hljs-string">&quot;reverse in groups of 2: &quot;</span> + str(reverseKGroup(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">2</span>)));</span><span class="ln" data-line="86">        System.out.println(<span class="hljs-string">&quot;reverse in groups of 3: &quot;</span> + str(reverseKGroup(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">3</span>)));</span><span class="ln" data-line="87">        System.out.println(<span class="hljs-string">&quot;palindrome 1 2 2 1: &quot;</span> + isPalindrome(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>)) + <span class="hljs-string">&quot;, 1 2 3: &quot;</span> + isPalindrome(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)));</span><span class="ln" data-line="88">    }</span><span class="ln" data-line="89">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">public class Solution {
+
+    static class ListNode {
+        int val;
+        ListNode next;
+
+        ListNode(int val) { this.val = val; }
+    }
+
+    static ListNode build(int... vals) {
+        ListNode dummy = new ListNode(0), t = dummy;
+        for (int v : vals) { t.next = new ListNode(v); t = t.next; }
+        return dummy.next;
+    }
+
+    static String str(ListNode n) {
+        StringBuilder sb = new StringBuilder();
+        for (; n != null; n = n.next) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(n.val);
+        return sb.toString();
+    }
+
+    static ListNode reverse(ListNode head) {
+        ListNode prev = null, curr = head;
+        while (curr != null) {
+            ListNode next = curr.next; // save the rest
+            curr.next = prev;          // flip one pointer
+            prev = curr;
+            curr = next;
+        }
+        return prev;
+    }
+
+    /** Reverses positions left..right (1-based). */
+    static ListNode reverseBetween(ListNode head, int left, int right) {
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode before = dummy;
+        for (int i = 1; i &lt; left; i++) before = before.next;
+        ListNode first = before.next, prev = null, curr = first;
+        for (int i = left; i &lt;= right; i++) {
+            ListNode next = curr.next;
+            curr.next = prev;
+            prev = curr;
+            curr = next;
+        }
+        before.next = prev; // reconnect the front
+        first.next = curr;  // reconnect the back
+        return dummy.next;
+    }
+
+    static ListNode reverseKGroup(ListNode head, int k) {
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode before = dummy;
+        while (true) {
+            ListNode check = before;
+            for (int i = 0; i &lt; k &amp;&amp; check != null; i++) check = check.next;
+            if (check == null) break; // fewer than k left: leave them
+            ListNode first = before.next, prev = null, curr = first;
+            for (int i = 0; i &lt; k; i++) {
+                ListNode next = curr.next;
+                curr.next = prev;
+                prev = curr;
+                curr = next;
+            }
+            before.next = prev;
+            first.next = curr;
+            before = first;
+        }
+        return dummy.next;
+    }
+
+    static boolean isPalindrome(ListNode head) {
+        ListNode slow = head, fast = head;
+        while (fast != null &amp;&amp; fast.next != null) { slow = slow.next; fast = fast.next.next; }
+        for (ListNode a = head, b = reverse(slow); b != null; a = a.next, b = b.next) {
+            if (a.val != b.val) return false;
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;reverse 1 2 3 4 5: &quot; + str(reverse(build(1, 2, 3, 4, 5))));
+        System.out.println(&quot;reverse positions 2..4: &quot; + str(reverseBetween(build(1, 2, 3, 4, 5), 2, 4)));
+        System.out.println(&quot;reverse in groups of 2: &quot; + str(reverseKGroup(build(1, 2, 3, 4, 5), 2)));
+        System.out.println(&quot;reverse in groups of 3: &quot; + str(reverseKGroup(build(1, 2, 3, 4, 5), 3)));
+        System.out.println(&quot;palindrome 1 2 2 1: &quot; + isPalindrome(build(1, 2, 2, 1)) + &quot;, 1 2 3: &quot; + isPalindrome(build(1, 2, 3)));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-in-place-reversal-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ListNode</span> {</span><span class="ln" data-line="2">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">val</span>) {</span><span class="ln" data-line="3">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">val</span> = val;</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">next</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="5">  }</span><span class="ln" data-line="6">}</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">function</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">...vals</span>) {</span><span class="ln" data-line="9">  <span class="hljs-keyword">const</span> dummy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="10">  <span class="hljs-keyword">let</span> t = dummy;</span><span class="ln" data-line="11">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> vals) t = t.<span class="hljs-property">next</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(v);</span><span class="ln" data-line="12">  <span class="hljs-keyword">return</span> dummy.<span class="hljs-property">next</span>;</span><span class="ln" data-line="13">}</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-keyword">function</span> <span class="hljs-title function_">str</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="16">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="17">  <span class="hljs-keyword">for</span> (; n !== <span class="hljs-literal">null</span>; n = n.<span class="hljs-property">next</span>) out.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">val</span>);</span><span class="ln" data-line="18">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="19">}</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21"><span class="hljs-keyword">function</span> <span class="hljs-title function_">reverse</span>(<span class="hljs-params">head</span>) {</span><span class="ln" data-line="22">  <span class="hljs-keyword">let</span> prev = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="23">  <span class="hljs-keyword">let</span> curr = head;</span><span class="ln" data-line="24">  <span class="hljs-keyword">while</span> (curr !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="25">    <span class="hljs-keyword">const</span> next = curr.<span class="hljs-property">next</span>; <span class="hljs-comment">// save the rest</span></span><span class="ln" data-line="26">    curr.<span class="hljs-property">next</span> = prev; <span class="hljs-comment">// flip one pointer</span></span><span class="ln" data-line="27">    prev = curr;</span><span class="ln" data-line="28">    curr = next;</span><span class="ln" data-line="29">  }</span><span class="ln" data-line="30">  <span class="hljs-keyword">return</span> prev;</span><span class="ln" data-line="31">}</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"><span class="hljs-comment">/** Reverses positions left..right (1-based). */</span></span><span class="ln" data-line="34"><span class="hljs-keyword">function</span> <span class="hljs-title function_">reverseBetween</span>(<span class="hljs-params">head, left, right</span>) {</span><span class="ln" data-line="35">  <span class="hljs-keyword">const</span> dummy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="36">  dummy.<span class="hljs-property">next</span> = head;</span><span class="ln" data-line="37">  <span class="hljs-keyword">let</span> before = dummy;</span><span class="ln" data-line="38">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; left; i++) before = before.<span class="hljs-property">next</span>;</span><span class="ln" data-line="39">  <span class="hljs-keyword">const</span> first = before.<span class="hljs-property">next</span>;</span><span class="ln" data-line="40">  <span class="hljs-keyword">let</span> prev = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="41">  <span class="hljs-keyword">let</span> curr = first;</span><span class="ln" data-line="42">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = left; i &lt;= right; i++) [curr.<span class="hljs-property">next</span>, prev, curr] = [prev, curr, curr.<span class="hljs-property">next</span>];</span><span class="ln" data-line="43">  before.<span class="hljs-property">next</span> = prev; <span class="hljs-comment">// reconnect the front</span></span><span class="ln" data-line="44">  first.<span class="hljs-property">next</span> = curr; <span class="hljs-comment">// reconnect the back</span></span><span class="ln" data-line="45">  <span class="hljs-keyword">return</span> dummy.<span class="hljs-property">next</span>;</span><span class="ln" data-line="46">}</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"><span class="hljs-keyword">function</span> <span class="hljs-title function_">reverseKGroup</span>(<span class="hljs-params">head, k</span>) {</span><span class="ln" data-line="49">  <span class="hljs-keyword">const</span> dummy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="50">  dummy.<span class="hljs-property">next</span> = head;</span><span class="ln" data-line="51">  <span class="hljs-keyword">let</span> before = dummy;</span><span class="ln" data-line="52">  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="53">    <span class="hljs-keyword">let</span> check = before;</span><span class="ln" data-line="54">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; k &amp;&amp; check !== <span class="hljs-literal">null</span>; i++) check = check.<span class="hljs-property">next</span>;</span><span class="ln" data-line="55">    <span class="hljs-keyword">if</span> (check === <span class="hljs-literal">null</span>) <span class="hljs-keyword">break</span>; <span class="hljs-comment">// fewer than k left: leave them</span></span><span class="ln" data-line="56">    <span class="hljs-keyword">const</span> first = before.<span class="hljs-property">next</span>;</span><span class="ln" data-line="57">    <span class="hljs-keyword">let</span> prev = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="58">    <span class="hljs-keyword">let</span> curr = first;</span><span class="ln" data-line="59">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; k; i++) [curr.<span class="hljs-property">next</span>, prev, curr] = [prev, curr, curr.<span class="hljs-property">next</span>];</span><span class="ln" data-line="60">    before.<span class="hljs-property">next</span> = prev;</span><span class="ln" data-line="61">    first.<span class="hljs-property">next</span> = curr;</span><span class="ln" data-line="62">    before = first;</span><span class="ln" data-line="63">  }</span><span class="ln" data-line="64">  <span class="hljs-keyword">return</span> dummy.<span class="hljs-property">next</span>;</span><span class="ln" data-line="65">}</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"><span class="hljs-keyword">function</span> <span class="hljs-title function_">isPalindrome</span>(<span class="hljs-params">head</span>) {</span><span class="ln" data-line="68">  <span class="hljs-keyword">let</span> slow = head;</span><span class="ln" data-line="69">  <span class="hljs-keyword">let</span> fast = head;</span><span class="ln" data-line="70">  <span class="hljs-keyword">while</span> (fast !== <span class="hljs-literal">null</span> &amp;&amp; fast.<span class="hljs-property">next</span> !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="71">    slow = slow.<span class="hljs-property">next</span>;</span><span class="ln" data-line="72">    fast = fast.<span class="hljs-property">next</span>.<span class="hljs-property">next</span>;</span><span class="ln" data-line="73">  }</span><span class="ln" data-line="74">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> a = head, b = <span class="hljs-title function_">reverse</span>(slow); b !== <span class="hljs-literal">null</span>; a = a.<span class="hljs-property">next</span>, b = b.<span class="hljs-property">next</span>) <span class="hljs-keyword">if</span> (a.<span class="hljs-property">val</span> !== b.<span class="hljs-property">val</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="75">  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="76">}</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="79">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverse 1 2 3 4 5: <span class="hljs-subst">${str(reverse(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>)))}</span>`</span>);</span><span class="ln" data-line="80">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverse positions 2..4: <span class="hljs-subst">${str(reverseBetween(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">2</span>, <span class="hljs-number">4</span>))}</span>`</span>);</span><span class="ln" data-line="81">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverse in groups of 2: <span class="hljs-subst">${str(reverseKGroup(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">2</span>))}</span>`</span>);</span><span class="ln" data-line="82">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverse in groups of 3: <span class="hljs-subst">${str(reverseKGroup(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">3</span>))}</span>`</span>);</span><span class="ln" data-line="83">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`palindrome 1 2 2 1: <span class="hljs-subst">${isPalindrome(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>))}</span>, 1 2 3: <span class="hljs-subst">${isPalindrome(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>))}</span>`</span>);</span><span class="ln" data-line="84">}</span><span class="ln" data-line="85"> </span><span class="ln" data-line="86"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">class ListNode {
+  constructor(val) {
+    this.val = val;
+    this.next = null;
+  }
+}
+
+function build(...vals) {
+  const dummy = new ListNode(0);
+  let t = dummy;
+  for (const v of vals) t = t.next = new ListNode(v);
+  return dummy.next;
+}
+
+function str(n) {
+  const out = [];
+  for (; n !== null; n = n.next) out.push(n.val);
+  return out.join(&quot; &quot;);
+}
+
+function reverse(head) {
+  let prev = null;
+  let curr = head;
+  while (curr !== null) {
+    const next = curr.next; // save the rest
+    curr.next = prev; // flip one pointer
+    prev = curr;
+    curr = next;
+  }
+  return prev;
+}
+
+/** Reverses positions left..right (1-based). */
+function reverseBetween(head, left, right) {
+  const dummy = new ListNode(0);
+  dummy.next = head;
+  let before = dummy;
+  for (let i = 1; i &lt; left; i++) before = before.next;
+  const first = before.next;
+  let prev = null;
+  let curr = first;
+  for (let i = left; i &lt;= right; i++) [curr.next, prev, curr] = [prev, curr, curr.next];
+  before.next = prev; // reconnect the front
+  first.next = curr; // reconnect the back
+  return dummy.next;
+}
+
+function reverseKGroup(head, k) {
+  const dummy = new ListNode(0);
+  dummy.next = head;
+  let before = dummy;
+  while (true) {
+    let check = before;
+    for (let i = 0; i &lt; k &amp;&amp; check !== null; i++) check = check.next;
+    if (check === null) break; // fewer than k left: leave them
+    const first = before.next;
+    let prev = null;
+    let curr = first;
+    for (let i = 0; i &lt; k; i++) [curr.next, prev, curr] = [prev, curr, curr.next];
+    before.next = prev;
+    first.next = curr;
+    before = first;
+  }
+  return dummy.next;
+}
+
+function isPalindrome(head) {
+  let slow = head;
+  let fast = head;
+  while (fast !== null &amp;&amp; fast.next !== null) {
+    slow = slow.next;
+    fast = fast.next.next;
+  }
+  for (let a = head, b = reverse(slow); b !== null; a = a.next, b = b.next) if (a.val !== b.val) return false;
+  return true;
+}
+
+function main() {
+  console.log(`reverse 1 2 3 4 5: ${str(reverse(build(1, 2, 3, 4, 5)))}`);
+  console.log(`reverse positions 2..4: ${str(reverseBetween(build(1, 2, 3, 4, 5), 2, 4))}`);
+  console.log(`reverse in groups of 2: ${str(reverseKGroup(build(1, 2, 3, 4, 5), 2))}`);
+  console.log(`reverse in groups of 3: ${str(reverseKGroup(build(1, 2, 3, 4, 5), 3))}`);
+  console.log(`palindrome 1 2 2 1: ${isPalindrome(build(1, 2, 2, 1))}, 1 2 3: ${isPalindrome(build(1, 2, 3))}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-in-place-reversal-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ListNode</span> {</span><span class="ln" data-line="2">  <span class="hljs-attr">val</span>: <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="3">  <span class="hljs-attr">next</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">val</span>: <span class="hljs-built_in">number</span></span>) {</span><span class="ln" data-line="6">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">val</span> = val;</span><span class="ln" data-line="7">  }</span><span class="ln" data-line="8">}</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-keyword">function</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">...<span class="hljs-attr">vals</span>: <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> {</span><span class="ln" data-line="11">  <span class="hljs-keyword">const</span> dummy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="12">  <span class="hljs-keyword">let</span> t = dummy;</span><span class="ln" data-line="13">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> vals) {</span><span class="ln" data-line="14">    t.<span class="hljs-property">next</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(v);</span><span class="ln" data-line="15">    t = t.<span class="hljs-property">next</span>;</span><span class="ln" data-line="16">  }</span><span class="ln" data-line="17">  <span class="hljs-keyword">return</span> dummy.<span class="hljs-property">next</span>;</span><span class="ln" data-line="18">}</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">function</span> <span class="hljs-title function_">str</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span></span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="21">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="22">  <span class="hljs-keyword">for</span> (; n !== <span class="hljs-literal">null</span>; n = n.<span class="hljs-property">next</span>) out.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">val</span>);</span><span class="ln" data-line="23">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="24">}</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"><span class="hljs-keyword">function</span> <span class="hljs-title function_">reverse</span>(<span class="hljs-params"><span class="hljs-attr">head</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span></span>): <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> {</span><span class="ln" data-line="27">  <span class="hljs-keyword">let</span> <span class="hljs-attr">prev</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="28">  <span class="hljs-keyword">let</span> curr = head;</span><span class="ln" data-line="29">  <span class="hljs-keyword">while</span> (curr !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="30">    <span class="hljs-keyword">const</span> <span class="hljs-attr">next</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = curr.<span class="hljs-property">next</span>; <span class="hljs-comment">// save the rest</span></span><span class="ln" data-line="31">    curr.<span class="hljs-property">next</span> = prev; <span class="hljs-comment">// flip one pointer</span></span><span class="ln" data-line="32">    prev = curr;</span><span class="ln" data-line="33">    curr = next;</span><span class="ln" data-line="34">  }</span><span class="ln" data-line="35">  <span class="hljs-keyword">return</span> prev;</span><span class="ln" data-line="36">}</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"><span class="hljs-comment">/** Reverses the k nodes starting at first; returns [newFirst, nodeAfter]. */</span></span><span class="ln" data-line="39"><span class="hljs-keyword">function</span> <span class="hljs-title function_">reverseRun</span>(<span class="hljs-params"><span class="hljs-attr">first</span>: <span class="hljs-title class_">ListNode</span>, <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): [<span class="hljs-title class_">ListNode</span>, <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span>] {</span><span class="ln" data-line="40">  <span class="hljs-keyword">let</span> <span class="hljs-attr">prev</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="41">  <span class="hljs-keyword">let</span> <span class="hljs-attr">curr</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = first;</span><span class="ln" data-line="42">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; k &amp;&amp; curr !== <span class="hljs-literal">null</span>; i++) {</span><span class="ln" data-line="43">    <span class="hljs-keyword">const</span> <span class="hljs-attr">next</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = curr.<span class="hljs-property">next</span>;</span><span class="ln" data-line="44">    curr.<span class="hljs-property">next</span> = prev;</span><span class="ln" data-line="45">    prev = curr;</span><span class="ln" data-line="46">    curr = next;</span><span class="ln" data-line="47">  }</span><span class="ln" data-line="48">  <span class="hljs-keyword">return</span> [prev <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>, curr];</span><span class="ln" data-line="49">}</span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"><span class="hljs-comment">/** Reverses positions left..right (1-based). */</span></span><span class="ln" data-line="52"><span class="hljs-keyword">function</span> <span class="hljs-title function_">reverseBetween</span>(<span class="hljs-params"><span class="hljs-attr">head</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span>, <span class="hljs-attr">left</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">right</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> {</span><span class="ln" data-line="53">  <span class="hljs-keyword">const</span> dummy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="54">  dummy.<span class="hljs-property">next</span> = head;</span><span class="ln" data-line="55">  <span class="hljs-keyword">let</span> before = dummy;</span><span class="ln" data-line="56">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; left; i++) before = before.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>;</span><span class="ln" data-line="57">  <span class="hljs-keyword">const</span> first = before.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>;</span><span class="ln" data-line="58">  <span class="hljs-keyword">const</span> [newFirst, after] = <span class="hljs-title function_">reverseRun</span>(first, right - left + <span class="hljs-number">1</span>);</span><span class="ln" data-line="59">  before.<span class="hljs-property">next</span> = newFirst; <span class="hljs-comment">// reconnect the front</span></span><span class="ln" data-line="60">  first.<span class="hljs-property">next</span> = after; <span class="hljs-comment">// reconnect the back</span></span><span class="ln" data-line="61">  <span class="hljs-keyword">return</span> dummy.<span class="hljs-property">next</span>;</span><span class="ln" data-line="62">}</span><span class="ln" data-line="63"> </span><span class="ln" data-line="64"><span class="hljs-keyword">function</span> <span class="hljs-title function_">reverseKGroup</span>(<span class="hljs-params"><span class="hljs-attr">head</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span>, <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> {</span><span class="ln" data-line="65">  <span class="hljs-keyword">const</span> dummy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="66">  dummy.<span class="hljs-property">next</span> = head;</span><span class="ln" data-line="67">  <span class="hljs-keyword">let</span> before = dummy;</span><span class="ln" data-line="68">  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="69">    <span class="hljs-keyword">let</span> <span class="hljs-attr">check</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = before;</span><span class="ln" data-line="70">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; k &amp;&amp; check !== <span class="hljs-literal">null</span>; i++) check = check.<span class="hljs-property">next</span>;</span><span class="ln" data-line="71">    <span class="hljs-keyword">if</span> (check === <span class="hljs-literal">null</span>) <span class="hljs-keyword">break</span>; <span class="hljs-comment">// fewer than k left: leave them</span></span><span class="ln" data-line="72">    <span class="hljs-keyword">const</span> first = before.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>;</span><span class="ln" data-line="73">    <span class="hljs-keyword">const</span> [newFirst, after] = <span class="hljs-title function_">reverseRun</span>(first, k);</span><span class="ln" data-line="74">    before.<span class="hljs-property">next</span> = newFirst;</span><span class="ln" data-line="75">    first.<span class="hljs-property">next</span> = after;</span><span class="ln" data-line="76">    before = first;</span><span class="ln" data-line="77">  }</span><span class="ln" data-line="78">  <span class="hljs-keyword">return</span> dummy.<span class="hljs-property">next</span>;</span><span class="ln" data-line="79">}</span><span class="ln" data-line="80"> </span><span class="ln" data-line="81"><span class="hljs-keyword">function</span> <span class="hljs-title function_">isPalindrome</span>(<span class="hljs-params"><span class="hljs-attr">head</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span></span>): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="82">  <span class="hljs-keyword">let</span> slow = head;</span><span class="ln" data-line="83">  <span class="hljs-keyword">let</span> fast = head;</span><span class="ln" data-line="84">  <span class="hljs-keyword">while</span> (fast !== <span class="hljs-literal">null</span> &amp;&amp; fast.<span class="hljs-property">next</span> !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="85">    slow = (slow <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>).<span class="hljs-property">next</span>;</span><span class="ln" data-line="86">    fast = fast.<span class="hljs-property">next</span>.<span class="hljs-property">next</span>;</span><span class="ln" data-line="87">  }</span><span class="ln" data-line="88">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> a = head, b = <span class="hljs-title function_">reverse</span>(slow); b !== <span class="hljs-literal">null</span> &amp;&amp; a !== <span class="hljs-literal">null</span>; a = a.<span class="hljs-property">next</span>, b = b.<span class="hljs-property">next</span>) <span class="hljs-keyword">if</span> (a.<span class="hljs-property">val</span> !== b.<span class="hljs-property">val</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="89">  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="90">}</span><span class="ln" data-line="91"> </span><span class="ln" data-line="92"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="93">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverse 1 2 3 4 5: <span class="hljs-subst">${str(reverse(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>)))}</span>`</span>);</span><span class="ln" data-line="94">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverse positions 2..4: <span class="hljs-subst">${str(reverseBetween(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">2</span>, <span class="hljs-number">4</span>))}</span>`</span>);</span><span class="ln" data-line="95">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverse in groups of 2: <span class="hljs-subst">${str(reverseKGroup(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">2</span>))}</span>`</span>);</span><span class="ln" data-line="96">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverse in groups of 3: <span class="hljs-subst">${str(reverseKGroup(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">3</span>))}</span>`</span>);</span><span class="ln" data-line="97">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`palindrome 1 2 2 1: <span class="hljs-subst">${isPalindrome(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>))}</span>, 1 2 3: <span class="hljs-subst">${isPalindrome(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>))}</span>`</span>);</span><span class="ln" data-line="98">}</span><span class="ln" data-line="99"> </span><span class="ln" data-line="100"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">class ListNode {
+  val: number;
+  next: ListNode | null = null;
+
+  constructor(val: number) {
+    this.val = val;
+  }
+}
+
+function build(...vals: number[]): ListNode | null {
+  const dummy = new ListNode(0);
+  let t = dummy;
+  for (const v of vals) {
+    t.next = new ListNode(v);
+    t = t.next;
+  }
+  return dummy.next;
+}
+
+function str(n: ListNode | null): string {
+  const out: number[] = [];
+  for (; n !== null; n = n.next) out.push(n.val);
+  return out.join(&quot; &quot;);
+}
+
+function reverse(head: ListNode | null): ListNode | null {
+  let prev: ListNode | null = null;
+  let curr = head;
+  while (curr !== null) {
+    const next: ListNode | null = curr.next; // save the rest
+    curr.next = prev; // flip one pointer
+    prev = curr;
+    curr = next;
+  }
+  return prev;
+}
+
+/** Reverses the k nodes starting at first; returns [newFirst, nodeAfter]. */
+function reverseRun(first: ListNode, k: number): [ListNode, ListNode | null] {
+  let prev: ListNode | null = null;
+  let curr: ListNode | null = first;
+  for (let i = 0; i &lt; k &amp;&amp; curr !== null; i++) {
+    const next: ListNode | null = curr.next;
+    curr.next = prev;
+    prev = curr;
+    curr = next;
+  }
+  return [prev as ListNode, curr];
+}
+
+/** Reverses positions left..right (1-based). */
+function reverseBetween(head: ListNode | null, left: number, right: number): ListNode | null {
+  const dummy = new ListNode(0);
+  dummy.next = head;
+  let before = dummy;
+  for (let i = 1; i &lt; left; i++) before = before.next as ListNode;
+  const first = before.next as ListNode;
+  const [newFirst, after] = reverseRun(first, right - left + 1);
+  before.next = newFirst; // reconnect the front
+  first.next = after; // reconnect the back
+  return dummy.next;
+}
+
+function reverseKGroup(head: ListNode | null, k: number): ListNode | null {
+  const dummy = new ListNode(0);
+  dummy.next = head;
+  let before = dummy;
+  while (true) {
+    let check: ListNode | null = before;
+    for (let i = 0; i &lt; k &amp;&amp; check !== null; i++) check = check.next;
+    if (check === null) break; // fewer than k left: leave them
+    const first = before.next as ListNode;
+    const [newFirst, after] = reverseRun(first, k);
+    before.next = newFirst;
+    first.next = after;
+    before = first;
+  }
+  return dummy.next;
+}
+
+function isPalindrome(head: ListNode | null): boolean {
+  let slow = head;
+  let fast = head;
+  while (fast !== null &amp;&amp; fast.next !== null) {
+    slow = (slow as ListNode).next;
+    fast = fast.next.next;
+  }
+  for (let a = head, b = reverse(slow); b !== null &amp;&amp; a !== null; a = a.next, b = b.next) if (a.val !== b.val) return false;
+  return true;
+}
+
+function main(): void {
+  console.log(`reverse 1 2 3 4 5: ${str(reverse(build(1, 2, 3, 4, 5)))}`);
+  console.log(`reverse positions 2..4: ${str(reverseBetween(build(1, 2, 3, 4, 5), 2, 4))}`);
+  console.log(`reverse in groups of 2: ${str(reverseKGroup(build(1, 2, 3, 4, 5), 2))}`);
+  console.log(`reverse in groups of 3: ${str(reverseKGroup(build(1, 2, 3, 4, 5), 3))}`);
+  console.log(`palindrome 1 2 2 1: ${isPalindrome(build(1, 2, 2, 1))}, 1 2 3: ${isPalindrome(build(1, 2, 3))}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-in-place-reversal-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Optional</span>, <span class="hljs-type">Tuple</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ListNode</span>:</span><span class="ln" data-line="5">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, val: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="6">        <span class="hljs-variable language_">self</span>.val = val</span><span class="ln" data-line="7">        <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">next</span>: <span class="hljs-type">Optional</span>[<span class="hljs-string">&quot;ListNode&quot;</span>] = <span class="hljs-literal">None</span></span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-keyword">def</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">*vals: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">Optional</span>[ListNode]:</span><span class="ln" data-line="11">    dummy = t = ListNode(<span class="hljs-number">0</span>)</span><span class="ln" data-line="12">    <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> vals:</span><span class="ln" data-line="13">        t.<span class="hljs-built_in">next</span> = ListNode(v)</span><span class="ln" data-line="14">        t = t.<span class="hljs-built_in">next</span></span><span class="ln" data-line="15">    <span class="hljs-keyword">return</span> dummy.<span class="hljs-built_in">next</span></span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-keyword">def</span> <span class="hljs-title function_">to_str</span>(<span class="hljs-params">n: <span class="hljs-type">Optional</span>[ListNode]</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="19">    out = []</span><span class="ln" data-line="20">    <span class="hljs-keyword">while</span> n:</span><span class="ln" data-line="21">        out.append(<span class="hljs-built_in">str</span>(n.val))</span><span class="ln" data-line="22">        n = n.<span class="hljs-built_in">next</span></span><span class="ln" data-line="23">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; &quot;</span>.join(out)</span><span class="ln" data-line="24"> </span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"><span class="hljs-keyword">def</span> <span class="hljs-title function_">reverse</span>(<span class="hljs-params">head: <span class="hljs-type">Optional</span>[ListNode]</span>) -&gt; <span class="hljs-type">Optional</span>[ListNode]:</span><span class="ln" data-line="27">    prev, curr = <span class="hljs-literal">None</span>, head</span><span class="ln" data-line="28">    <span class="hljs-keyword">while</span> curr:</span><span class="ln" data-line="29">        nxt = curr.<span class="hljs-built_in">next</span>  <span class="hljs-comment"># save the rest</span></span><span class="ln" data-line="30">        curr.<span class="hljs-built_in">next</span> = prev  <span class="hljs-comment"># flip one pointer</span></span><span class="ln" data-line="31">        prev, curr = curr, nxt</span><span class="ln" data-line="32">    <span class="hljs-keyword">return</span> prev</span><span class="ln" data-line="33"> </span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"><span class="hljs-keyword">def</span> <span class="hljs-title function_">reverse_run</span>(<span class="hljs-params">first: ListNode, k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">Tuple</span>[ListNode, <span class="hljs-type">Optional</span>[ListNode]]:</span><span class="ln" data-line="36">    <span class="hljs-string">&quot;&quot;&quot;Reverses k nodes starting at first; returns (new_first, node_after).&quot;&quot;&quot;</span></span><span class="ln" data-line="37">    prev, curr = <span class="hljs-literal">None</span>, first</span><span class="ln" data-line="38">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(k):</span><span class="ln" data-line="39">        nxt = curr.<span class="hljs-built_in">next</span></span><span class="ln" data-line="40">        curr.<span class="hljs-built_in">next</span> = prev</span><span class="ln" data-line="41">        prev, curr = curr, nxt</span><span class="ln" data-line="42">    <span class="hljs-keyword">return</span> prev, curr</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"><span class="hljs-keyword">def</span> <span class="hljs-title function_">reverse_between</span>(<span class="hljs-params">head: <span class="hljs-type">Optional</span>[ListNode], left: <span class="hljs-built_in">int</span>, right: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">Optional</span>[ListNode]:</span><span class="ln" data-line="46">    <span class="hljs-string">&quot;&quot;&quot;Reverses positions left..right (1-based).&quot;&quot;&quot;</span></span><span class="ln" data-line="47">    dummy = ListNode(<span class="hljs-number">0</span>)</span><span class="ln" data-line="48">    dummy.<span class="hljs-built_in">next</span> = head</span><span class="ln" data-line="49">    before = dummy</span><span class="ln" data-line="50">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(left - <span class="hljs-number">1</span>):</span><span class="ln" data-line="51">        before = before.<span class="hljs-built_in">next</span></span><span class="ln" data-line="52">    first = before.<span class="hljs-built_in">next</span></span><span class="ln" data-line="53">    new_first, after = reverse_run(first, right - left + <span class="hljs-number">1</span>)</span><span class="ln" data-line="54">    before.<span class="hljs-built_in">next</span> = new_first  <span class="hljs-comment"># reconnect the front</span></span><span class="ln" data-line="55">    first.<span class="hljs-built_in">next</span> = after  <span class="hljs-comment"># reconnect the back</span></span><span class="ln" data-line="56">    <span class="hljs-keyword">return</span> dummy.<span class="hljs-built_in">next</span></span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"><span class="hljs-keyword">def</span> <span class="hljs-title function_">reverse_k_group</span>(<span class="hljs-params">head: <span class="hljs-type">Optional</span>[ListNode], k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">Optional</span>[ListNode]:</span><span class="ln" data-line="60">    dummy = ListNode(<span class="hljs-number">0</span>)</span><span class="ln" data-line="61">    dummy.<span class="hljs-built_in">next</span> = head</span><span class="ln" data-line="62">    before = dummy</span><span class="ln" data-line="63">    <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:</span><span class="ln" data-line="64">        check = before</span><span class="ln" data-line="65">        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(k):</span><span class="ln" data-line="66">            check = check.<span class="hljs-built_in">next</span> <span class="hljs-keyword">if</span> check <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span></span><span class="ln" data-line="67">        <span class="hljs-keyword">if</span> check <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:  <span class="hljs-comment"># fewer than k left: leave them</span></span><span class="ln" data-line="68">            <span class="hljs-keyword">break</span></span><span class="ln" data-line="69">        first = before.<span class="hljs-built_in">next</span></span><span class="ln" data-line="70">        new_first, after = reverse_run(first, k)</span><span class="ln" data-line="71">        before.<span class="hljs-built_in">next</span>, first.<span class="hljs-built_in">next</span>, before = new_first, after, first</span><span class="ln" data-line="72">    <span class="hljs-keyword">return</span> dummy.<span class="hljs-built_in">next</span></span><span class="ln" data-line="73"> </span><span class="ln" data-line="74"> </span><span class="ln" data-line="75"><span class="hljs-keyword">def</span> <span class="hljs-title function_">is_palindrome</span>(<span class="hljs-params">head: <span class="hljs-type">Optional</span>[ListNode]</span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="76">    slow = fast = head</span><span class="ln" data-line="77">    <span class="hljs-keyword">while</span> fast <span class="hljs-keyword">and</span> fast.<span class="hljs-built_in">next</span>:</span><span class="ln" data-line="78">        slow, fast = slow.<span class="hljs-built_in">next</span>, fast.<span class="hljs-built_in">next</span>.<span class="hljs-built_in">next</span></span><span class="ln" data-line="79">    a, b = head, reverse(slow)</span><span class="ln" data-line="80">    <span class="hljs-keyword">while</span> b:</span><span class="ln" data-line="81">        <span class="hljs-keyword">if</span> a.val != b.val:</span><span class="ln" data-line="82">            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span></span><span class="ln" data-line="83">        a, b = a.<span class="hljs-built_in">next</span>, b.<span class="hljs-built_in">next</span></span><span class="ln" data-line="84">    <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span></span><span class="ln" data-line="85"> </span><span class="ln" data-line="86"> </span><span class="ln" data-line="87"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="88">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;reverse 1 2 3 4 5: <span class="hljs-subst">{to_str(reverse(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>)))}</span>&quot;</span>)</span><span class="ln" data-line="89">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;reverse positions 2..4: <span class="hljs-subst">{to_str(reverse_between(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">2</span>, <span class="hljs-number">4</span>))}</span>&quot;</span>)</span><span class="ln" data-line="90">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;reverse in groups of 2: <span class="hljs-subst">{to_str(reverse_k_group(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">2</span>))}</span>&quot;</span>)</span><span class="ln" data-line="91">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;reverse in groups of 3: <span class="hljs-subst">{to_str(reverse_k_group(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>), <span class="hljs-number">3</span>))}</span>&quot;</span>)</span><span class="ln" data-line="92">    p1, p2 = is_palindrome(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>)), is_palindrome(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>))</span><span class="ln" data-line="93">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;palindrome 1 2 2 1: <span class="hljs-subst">{<span class="hljs-built_in">str</span>(p1).lower()}</span>, 1 2 3: <span class="hljs-subst">{<span class="hljs-built_in">str</span>(p2).lower()}</span>&quot;</span>)</span><span class="ln" data-line="94"> </span><span class="ln" data-line="95"> </span><span class="ln" data-line="96"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="97">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import Optional, Tuple
+
+
+class ListNode:
+    def __init__(self, val: int) -&gt; None:
+        self.val = val
+        self.next: Optional[&quot;ListNode&quot;] = None
+
+
+def build(*vals: int) -&gt; Optional[ListNode]:
+    dummy = t = ListNode(0)
+    for v in vals:
+        t.next = ListNode(v)
+        t = t.next
+    return dummy.next
+
+
+def to_str(n: Optional[ListNode]) -&gt; str:
+    out = []
+    while n:
+        out.append(str(n.val))
+        n = n.next
+    return &quot; &quot;.join(out)
+
+
+def reverse(head: Optional[ListNode]) -&gt; Optional[ListNode]:
+    prev, curr = None, head
+    while curr:
+        nxt = curr.next  # save the rest
+        curr.next = prev  # flip one pointer
+        prev, curr = curr, nxt
+    return prev
+
+
+def reverse_run(first: ListNode, k: int) -&gt; Tuple[ListNode, Optional[ListNode]]:
+    &quot;&quot;&quot;Reverses k nodes starting at first; returns (new_first, node_after).&quot;&quot;&quot;
+    prev, curr = None, first
+    for _ in range(k):
+        nxt = curr.next
+        curr.next = prev
+        prev, curr = curr, nxt
+    return prev, curr
+
+
+def reverse_between(head: Optional[ListNode], left: int, right: int) -&gt; Optional[ListNode]:
+    &quot;&quot;&quot;Reverses positions left..right (1-based).&quot;&quot;&quot;
+    dummy = ListNode(0)
+    dummy.next = head
+    before = dummy
+    for _ in range(left - 1):
+        before = before.next
+    first = before.next
+    new_first, after = reverse_run(first, right - left + 1)
+    before.next = new_first  # reconnect the front
+    first.next = after  # reconnect the back
+    return dummy.next
+
+
+def reverse_k_group(head: Optional[ListNode], k: int) -&gt; Optional[ListNode]:
+    dummy = ListNode(0)
+    dummy.next = head
+    before = dummy
+    while True:
+        check = before
+        for _ in range(k):
+            check = check.next if check else None
+        if check is None:  # fewer than k left: leave them
+            break
+        first = before.next
+        new_first, after = reverse_run(first, k)
+        before.next, first.next, before = new_first, after, first
+    return dummy.next
+
+
+def is_palindrome(head: Optional[ListNode]) -&gt; bool:
+    slow = fast = head
+    while fast and fast.next:
+        slow, fast = slow.next, fast.next.next
+    a, b = head, reverse(slow)
+    while b:
+        if a.val != b.val:
+            return False
+        a, b = a.next, b.next
+    return True
+
+
+def main() -&gt; None:
+    print(f&quot;reverse 1 2 3 4 5: {to_str(reverse(build(1, 2, 3, 4, 5)))}&quot;)
+    print(f&quot;reverse positions 2..4: {to_str(reverse_between(build(1, 2, 3, 4, 5), 2, 4))}&quot;)
+    print(f&quot;reverse in groups of 2: {to_str(reverse_k_group(build(1, 2, 3, 4, 5), 2))}&quot;)
+    print(f&quot;reverse in groups of 3: {to_str(reverse_k_group(build(1, 2, 3, 4, 5), 3))}&quot;)
+    p1, p2 = is_palindrome(build(1, 2, 2, 1)), is_palindrome(build(1, 2, 3))
+    print(f&quot;palindrome 1 2 2 1: {str(p1).lower()}, 1 2 3: {str(p2).lower()}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>reverse 1 2 3 4 5: 5 4 3 2 1
+reverse positions 2..4: 1 4 3 2 5
+reverse in groups of 2: 2 1 4 3 5
+reverse in groups of 3: 3 2 1 4 5
+palindrome 1 2 2 1: true, 1 2 3: false</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Overwriting <code>curr.next</code> before saving it, losing the rest of the list.</li><li>Forgetting to reconnect the reversed piece to the nodes before and after it.</li><li>Not using a dummy head, so reversing a range starting at position 1 needs a special case.</li><li>Reversing a short final group in k-group reversal when the problem says to leave it.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/reverse-linked-list/" rel="noopener" target="_blank">Reverse Linked List<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>206</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/palindrome-linked-list/" rel="noopener" target="_blank">Palindrome Linked List<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>234</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/reverse-linked-list-ii/" rel="noopener" target="_blank">Reverse Linked List II<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>92</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/swap-nodes-in-pairs/" rel="noopener" target="_blank">Swap Nodes in Pairs<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>24</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/reverse-nodes-in-k-group/" rel="noopener" target="_blank">Reverse Nodes in k-Group<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>25</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/linked-lists/index.html">Linked lists</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../fast-slow-pointers/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Fast and slow pointers</span></a><a class="pn pn-next" href="../monotonic-stack/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Monotonic stack</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

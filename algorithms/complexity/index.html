@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Complexity analysis · DSA Academy</title>
+<meta name="description" content="Big-O, Big-Θ, Big-Ω and amortised cost, with worked examples.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../index.html" aria-current="page">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Algorithms</a></li><li><span aria-current="page">Complexity analysis</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Complexity analysis</h1>
+  <p class="lede">Complexity analysis predicts how an algorithm&#39;s time and memory grow as the input grows. It lets you compare solutions before writing them, and it&#39;s the first thing interviewers ask about yours.</p>
+  <p class="tags"><span class="pill">Technique</span> <span class="muted">14 minute read</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Delivering invitations. Handing one to the host is constant work. Walking down a street to every house is linear. Asking every guest to greet every other guest is quadratic: double the guests and the greetings quadruple. Big-O names the shape of that growth, not the exact minutes.</p></aside>
+<h2 id="what-big-o-measures">What Big-O measures</h2>
+<p>Big-O describes how the <strong>number of steps</strong> grows as the input size <code>n</code> grows.
+It ignores two things on purpose:</p>
+<ul>
+<li><strong>Constant factors</strong>: <code>3n</code> and <code>n</code> are both O(n). They grow the same way.</li>
+<li><strong>Smaller terms</strong>: <code>n² + 100n + 7</code> is O(n²). For large n the <code>n²</code> swamps the rest.</li>
+</ul>
+<p>So Big-O won&#39;t tell you which of two O(n) loops is faster. It tells you which
+algorithm still works when n goes from a thousand to a million.</p>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 300" role="img" aria-label="Growth of 1, log n, n, n log n and n squared as n increases from 1 to 16"><defs></defs><path class="dg-line" d="M60 30 L60 270 L620 270"/><path class="dg-line-r" d="M60.0 269.1 L97.3 266.2 L134.7 261.6 L172.0 255.0 L209.3 246.6 L246.7 236.2 L284.0 224.1 L321.3 210.0 L358.7 194.1 L396.0 176.2 L433.3 156.6 L470.7 135.0 L508.0 111.6 L545.3 86.2 L582.7 59.1 L620.0 30.0"/><text class="dg-m" x="626" y="34.0">n²</text><path class="dg-line-a" d="M60.0 270.0 L97.3 268.1 L134.7 265.5 L172.0 262.5 L209.3 259.1 L246.7 255.5 L284.0 251.6 L321.3 247.5 L358.7 243.3 L396.0 238.9 L433.3 234.3 L470.7 229.7 L508.0 224.9 L545.3 220.0 L582.7 215.1 L620.0 210.0"/><text class="dg-m" x="626" y="214.0">n log n</text><path class="dg-line-l" d="M60.0 269.1 L97.3 268.1 L134.7 267.2 L172.0 266.2 L209.3 265.3 L246.7 264.4 L284.0 263.4 L321.3 262.5 L358.7 261.6 L396.0 260.6 L433.3 259.7 L470.7 258.8 L508.0 257.8 L545.3 256.9 L582.7 255.9 L620.0 255.0"/><text class="dg-m" x="626" y="259.0">n</text><path class="dg-line" d="M60.0 270.0 L97.3 269.1 L134.7 268.5 L172.0 268.1 L209.3 267.8 L246.7 267.6 L284.0 267.4 L321.3 267.2 L358.7 267.0 L396.0 266.9 L433.3 266.8 L470.7 266.6 L508.0 266.5 L545.3 266.4 L582.7 266.3 L620.0 266.2"/><text class="dg-m" x="626" y="270.25">log n</text><path class="dg-dash" d="M60.0 269.1 L97.3 269.1 L134.7 269.1 L172.0 269.1 L209.3 269.1 L246.7 269.1 L284.0 269.1 L321.3 269.1 L358.7 269.1 L396.0 269.1 L433.3 269.1 L470.7 269.1 L508.0 269.1 L545.3 269.1 L582.7 269.1 L620.0 269.1"/><text class="dg-m" x="626" y="273.0625">1</text><text class="dg-s dg-end" x="52" y="274">0</text><text class="dg-s dg-end" x="52" y="34">256</text><text class="dg-s" x="60" y="290">n = 1</text><text class="dg-s" x="620" y="290">n = 16</text></svg><figcaption>Operation counts for n = 1 to 16. The gap between curves is what Big-O describes: at n = 16, O(n²) is already 16 times O(n), and it only widens.</figcaption></figure><h2 id="big-o-big--and-big-">Big-O, Big-Θ and Big-Ω</h2>
+<p>These three describe bounds:</p>
+<ul>
+<li><strong>Big-O (upper bound)</strong>: grows <em>no faster than</em>. Linear search is O(n).</li>
+<li><strong>Big-Ω (lower bound)</strong>: grows <em>at least as fast as</em>. Any comparison sort is
+Ω(n log n) in the worst case.</li>
+<li><strong>Big-Θ (tight bound)</strong>: both at once. Merge sort is Θ(n log n): never better,
+never worse.</li>
+</ul>
+<p>In everyday use (and interviews) people say &quot;O&quot; when they mean the tight bound.
+That&#39;s fine as long as you also say which <strong>case</strong> you mean: best, average or
+worst. Quicksort is O(n log n) on average and O(n²) in the worst case.</p>
+<h2 id="how-to-work-out-the-complexity-of-code">How to work out the complexity of code</h2>
+<ol>
+<li><strong>Sequential steps add</strong>: a loop of n then a loop of m is O(n + m).</li>
+<li><strong>Nested steps multiply</strong>: a loop of n inside a loop of n is O(n²).</li>
+<li><strong>Halving gives a logarithm</strong>: <code>while n &gt; 1: n = n / 2</code> runs about log₂ n times.</li>
+<li><strong>Recursion: count the calls and the work per call.</strong> <code>f(n)</code> calling
+<code>f(n − 1)</code> once with O(1) work is O(n). Calling <code>f(n − 1)</code> twice is O(2ⁿ).
+Splitting in half twice with O(n) work to combine (merge sort) is O(n log n).</li>
+<li><strong>Space counts too</strong>: extra arrays, hash maps and the recursion stack.</li>
+</ol>
+<pre><code class="language-text">for i in 0..n:               ← n times
+    for j in i..n:           ← n − i times
+        work                 total: n + (n−1) + … + 1 = n(n+1)/2  →  O(n²)
+</code></pre>
+<h2 id="input-size-tells-you-the-target">Input size tells you the target</h2>
+<p>Judges and interviewers pick limits that hint at the intended complexity. At
+roughly 10⁸ simple operations per second:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input size n</th>
+<th>Feasible complexity</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>up to 10–12</td>
+<td>O(n!), O(2ⁿ · n)</td>
+</tr>
+<tr>
+<td>up to 20–25</td>
+<td>O(2ⁿ)</td>
+</tr>
+<tr>
+<td>up to 500</td>
+<td>O(n³)</td>
+</tr>
+<tr>
+<td>up to 10⁴</td>
+<td>O(n²)</td>
+</tr>
+<tr>
+<td>up to 10⁶</td>
+<td>O(n log n)</td>
+</tr>
+<tr>
+<td>up to 10⁸</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>larger</td>
+<td>O(log n) or O(1)</td>
+</tr>
+</tbody></table></div>
+<h2 id="amortised-analysis">Amortised analysis</h2>
+<p>Some operations are usually cheap and occasionally expensive. <strong>Amortised</strong>
+cost is the average over any long sequence. A dynamic array&#39;s append is the
+classic case: most appends write one slot, but every so often the array doubles
+and copies everything. Over n appends the copies total less than n, so the
+amortised cost is O(1). The code below measures it.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>O(1): constant</td><td class="nowrap">1 step at any size</td><td>Array index, hash lookup, push and pop.</td></tr><tr><td>O(log n): logarithmic</td><td class="nowrap">~20 steps for a million</td><td>Halving the problem each step: binary search, balanced trees, heaps.</td></tr><tr><td>O(n): linear</td><td class="nowrap">a million steps for a million</td><td>One pass over the input.</td></tr><tr><td>O(n log n): linearithmic</td><td class="nowrap">~20 million for a million</td><td>Efficient sorting; divide in half, do linear work per level.</td></tr><tr><td>O(n²): quadratic</td><td class="nowrap">10¹² for a million</td><td>Every pair of items: nested loops. Fine for n ≈ 10⁴, too slow for 10⁶.</td></tr><tr><td>O(2ⁿ): exponential</td><td class="nowrap">unusable past n ≈ 30</td><td>Every subset: naive recursion and brute-force search.</td></tr><tr><td>O(n!): factorial</td><td class="nowrap">unusable past n ≈ 11</td><td>Every ordering: permutations.</td></tr></tbody></table></div>
+<h2 id="use-when">When to use it</h2>
+<div class="two-col"><div><h3>Reach for it when</h3><ul><li>Choosing between approaches before you code: estimate each one&#39;s complexity against the input limits.</li><li>Explaining your solution in an interview: state time and space, and justify both.</li><li>Spotting a hidden cost: <code>list.remove(0)</code>, string <code>+=</code> in a loop, <code>contains</code> on a list.</li></ul></div><div><h3>Think twice when</h3><ul><li>Comparing two algorithms with the same Big-O for small inputs. Constants and cache behaviour decide those; measure instead.</li></ul></div></div>
+<h2 id="lang-notes">In your language</h2>
+<div class="lang-notes"><div class="lang-note" data-lang="java"><p class="lang-note-label">Notes for Java</p><ul>
+<li>Know the hidden costs: <code>ArrayList.add(0, x)</code> and <code>remove(0)</code> are O(n); <code>LinkedList.get(i)</code> is O(n); <code>String +=</code> in a loop is O(n²); <code>HashMap</code> operations are O(1) average.</li>
+<li><code>Collections.sort</code> and <code>Arrays.sort</code> on objects are O(n log n) and stable (TimSort). <code>Arrays.sort</code> on primitives is dual-pivot quicksort: O(n log n) average, not stable.</li>
+</ul>
+</div><div class="lang-note" data-lang="javascript"><p class="lang-note-label">Notes for JavaScript</p><ul>
+<li><code>shift</code>, <code>unshift</code>, <code>splice</code> in the middle and <code>includes</code> are O(n). <code>push</code>, <code>pop</code> and <code>Map</code>/<code>Set</code> operations are O(1) average.</li>
+<li><code>Array.prototype.sort</code> is O(n log n) and stable in modern engines. Without a comparator it sorts as strings: <code>[10, 9, 1].sort()</code> gives <code>[1, 10, 9]</code>.</li>
+</ul>
+</div><div class="lang-note" data-lang="typescript"><p class="lang-note-label">Notes for TypeScript</p><ul>
+<li>The types don&#39;t change costs. Same notes as JavaScript.</li>
+</ul>
+</div><div class="lang-note" data-lang="python"><p class="lang-note-label">Notes for Python</p><ul>
+<li><code>list.insert(0, x)</code>, <code>pop(0)</code>, <code>x in list</code> and slicing are O(n). <code>dict</code> and <code>set</code> lookups are O(1) average.</li>
+<li><code>sorted</code> and <code>list.sort</code> are TimSort: O(n log n), stable, and O(n) on already-sorted data.</li>
+<li>Rough budget: CPython does about 10⁷ simple operations per second, so O(n²) at n = 10⁴ is borderline.</li>
+</ul>
+</div><p class="muted lang-note-hint">Switch the language at the top of the page to see notes for another language.</p></div>
+<h2 id="code">Code</h2>
+<p>Each function counts how many times its inner step runs for a given n. Running them for n = 16 and n = 1024 shows the growth rates directly, and the last line measures the amortised cost of doubling an array.</p><figure class="codeblock" id="code-complexity" aria-label="Counting operations for each growth rate">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-complexity-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-complexity-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-complexity-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-complexity-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-complexity-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">    <span class="hljs-keyword">static</span> <span class="hljs-type">long</span> <span class="hljs-title function_">constant</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> { <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>; }</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5">    <span class="hljs-keyword">static</span> <span class="hljs-type">long</span> <span class="hljs-title function_">logarithmic</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="6">        <span class="hljs-type">long</span> <span class="hljs-variable">steps</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="7">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> n; i &gt; <span class="hljs-number">1</span>; i /= <span class="hljs-number">2</span>) steps++; <span class="hljs-comment">// halve until 1</span></span><span class="ln" data-line="8">        <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="9">    }</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11">    <span class="hljs-keyword">static</span> <span class="hljs-type">long</span> <span class="hljs-title function_">linear</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="12">        <span class="hljs-type">long</span> <span class="hljs-variable">steps</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="13">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; n; i++) steps++;</span><span class="ln" data-line="14">        <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="15">    }</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17">    <span class="hljs-keyword">static</span> <span class="hljs-type">long</span> <span class="hljs-title function_">linearithmic</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="18">        <span class="hljs-type">long</span> <span class="hljs-variable">steps</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="19">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; n; i++) steps += logarithmic(n); <span class="hljs-comment">// n passes of log n work</span></span><span class="ln" data-line="20">        <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="21">    }</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23">    <span class="hljs-keyword">static</span> <span class="hljs-type">long</span> <span class="hljs-title function_">quadratic</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="24">        <span class="hljs-type">long</span> <span class="hljs-variable">steps</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="25">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; n; i++)</span><span class="ln" data-line="26">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; j &lt; n; j++) steps++;</span><span class="ln" data-line="27">        <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="28">    }</span><span class="ln" data-line="29"> </span><span class="ln" data-line="30">    <span class="hljs-comment">/** Copies done by a doubling array over n appends; stays below n. */</span></span><span class="ln" data-line="31">    <span class="hljs-keyword">static</span> <span class="hljs-type">long</span> <span class="hljs-title function_">doublingCopies</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="32">        <span class="hljs-type">long</span> <span class="hljs-variable">copies</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="33">        <span class="hljs-type">int</span> <span class="hljs-variable">capacity</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>, size = <span class="hljs-number">0</span>;</span><span class="ln" data-line="34">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">k</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; k &lt; n; k++) {</span><span class="ln" data-line="35">            <span class="hljs-keyword">if</span> (size == capacity) { copies += size; capacity *= <span class="hljs-number">2</span>; }</span><span class="ln" data-line="36">            size++;</span><span class="ln" data-line="37">        }</span><span class="ln" data-line="38">        <span class="hljs-keyword">return</span> copies;</span><span class="ln" data-line="39">    }</span><span class="ln" data-line="40"> </span><span class="ln" data-line="41">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="42">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> n : <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">16</span>, <span class="hljs-number">1024</span> }) {</span><span class="ln" data-line="43">            System.out.println(<span class="hljs-string">&quot;n = &quot;</span> + n + <span class="hljs-string">&quot;: O(1) &quot;</span> + constant(n) + <span class="hljs-string">&quot;, O(log n) &quot;</span> + logarithmic(n) + <span class="hljs-string">&quot;, O(n) &quot;</span> + linear(n)</span><span class="ln" data-line="44">                    + <span class="hljs-string">&quot;, O(n log n) &quot;</span> + linearithmic(n) + <span class="hljs-string">&quot;, O(n^2) &quot;</span> + quadratic(n));</span><span class="ln" data-line="45">        }</span><span class="ln" data-line="46">        <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> <span class="hljs-number">1000</span>;</span><span class="ln" data-line="47">        <span class="hljs-type">long</span> <span class="hljs-variable">copies</span> <span class="hljs-operator">=</span> doublingCopies(n);</span><span class="ln" data-line="48">        System.out.println(<span class="hljs-string">&quot;appends &quot;</span> + n + <span class="hljs-string">&quot;, copies &quot;</span> + copies + <span class="hljs-string">&quot;, copies per append &quot;</span> + String.format(java.util.Locale.ROOT, <span class="hljs-string">&quot;%.3f&quot;</span>, (<span class="hljs-type">double</span>) copies / n));</span><span class="ln" data-line="49">    }</span><span class="ln" data-line="50">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">public class Solution {
+
+    static long constant(int n) { return 1; }
+
+    static long logarithmic(int n) {
+        long steps = 0;
+        for (int i = n; i &gt; 1; i /= 2) steps++; // halve until 1
+        return steps;
+    }
+
+    static long linear(int n) {
+        long steps = 0;
+        for (int i = 0; i &lt; n; i++) steps++;
+        return steps;
+    }
+
+    static long linearithmic(int n) {
+        long steps = 0;
+        for (int i = 0; i &lt; n; i++) steps += logarithmic(n); // n passes of log n work
+        return steps;
+    }
+
+    static long quadratic(int n) {
+        long steps = 0;
+        for (int i = 0; i &lt; n; i++)
+            for (int j = 0; j &lt; n; j++) steps++;
+        return steps;
+    }
+
+    /** Copies done by a doubling array over n appends; stays below n. */
+    static long doublingCopies(int n) {
+        long copies = 0;
+        int capacity = 1, size = 0;
+        for (int k = 0; k &lt; n; k++) {
+            if (size == capacity) { copies += size; capacity *= 2; }
+            size++;
+        }
+        return copies;
+    }
+
+    public static void main(String[] args) {
+        for (int n : new int[] { 16, 1024 }) {
+            System.out.println(&quot;n = &quot; + n + &quot;: O(1) &quot; + constant(n) + &quot;, O(log n) &quot; + logarithmic(n) + &quot;, O(n) &quot; + linear(n)
+                    + &quot;, O(n log n) &quot; + linearithmic(n) + &quot;, O(n^2) &quot; + quadratic(n));
+        }
+        int n = 1000;
+        long copies = doublingCopies(n);
+        System.out.println(&quot;appends &quot; + n + &quot;, copies &quot; + copies + &quot;, copies per append &quot; + String.format(java.util.Locale.ROOT, &quot;%.3f&quot;, (double) copies / n));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-complexity-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">const</span> <span class="hljs-title function_">constant</span> = (<span class="hljs-params">n</span>) =&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">function</span> <span class="hljs-title function_">logarithmic</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="4">  <span class="hljs-keyword">let</span> steps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="5">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = n; i &gt; <span class="hljs-number">1</span>; i = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(i / <span class="hljs-number">2</span>)) steps++; <span class="hljs-comment">// halve until 1</span></span><span class="ln" data-line="6">  <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="7">}</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">function</span> <span class="hljs-title function_">linear</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="10">  <span class="hljs-keyword">let</span> steps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="11">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) steps++;</span><span class="ln" data-line="12">  <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="13">}</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-keyword">function</span> <span class="hljs-title function_">linearithmic</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="16">  <span class="hljs-keyword">let</span> steps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="17">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) steps += <span class="hljs-title function_">logarithmic</span>(n); <span class="hljs-comment">// n passes of log n work</span></span><span class="ln" data-line="18">  <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="19">}</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21"><span class="hljs-keyword">function</span> <span class="hljs-title function_">quadratic</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="22">  <span class="hljs-keyword">let</span> steps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="23">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = <span class="hljs-number">0</span>; j &lt; n; j++) steps++;</span><span class="ln" data-line="24">  <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="25">}</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"><span class="hljs-comment">/** Copies done by a doubling array over n appends; stays below n. */</span></span><span class="ln" data-line="28"><span class="hljs-keyword">function</span> <span class="hljs-title function_">doublingCopies</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="29">  <span class="hljs-keyword">let</span> copies = <span class="hljs-number">0</span>;</span><span class="ln" data-line="30">  <span class="hljs-keyword">let</span> capacity = <span class="hljs-number">1</span>;</span><span class="ln" data-line="31">  <span class="hljs-keyword">let</span> size = <span class="hljs-number">0</span>;</span><span class="ln" data-line="32">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">0</span>; k &lt; n; k++) {</span><span class="ln" data-line="33">    <span class="hljs-keyword">if</span> (size === capacity) {</span><span class="ln" data-line="34">      copies += size;</span><span class="ln" data-line="35">      capacity *= <span class="hljs-number">2</span>;</span><span class="ln" data-line="36">    }</span><span class="ln" data-line="37">    size++;</span><span class="ln" data-line="38">  }</span><span class="ln" data-line="39">  <span class="hljs-keyword">return</span> copies;</span><span class="ln" data-line="40">}</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="43">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> [<span class="hljs-number">16</span>, <span class="hljs-number">1024</span>]) {</span><span class="ln" data-line="44">    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(</span><span class="ln" data-line="45">      <span class="hljs-string">`n = <span class="hljs-subst">${n}</span>: O(1) <span class="hljs-subst">${constant(n)}</span>, O(log n) <span class="hljs-subst">${logarithmic(n)}</span>, O(n) <span class="hljs-subst">${linear(n)}</span>, O(n log n) <span class="hljs-subst">${linearithmic(n)}</span>, O(n^2) <span class="hljs-subst">${quadratic(n)}</span>`</span></span><span class="ln" data-line="46">    );</span><span class="ln" data-line="47">  }</span><span class="ln" data-line="48">  <span class="hljs-keyword">const</span> n = <span class="hljs-number">1000</span>;</span><span class="ln" data-line="49">  <span class="hljs-keyword">const</span> copies = <span class="hljs-title function_">doublingCopies</span>(n);</span><span class="ln" data-line="50">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`appends <span class="hljs-subst">${n}</span>, copies <span class="hljs-subst">${copies}</span>, copies per append <span class="hljs-subst">${(copies / n).toFixed(<span class="hljs-number">3</span>)}</span>`</span>);</span><span class="ln" data-line="51">}</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">const constant = (n) =&gt; 1;
+
+function logarithmic(n) {
+  let steps = 0;
+  for (let i = n; i &gt; 1; i = Math.floor(i / 2)) steps++; // halve until 1
+  return steps;
+}
+
+function linear(n) {
+  let steps = 0;
+  for (let i = 0; i &lt; n; i++) steps++;
+  return steps;
+}
+
+function linearithmic(n) {
+  let steps = 0;
+  for (let i = 0; i &lt; n; i++) steps += logarithmic(n); // n passes of log n work
+  return steps;
+}
+
+function quadratic(n) {
+  let steps = 0;
+  for (let i = 0; i &lt; n; i++) for (let j = 0; j &lt; n; j++) steps++;
+  return steps;
+}
+
+/** Copies done by a doubling array over n appends; stays below n. */
+function doublingCopies(n) {
+  let copies = 0;
+  let capacity = 1;
+  let size = 0;
+  for (let k = 0; k &lt; n; k++) {
+    if (size === capacity) {
+      copies += size;
+      capacity *= 2;
+    }
+    size++;
+  }
+  return copies;
+}
+
+function main() {
+  for (const n of [16, 1024]) {
+    console.log(
+      `n = ${n}: O(1) ${constant(n)}, O(log n) ${logarithmic(n)}, O(n) ${linear(n)}, O(n log n) ${linearithmic(n)}, O(n^2) ${quadratic(n)}`
+    );
+  }
+  const n = 1000;
+  const copies = doublingCopies(n);
+  console.log(`appends ${n}, copies ${copies}, copies per append ${(copies / n).toFixed(3)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-complexity-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">const</span> constant = (<span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">number</span> =&gt;</span> <span class="hljs-number">1</span>;</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">function</span> <span class="hljs-title function_">logarithmic</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="4">  <span class="hljs-keyword">let</span> steps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="5">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = n; i &gt; <span class="hljs-number">1</span>; i = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(i / <span class="hljs-number">2</span>)) steps++; <span class="hljs-comment">// halve until 1</span></span><span class="ln" data-line="6">  <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="7">}</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">function</span> <span class="hljs-title function_">linear</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="10">  <span class="hljs-keyword">let</span> steps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="11">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) steps++;</span><span class="ln" data-line="12">  <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="13">}</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-keyword">function</span> <span class="hljs-title function_">linearithmic</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="16">  <span class="hljs-keyword">let</span> steps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="17">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) steps += <span class="hljs-title function_">logarithmic</span>(n); <span class="hljs-comment">// n passes of log n work</span></span><span class="ln" data-line="18">  <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="19">}</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21"><span class="hljs-keyword">function</span> <span class="hljs-title function_">quadratic</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="22">  <span class="hljs-keyword">let</span> steps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="23">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = <span class="hljs-number">0</span>; j &lt; n; j++) steps++;</span><span class="ln" data-line="24">  <span class="hljs-keyword">return</span> steps;</span><span class="ln" data-line="25">}</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"><span class="hljs-comment">/** Copies done by a doubling array over n appends; stays below n. */</span></span><span class="ln" data-line="28"><span class="hljs-keyword">function</span> <span class="hljs-title function_">doublingCopies</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="29">  <span class="hljs-keyword">let</span> copies = <span class="hljs-number">0</span>;</span><span class="ln" data-line="30">  <span class="hljs-keyword">let</span> capacity = <span class="hljs-number">1</span>;</span><span class="ln" data-line="31">  <span class="hljs-keyword">let</span> size = <span class="hljs-number">0</span>;</span><span class="ln" data-line="32">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">0</span>; k &lt; n; k++) {</span><span class="ln" data-line="33">    <span class="hljs-keyword">if</span> (size === capacity) {</span><span class="ln" data-line="34">      copies += size;</span><span class="ln" data-line="35">      capacity *= <span class="hljs-number">2</span>;</span><span class="ln" data-line="36">    }</span><span class="ln" data-line="37">    size++;</span><span class="ln" data-line="38">  }</span><span class="ln" data-line="39">  <span class="hljs-keyword">return</span> copies;</span><span class="ln" data-line="40">}</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="43">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> [<span class="hljs-number">16</span>, <span class="hljs-number">1024</span>]) {</span><span class="ln" data-line="44">    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(</span><span class="ln" data-line="45">      <span class="hljs-string">`n = <span class="hljs-subst">${n}</span>: O(1) <span class="hljs-subst">${constant(n)}</span>, O(log n) <span class="hljs-subst">${logarithmic(n)}</span>, O(n) <span class="hljs-subst">${linear(n)}</span>, O(n log n) <span class="hljs-subst">${linearithmic(n)}</span>, O(n^2) <span class="hljs-subst">${quadratic(n)}</span>`</span></span><span class="ln" data-line="46">    );</span><span class="ln" data-line="47">  }</span><span class="ln" data-line="48">  <span class="hljs-keyword">const</span> n = <span class="hljs-number">1000</span>;</span><span class="ln" data-line="49">  <span class="hljs-keyword">const</span> copies = <span class="hljs-title function_">doublingCopies</span>(n);</span><span class="ln" data-line="50">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`appends <span class="hljs-subst">${n}</span>, copies <span class="hljs-subst">${copies}</span>, copies per append <span class="hljs-subst">${(copies / n).toFixed(<span class="hljs-number">3</span>)}</span>`</span>);</span><span class="ln" data-line="51">}</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">const constant = (n: number): number =&gt; 1;
+
+function logarithmic(n: number): number {
+  let steps = 0;
+  for (let i = n; i &gt; 1; i = Math.floor(i / 2)) steps++; // halve until 1
+  return steps;
+}
+
+function linear(n: number): number {
+  let steps = 0;
+  for (let i = 0; i &lt; n; i++) steps++;
+  return steps;
+}
+
+function linearithmic(n: number): number {
+  let steps = 0;
+  for (let i = 0; i &lt; n; i++) steps += logarithmic(n); // n passes of log n work
+  return steps;
+}
+
+function quadratic(n: number): number {
+  let steps = 0;
+  for (let i = 0; i &lt; n; i++) for (let j = 0; j &lt; n; j++) steps++;
+  return steps;
+}
+
+/** Copies done by a doubling array over n appends; stays below n. */
+function doublingCopies(n: number): number {
+  let copies = 0;
+  let capacity = 1;
+  let size = 0;
+  for (let k = 0; k &lt; n; k++) {
+    if (size === capacity) {
+      copies += size;
+      capacity *= 2;
+    }
+    size++;
+  }
+  return copies;
+}
+
+function main(): void {
+  for (const n of [16, 1024]) {
+    console.log(
+      `n = ${n}: O(1) ${constant(n)}, O(log n) ${logarithmic(n)}, O(n) ${linear(n)}, O(n log n) ${linearithmic(n)}, O(n^2) ${quadratic(n)}`
+    );
+  }
+  const n = 1000;
+  const copies = doublingCopies(n);
+  console.log(`appends ${n}, copies ${copies}, copies per append ${(copies / n).toFixed(3)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-complexity-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">def</span> <span class="hljs-title function_">constant</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="2">    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">def</span> <span class="hljs-title function_">logarithmic</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="6">    steps, i = <span class="hljs-number">0</span>, n</span><span class="ln" data-line="7">    <span class="hljs-keyword">while</span> i &gt; <span class="hljs-number">1</span>:  <span class="hljs-comment"># halve until 1</span></span><span class="ln" data-line="8">        i //= <span class="hljs-number">2</span></span><span class="ln" data-line="9">        steps += <span class="hljs-number">1</span></span><span class="ln" data-line="10">    <span class="hljs-keyword">return</span> steps</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"><span class="hljs-keyword">def</span> <span class="hljs-title function_">linear</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="14">    steps = <span class="hljs-number">0</span></span><span class="ln" data-line="15">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n):</span><span class="ln" data-line="16">        steps += <span class="hljs-number">1</span></span><span class="ln" data-line="17">    <span class="hljs-keyword">return</span> steps</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">def</span> <span class="hljs-title function_">linearithmic</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="21">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(logarithmic(n) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n))  <span class="hljs-comment"># n passes of log n work</span></span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">def</span> <span class="hljs-title function_">quadratic</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="25">    steps = <span class="hljs-number">0</span></span><span class="ln" data-line="26">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n):</span><span class="ln" data-line="27">        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n):</span><span class="ln" data-line="28">            steps += <span class="hljs-number">1</span></span><span class="ln" data-line="29">    <span class="hljs-keyword">return</span> steps</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-keyword">def</span> <span class="hljs-title function_">doubling_copies</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="33">    <span class="hljs-string">&quot;&quot;&quot;Copies done by a doubling array over n appends; stays below n.&quot;&quot;&quot;</span></span><span class="ln" data-line="34">    copies, capacity, size = <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span></span><span class="ln" data-line="35">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n):</span><span class="ln" data-line="36">        <span class="hljs-keyword">if</span> size == capacity:</span><span class="ln" data-line="37">            copies += size</span><span class="ln" data-line="38">            capacity *= <span class="hljs-number">2</span></span><span class="ln" data-line="39">        size += <span class="hljs-number">1</span></span><span class="ln" data-line="40">    <span class="hljs-keyword">return</span> copies</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="44">    <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> (<span class="hljs-number">16</span>, <span class="hljs-number">1024</span>):</span><span class="ln" data-line="45">        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;n = <span class="hljs-subst">{n}</span>: O(1) <span class="hljs-subst">{constant(n)}</span>, O(log n) <span class="hljs-subst">{logarithmic(n)}</span>, O(n) <span class="hljs-subst">{linear(n)}</span>, &quot;</span></span><span class="ln" data-line="46">              <span class="hljs-string">f&quot;O(n log n) <span class="hljs-subst">{linearithmic(n)}</span>, O(n^2) <span class="hljs-subst">{quadratic(n)}</span>&quot;</span>)</span><span class="ln" data-line="47">    n = <span class="hljs-number">1000</span></span><span class="ln" data-line="48">    copies = doubling_copies(n)</span><span class="ln" data-line="49">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;appends <span class="hljs-subst">{n}</span>, copies <span class="hljs-subst">{copies}</span>, copies per append <span class="hljs-subst">{copies / n:<span class="hljs-number">.3</span>f}</span>&quot;</span>)</span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="53">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">def constant(n: int) -&gt; int:
+    return 1
+
+
+def logarithmic(n: int) -&gt; int:
+    steps, i = 0, n
+    while i &gt; 1:  # halve until 1
+        i //= 2
+        steps += 1
+    return steps
+
+
+def linear(n: int) -&gt; int:
+    steps = 0
+    for _ in range(n):
+        steps += 1
+    return steps
+
+
+def linearithmic(n: int) -&gt; int:
+    return sum(logarithmic(n) for _ in range(n))  # n passes of log n work
+
+
+def quadratic(n: int) -&gt; int:
+    steps = 0
+    for _ in range(n):
+        for _ in range(n):
+            steps += 1
+    return steps
+
+
+def doubling_copies(n: int) -&gt; int:
+    &quot;&quot;&quot;Copies done by a doubling array over n appends; stays below n.&quot;&quot;&quot;
+    copies, capacity, size = 0, 1, 0
+    for _ in range(n):
+        if size == capacity:
+            copies += size
+            capacity *= 2
+        size += 1
+    return copies
+
+
+def main() -&gt; None:
+    for n in (16, 1024):
+        print(f&quot;n = {n}: O(1) {constant(n)}, O(log n) {logarithmic(n)}, O(n) {linear(n)}, &quot;
+              f&quot;O(n log n) {linearithmic(n)}, O(n^2) {quadratic(n)}&quot;)
+    n = 1000
+    copies = doubling_copies(n)
+    print(f&quot;appends {n}, copies {copies}, copies per append {copies / n:.3f}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>n = 16: O(1) 1, O(log n) 4, O(n) 16, O(n log n) 64, O(n^2) 256
+n = 1024: O(1) 1, O(log n) 10, O(n) 1024, O(n log n) 10240, O(n^2) 1048576
+appends 1000, copies 1023, copies per append 1.023</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Counting nested loops without checking their bounds. A loop inside a loop that runs a fixed 26 times is O(26n) = O(n).</li><li>Forgetting the cost of library calls inside a loop, such as slicing or <code>indexOf</code>.</li><li>Leaving out space complexity, including the recursion stack.</li><li>Calling an algorithm O(1) because it uses a hash map, ignoring the O(n) to build it.</li><li>Quoting average case when the question asks for worst case (quicksort, hash tables).</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/two-sum/" rel="noopener" target="_blank">Two Sum<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Compare the O(n²) and O(n) solutions.</span></td><td>1</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/contains-duplicate/" rel="noopener" target="_blank">Contains Duplicate<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">O(n²), O(n log n) and O(n) versions.</span></td><td>217</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/missing-number/" rel="noopener" target="_blank">Missing Number<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">O(n) time, O(1) space.</span></td><td>268</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/binary-search/" rel="noopener" target="_blank">Binary Search<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Prove the O(log n).</span></td><td>704</td><td><span class="pill pill-easy">easy</span></td></tr></tbody></table></div>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Algorithms</span></a><a class="pn pn-next" href="../recursion/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Recursion</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

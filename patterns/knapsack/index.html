@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knapsack · DSA Academy</title>
+<meta name="description" content="Choose items under a capacity: 0/1 and unbounded.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Knapsack</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Knapsack</h1>
+  <p class="lede">Knapsack problems choose items under a budget: a capacity, a target sum, an amount of money. The DP is indexed by the budget, and the loop direction decides whether each item can be used once (0/1) or many times (unbounded).</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Packing a carry-on bag with a weight limit. For each item you ask: is the best bag of this weight better with this item or without it? Whether you can pack two of the same item changes how you fill the table.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Pick a <strong>subset</strong> of numbers that reaches or doesn&#39;t exceed a target.</li>
+<li>Split numbers into two groups with equal (or closest) sums.</li>
+<li>Count the ways to make an amount from coins, or assign + and − signs to reach a target.</li>
+<li>Two budgets at once (a count of zeros and a count of ones) means a 2D budget.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">dp[0] = base (true / 1 / 0), dp[other budgets] = neutral
+for each item with cost c:
+    0/1 (use once):      for b from BUDGET down to c: dp[b] = combine(dp[b], dp[b − c] + item)
+    unbounded (reuse):   for b from c up to BUDGET:   dp[b] = combine(dp[b], dp[b − c] + item)
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>In the 2D form, <code>dp[i][b]</code> is the best answer using the first <code>i</code> items with
+budget <code>b</code>: skip item <code>i</code> (<code>dp[i − 1][b]</code>) or take it (<code>dp[i − 1][b − c] + value</code>). Each row reads only the previous row, so one array of budgets is
+enough, and the <strong>direction</strong> of the inner loop does the bookkeeping:</p>
+<ul>
+<li><strong>Downwards</strong> (0/1): <code>dp[b − c]</code> hasn&#39;t been updated for this item yet, so it
+still means &quot;without this item&quot;. Each item is counted once.</li>
+<li><strong>Upwards</strong> (unbounded): <code>dp[b − c]</code> may already include this item, so it can
+be taken again.</li>
+</ul>
+<p>Many problems need a short translation first. <strong>Partition equal subset sum</strong> is
+&quot;can a subset reach total / 2?&quot;. <strong>Target sum</strong> with signs is &quot;count subsets
+summing to (total + target) / 2&quot;. <strong>Last stone weight II</strong> is &quot;get one group as
+close to total / 2 as possible&quot;.</p>
+<p>Loop order also matters for counting. In <strong>coin change II</strong>, coins in the outer
+loop count combinations (2 + 1 and 1 + 2 are the same); amounts in the outer
+loop would count orderings.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>0/1 or unbounded knapsack</td><td class="nowrap">O(n × B) time, O(B) space</td><td>n items × B budgets; one budget array.</td></tr><tr><td>Subset sum / equal partition</td><td class="nowrap">O(n × total)</td><td>Pseudo-polynomial: fast when the total is small.</td></tr><tr><td>Two budgets (ones and zeroes)</td><td class="nowrap">O(n × B₁ × B₂)</td><td>A 2D budget table, both loops downwards.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Each solution is a one-dimensional budget array. Watch the loop direction: downwards for use-once, upwards for unlimited reuse.</p><figure class="codeblock" id="code-knapsack" aria-label="Classic 0/1 knapsack, equal partition, target sum, coin change II and last stone weight II">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-knapsack-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-knapsack-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-knapsack-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-knapsack-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-knapsack-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">knapsack</span><span class="hljs-params">(<span class="hljs-type">int</span>[] weight, <span class="hljs-type">int</span>[] value, <span class="hljs-type">int</span> capacity)</span> {</span><span class="ln" data-line="4">        <span class="hljs-type">int</span>[] <span class="hljs-variable">dp</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[capacity + <span class="hljs-number">1</span>];</span><span class="ln" data-line="5">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; weight.length; i++)</span><span class="ln" data-line="6">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> capacity; b &gt;= weight[i]; b--) dp[b] = Math.max(dp[b], dp[b - weight[i]] + value[i]); <span class="hljs-comment">// downwards: once</span></span><span class="ln" data-line="7">        <span class="hljs-keyword">return</span> dp[capacity];</span><span class="ln" data-line="8">    }</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10">    <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">canPartition</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="11">        <span class="hljs-type">int</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="12">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : nums) total += x;</span><span class="ln" data-line="13">        <span class="hljs-keyword">if</span> (total % <span class="hljs-number">2</span> == <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="14">        <span class="hljs-type">boolean</span>[] <span class="hljs-variable">reach</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">boolean</span>[total / <span class="hljs-number">2</span> + <span class="hljs-number">1</span>];</span><span class="ln" data-line="15">        reach[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="16">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : nums)</span><span class="ln" data-line="17">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> total / <span class="hljs-number">2</span>; b &gt;= x; b--) reach[b] = reach[b] || reach[b - x];</span><span class="ln" data-line="18">        <span class="hljs-keyword">return</span> reach[total / <span class="hljs-number">2</span>];</span><span class="ln" data-line="19">    }</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21">    <span class="hljs-comment">/** Ways to put + or - before each number to reach target. */</span></span><span class="ln" data-line="22">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">targetSumWays</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums, <span class="hljs-type">int</span> target)</span> {</span><span class="ln" data-line="23">        <span class="hljs-type">int</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="24">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : nums) total += x;</span><span class="ln" data-line="25">        <span class="hljs-keyword">if</span> (Math.abs(target) &gt; total || (total + target) % <span class="hljs-number">2</span> != <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="26">        <span class="hljs-type">int</span> <span class="hljs-variable">goal</span> <span class="hljs-operator">=</span> (total + target) / <span class="hljs-number">2</span>; <span class="hljs-comment">// the numbers given a + sign must sum to this</span></span><span class="ln" data-line="27">        <span class="hljs-type">int</span>[] <span class="hljs-variable">ways</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[goal + <span class="hljs-number">1</span>];</span><span class="ln" data-line="28">        ways[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="29">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : nums)</span><span class="ln" data-line="30">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> goal; b &gt;= x; b--) ways[b] += ways[b - x];</span><span class="ln" data-line="31">        <span class="hljs-keyword">return</span> ways[goal];</span><span class="ln" data-line="32">    }</span><span class="ln" data-line="33"> </span><span class="ln" data-line="34">    <span class="hljs-comment">/** Combinations of coins (unlimited supply) that make amount. */</span></span><span class="ln" data-line="35">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">change</span><span class="hljs-params">(<span class="hljs-type">int</span> amount, <span class="hljs-type">int</span>[] coins)</span> {</span><span class="ln" data-line="36">        <span class="hljs-type">int</span>[] <span class="hljs-variable">ways</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[amount + <span class="hljs-number">1</span>];</span><span class="ln" data-line="37">        ways[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="38">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> c : coins)                                  <span class="hljs-comment">// coins outside: combinations, not orderings</span></span><span class="ln" data-line="39">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> c; b &lt;= amount; b++) ways[b] += ways[b - c]; <span class="hljs-comment">// upwards: reuse allowed</span></span><span class="ln" data-line="40">        <span class="hljs-keyword">return</span> ways[amount];</span><span class="ln" data-line="41">    }</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">lastStoneWeightII</span><span class="hljs-params">(<span class="hljs-type">int</span>[] stones)</span> {</span><span class="ln" data-line="44">        <span class="hljs-type">int</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="45">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> s : stones) total += s;</span><span class="ln" data-line="46">        <span class="hljs-type">boolean</span>[] <span class="hljs-variable">reach</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">boolean</span>[total / <span class="hljs-number">2</span> + <span class="hljs-number">1</span>];</span><span class="ln" data-line="47">        reach[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="48">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> s : stones)</span><span class="ln" data-line="49">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> total / <span class="hljs-number">2</span>; b &gt;= s; b--) reach[b] = reach[b] || reach[b - s];</span><span class="ln" data-line="50">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> total / <span class="hljs-number">2</span>; ; b--) <span class="hljs-keyword">if</span> (reach[b]) <span class="hljs-keyword">return</span> total - <span class="hljs-number">2</span> * b; <span class="hljs-comment">// one side as close to half as possible</span></span><span class="ln" data-line="51">    }</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="54">        System.out.println(<span class="hljs-string">&quot;knapsack weights 1 3 4 5, values 1 4 5 7, capacity 7: &quot;</span> + knapsack(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span> }, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">7</span> }, <span class="hljs-number">7</span>));</span><span class="ln" data-line="55">        System.out.println(<span class="hljs-string">&quot;canPartition(1 5 11 5) = &quot;</span> + canPartition(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">11</span>, <span class="hljs-number">5</span> }) + <span class="hljs-string">&quot;, (1 2 3 5) = &quot;</span> + canPartition(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span> }));</span><span class="ln" data-line="56">        System.out.println(<span class="hljs-string">&quot;targetSumWays(1 1 1 1 1, 3) = &quot;</span> + targetSumWays(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span> }, <span class="hljs-number">3</span>));</span><span class="ln" data-line="57">        System.out.println(<span class="hljs-string">&quot;change(5, [1 2 5]) = &quot;</span> + change(<span class="hljs-number">5</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span> }) + <span class="hljs-string">&quot;, change(3, [2]) = &quot;</span> + change(<span class="hljs-number">3</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">2</span> }));</span><span class="ln" data-line="58">        System.out.println(<span class="hljs-string">&quot;lastStoneWeightII(2 7 4 1 8 1) = &quot;</span> + lastStoneWeightII(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">2</span>, <span class="hljs-number">7</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">1</span> }));</span><span class="ln" data-line="59">    }</span><span class="ln" data-line="60">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">public class Solution {
+
+    static int knapsack(int[] weight, int[] value, int capacity) {
+        int[] dp = new int[capacity + 1];
+        for (int i = 0; i &lt; weight.length; i++)
+            for (int b = capacity; b &gt;= weight[i]; b--) dp[b] = Math.max(dp[b], dp[b - weight[i]] + value[i]); // downwards: once
+        return dp[capacity];
+    }
+
+    static boolean canPartition(int[] nums) {
+        int total = 0;
+        for (int x : nums) total += x;
+        if (total % 2 == 1) return false;
+        boolean[] reach = new boolean[total / 2 + 1];
+        reach[0] = true;
+        for (int x : nums)
+            for (int b = total / 2; b &gt;= x; b--) reach[b] = reach[b] || reach[b - x];
+        return reach[total / 2];
+    }
+
+    /** Ways to put + or - before each number to reach target. */
+    static int targetSumWays(int[] nums, int target) {
+        int total = 0;
+        for (int x : nums) total += x;
+        if (Math.abs(target) &gt; total || (total + target) % 2 != 0) return 0;
+        int goal = (total + target) / 2; // the numbers given a + sign must sum to this
+        int[] ways = new int[goal + 1];
+        ways[0] = 1;
+        for (int x : nums)
+            for (int b = goal; b &gt;= x; b--) ways[b] += ways[b - x];
+        return ways[goal];
+    }
+
+    /** Combinations of coins (unlimited supply) that make amount. */
+    static int change(int amount, int[] coins) {
+        int[] ways = new int[amount + 1];
+        ways[0] = 1;
+        for (int c : coins)                                  // coins outside: combinations, not orderings
+            for (int b = c; b &lt;= amount; b++) ways[b] += ways[b - c]; // upwards: reuse allowed
+        return ways[amount];
+    }
+
+    static int lastStoneWeightII(int[] stones) {
+        int total = 0;
+        for (int s : stones) total += s;
+        boolean[] reach = new boolean[total / 2 + 1];
+        reach[0] = true;
+        for (int s : stones)
+            for (int b = total / 2; b &gt;= s; b--) reach[b] = reach[b] || reach[b - s];
+        for (int b = total / 2; ; b--) if (reach[b]) return total - 2 * b; // one side as close to half as possible
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;knapsack weights 1 3 4 5, values 1 4 5 7, capacity 7: &quot; + knapsack(new int[] { 1, 3, 4, 5 }, new int[] { 1, 4, 5, 7 }, 7));
+        System.out.println(&quot;canPartition(1 5 11 5) = &quot; + canPartition(new int[] { 1, 5, 11, 5 }) + &quot;, (1 2 3 5) = &quot; + canPartition(new int[] { 1, 2, 3, 5 }));
+        System.out.println(&quot;targetSumWays(1 1 1 1 1, 3) = &quot; + targetSumWays(new int[] { 1, 1, 1, 1, 1 }, 3));
+        System.out.println(&quot;change(5, [1 2 5]) = &quot; + change(5, new int[] { 1, 2, 5 }) + &quot;, change(3, [2]) = &quot; + change(3, new int[] { 2 }));
+        System.out.println(&quot;lastStoneWeightII(2 7 4 1 8 1) = &quot; + lastStoneWeightII(new int[] { 2, 7, 4, 1, 8, 1 }));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-knapsack-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">knapsack</span>(<span class="hljs-params">weight, value, capacity</span>) {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> dp = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(capacity + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="3">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; weight.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="4">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = capacity; b &gt;= weight[i]; b--) dp[b] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(dp[b], dp[b - weight[i]] + value[i]); <span class="hljs-comment">// downwards: once</span></span><span class="ln" data-line="5">  }</span><span class="ln" data-line="6">  <span class="hljs-keyword">return</span> dp[capacity];</span><span class="ln" data-line="7">}</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">function</span> <span class="hljs-title function_">canPartition</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="10">  <span class="hljs-keyword">const</span> total = nums.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="11">  <span class="hljs-keyword">if</span> (total % <span class="hljs-number">2</span> === <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="12">  <span class="hljs-keyword">const</span> reach = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(total / <span class="hljs-number">2</span> + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>);</span><span class="ln" data-line="13">  reach[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="14">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = total / <span class="hljs-number">2</span>; b &gt;= x; b--) reach[b] = reach[b] || reach[b - x];</span><span class="ln" data-line="15">  <span class="hljs-keyword">return</span> reach[total / <span class="hljs-number">2</span>];</span><span class="ln" data-line="16">}</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-comment">/** Ways to put + or - before each number to reach target. */</span></span><span class="ln" data-line="19"><span class="hljs-keyword">function</span> <span class="hljs-title function_">targetSumWays</span>(<span class="hljs-params">nums, target</span>) {</span><span class="ln" data-line="20">  <span class="hljs-keyword">const</span> total = nums.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="21">  <span class="hljs-keyword">if</span> (<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">abs</span>(target) &gt; total || (total + target) % <span class="hljs-number">2</span> !== <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="22">  <span class="hljs-keyword">const</span> goal = (total + target) / <span class="hljs-number">2</span>; <span class="hljs-comment">// the numbers given a + sign must sum to this</span></span><span class="ln" data-line="23">  <span class="hljs-keyword">const</span> ways = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(goal + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="24">  ways[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="25">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = goal; b &gt;= x; b--) ways[b] += ways[b - x];</span><span class="ln" data-line="26">  <span class="hljs-keyword">return</span> ways[goal];</span><span class="ln" data-line="27">}</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29"><span class="hljs-comment">/** Combinations of coins (unlimited supply) that make amount. */</span></span><span class="ln" data-line="30"><span class="hljs-keyword">function</span> <span class="hljs-title function_">change</span>(<span class="hljs-params">amount, coins</span>) {</span><span class="ln" data-line="31">  <span class="hljs-keyword">const</span> ways = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(amount + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="32">  ways[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="33">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> c <span class="hljs-keyword">of</span> coins) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = c; b &lt;= amount; b++) ways[b] += ways[b - c]; <span class="hljs-comment">// coins outside, budgets upwards</span></span><span class="ln" data-line="34">  <span class="hljs-keyword">return</span> ways[amount];</span><span class="ln" data-line="35">}</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">function</span> <span class="hljs-title function_">lastStoneWeightII</span>(<span class="hljs-params">stones</span>) {</span><span class="ln" data-line="38">  <span class="hljs-keyword">const</span> total = stones.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="39">  <span class="hljs-keyword">const</span> half = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(total / <span class="hljs-number">2</span>);</span><span class="ln" data-line="40">  <span class="hljs-keyword">const</span> reach = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(half + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>);</span><span class="ln" data-line="41">  reach[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="42">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> s <span class="hljs-keyword">of</span> stones) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = half; b &gt;= s; b--) reach[b] = reach[b] || reach[b - s];</span><span class="ln" data-line="43">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = half; ; b--) <span class="hljs-keyword">if</span> (reach[b]) <span class="hljs-keyword">return</span> total - <span class="hljs-number">2</span> * b; <span class="hljs-comment">// one side as close to half as possible</span></span><span class="ln" data-line="44">}</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="47">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`knapsack weights 1 3 4 5, values 1 4 5 7, capacity 7: <span class="hljs-subst">${knapsack([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">7</span>], <span class="hljs-number">7</span>)}</span>`</span>);</span><span class="ln" data-line="48">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`canPartition(1 5 11 5) = <span class="hljs-subst">${canPartition([<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">11</span>, <span class="hljs-number">5</span>])}</span>, (1 2 3 5) = <span class="hljs-subst">${canPartition([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>])}</span>`</span>);</span><span class="ln" data-line="49">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`targetSumWays(1 1 1 1 1, 3) = <span class="hljs-subst">${targetSumWays([<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], <span class="hljs-number">3</span>)}</span>`</span>);</span><span class="ln" data-line="50">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`change(5, [1 2 5]) = <span class="hljs-subst">${change(<span class="hljs-number">5</span>, [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>])}</span>, change(3, [2]) = <span class="hljs-subst">${change(<span class="hljs-number">3</span>, [<span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="51">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`lastStoneWeightII(2 7 4 1 8 1) = <span class="hljs-subst">${lastStoneWeightII([<span class="hljs-number">2</span>, <span class="hljs-number">7</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">1</span>])}</span>`</span>);</span><span class="ln" data-line="52">}</span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function knapsack(weight, value, capacity) {
+  const dp = new Array(capacity + 1).fill(0);
+  for (let i = 0; i &lt; weight.length; i++) {
+    for (let b = capacity; b &gt;= weight[i]; b--) dp[b] = Math.max(dp[b], dp[b - weight[i]] + value[i]); // downwards: once
+  }
+  return dp[capacity];
+}
+
+function canPartition(nums) {
+  const total = nums.reduce((s, x) =&gt; s + x, 0);
+  if (total % 2 === 1) return false;
+  const reach = new Array(total / 2 + 1).fill(false);
+  reach[0] = true;
+  for (const x of nums) for (let b = total / 2; b &gt;= x; b--) reach[b] = reach[b] || reach[b - x];
+  return reach[total / 2];
+}
+
+/** Ways to put + or - before each number to reach target. */
+function targetSumWays(nums, target) {
+  const total = nums.reduce((s, x) =&gt; s + x, 0);
+  if (Math.abs(target) &gt; total || (total + target) % 2 !== 0) return 0;
+  const goal = (total + target) / 2; // the numbers given a + sign must sum to this
+  const ways = new Array(goal + 1).fill(0);
+  ways[0] = 1;
+  for (const x of nums) for (let b = goal; b &gt;= x; b--) ways[b] += ways[b - x];
+  return ways[goal];
+}
+
+/** Combinations of coins (unlimited supply) that make amount. */
+function change(amount, coins) {
+  const ways = new Array(amount + 1).fill(0);
+  ways[0] = 1;
+  for (const c of coins) for (let b = c; b &lt;= amount; b++) ways[b] += ways[b - c]; // coins outside, budgets upwards
+  return ways[amount];
+}
+
+function lastStoneWeightII(stones) {
+  const total = stones.reduce((s, x) =&gt; s + x, 0);
+  const half = Math.floor(total / 2);
+  const reach = new Array(half + 1).fill(false);
+  reach[0] = true;
+  for (const s of stones) for (let b = half; b &gt;= s; b--) reach[b] = reach[b] || reach[b - s];
+  for (let b = half; ; b--) if (reach[b]) return total - 2 * b; // one side as close to half as possible
+}
+
+function main() {
+  console.log(`knapsack weights 1 3 4 5, values 1 4 5 7, capacity 7: ${knapsack([1, 3, 4, 5], [1, 4, 5, 7], 7)}`);
+  console.log(`canPartition(1 5 11 5) = ${canPartition([1, 5, 11, 5])}, (1 2 3 5) = ${canPartition([1, 2, 3, 5])}`);
+  console.log(`targetSumWays(1 1 1 1 1, 3) = ${targetSumWays([1, 1, 1, 1, 1], 3)}`);
+  console.log(`change(5, [1 2 5]) = ${change(5, [1, 2, 5])}, change(3, [2]) = ${change(3, [2])}`);
+  console.log(`lastStoneWeightII(2 7 4 1 8 1) = ${lastStoneWeightII([2, 7, 4, 1, 8, 1])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-knapsack-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">knapsack</span>(<span class="hljs-params"><span class="hljs-attr">weight</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">value</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">capacity</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dp</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(capacity + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="3">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; weight.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="4">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = capacity; b &gt;= weight[i]; b--) dp[b] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(dp[b], dp[b - weight[i]] + value[i]); <span class="hljs-comment">// downwards: once</span></span><span class="ln" data-line="5">  }</span><span class="ln" data-line="6">  <span class="hljs-keyword">return</span> dp[capacity];</span><span class="ln" data-line="7">}</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">function</span> <span class="hljs-title function_">canPartition</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="10">  <span class="hljs-keyword">const</span> total = nums.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="11">  <span class="hljs-keyword">if</span> (total % <span class="hljs-number">2</span> === <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="12">  <span class="hljs-keyword">const</span> <span class="hljs-attr">reach</span>: <span class="hljs-built_in">boolean</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(total / <span class="hljs-number">2</span> + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>);</span><span class="ln" data-line="13">  reach[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="14">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = total / <span class="hljs-number">2</span>; b &gt;= x; b--) reach[b] = reach[b] || reach[b - x];</span><span class="ln" data-line="15">  <span class="hljs-keyword">return</span> reach[total / <span class="hljs-number">2</span>];</span><span class="ln" data-line="16">}</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-comment">/** Ways to put + or - before each number to reach target. */</span></span><span class="ln" data-line="19"><span class="hljs-keyword">function</span> <span class="hljs-title function_">targetSumWays</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">target</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="20">  <span class="hljs-keyword">const</span> total = nums.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="21">  <span class="hljs-keyword">if</span> (<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">abs</span>(target) &gt; total || (total + target) % <span class="hljs-number">2</span> !== <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="22">  <span class="hljs-keyword">const</span> goal = (total + target) / <span class="hljs-number">2</span>; <span class="hljs-comment">// the numbers given a + sign must sum to this</span></span><span class="ln" data-line="23">  <span class="hljs-keyword">const</span> <span class="hljs-attr">ways</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(goal + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="24">  ways[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="25">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = goal; b &gt;= x; b--) ways[b] += ways[b - x];</span><span class="ln" data-line="26">  <span class="hljs-keyword">return</span> ways[goal];</span><span class="ln" data-line="27">}</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29"><span class="hljs-comment">/** Combinations of coins (unlimited supply) that make amount. */</span></span><span class="ln" data-line="30"><span class="hljs-keyword">function</span> <span class="hljs-title function_">change</span>(<span class="hljs-params"><span class="hljs-attr">amount</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">coins</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="31">  <span class="hljs-keyword">const</span> <span class="hljs-attr">ways</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(amount + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="32">  ways[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="33">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> c <span class="hljs-keyword">of</span> coins) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = c; b &lt;= amount; b++) ways[b] += ways[b - c]; <span class="hljs-comment">// coins outside, budgets upwards</span></span><span class="ln" data-line="34">  <span class="hljs-keyword">return</span> ways[amount];</span><span class="ln" data-line="35">}</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">function</span> <span class="hljs-title function_">lastStoneWeightII</span>(<span class="hljs-params"><span class="hljs-attr">stones</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="38">  <span class="hljs-keyword">const</span> total = stones.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="39">  <span class="hljs-keyword">const</span> half = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(total / <span class="hljs-number">2</span>);</span><span class="ln" data-line="40">  <span class="hljs-keyword">const</span> <span class="hljs-attr">reach</span>: <span class="hljs-built_in">boolean</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(half + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>);</span><span class="ln" data-line="41">  reach[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="42">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> s <span class="hljs-keyword">of</span> stones) <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = half; b &gt;= s; b--) reach[b] = reach[b] || reach[b - s];</span><span class="ln" data-line="43">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> b = half; ; b--) <span class="hljs-keyword">if</span> (reach[b]) <span class="hljs-keyword">return</span> total - <span class="hljs-number">2</span> * b; <span class="hljs-comment">// one side as close to half as possible</span></span><span class="ln" data-line="44">}</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="47">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`knapsack weights 1 3 4 5, values 1 4 5 7, capacity 7: <span class="hljs-subst">${knapsack([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">7</span>], <span class="hljs-number">7</span>)}</span>`</span>);</span><span class="ln" data-line="48">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`canPartition(1 5 11 5) = <span class="hljs-subst">${canPartition([<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">11</span>, <span class="hljs-number">5</span>])}</span>, (1 2 3 5) = <span class="hljs-subst">${canPartition([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>])}</span>`</span>);</span><span class="ln" data-line="49">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`targetSumWays(1 1 1 1 1, 3) = <span class="hljs-subst">${targetSumWays([<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], <span class="hljs-number">3</span>)}</span>`</span>);</span><span class="ln" data-line="50">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`change(5, [1 2 5]) = <span class="hljs-subst">${change(<span class="hljs-number">5</span>, [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>])}</span>, change(3, [2]) = <span class="hljs-subst">${change(<span class="hljs-number">3</span>, [<span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="51">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`lastStoneWeightII(2 7 4 1 8 1) = <span class="hljs-subst">${lastStoneWeightII([<span class="hljs-number">2</span>, <span class="hljs-number">7</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">1</span>])}</span>`</span>);</span><span class="ln" data-line="52">}</span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function knapsack(weight: readonly number[], value: readonly number[], capacity: number): number {
+  const dp: number[] = new Array(capacity + 1).fill(0);
+  for (let i = 0; i &lt; weight.length; i++) {
+    for (let b = capacity; b &gt;= weight[i]; b--) dp[b] = Math.max(dp[b], dp[b - weight[i]] + value[i]); // downwards: once
+  }
+  return dp[capacity];
+}
+
+function canPartition(nums: readonly number[]): boolean {
+  const total = nums.reduce((s, x) =&gt; s + x, 0);
+  if (total % 2 === 1) return false;
+  const reach: boolean[] = new Array(total / 2 + 1).fill(false);
+  reach[0] = true;
+  for (const x of nums) for (let b = total / 2; b &gt;= x; b--) reach[b] = reach[b] || reach[b - x];
+  return reach[total / 2];
+}
+
+/** Ways to put + or - before each number to reach target. */
+function targetSumWays(nums: readonly number[], target: number): number {
+  const total = nums.reduce((s, x) =&gt; s + x, 0);
+  if (Math.abs(target) &gt; total || (total + target) % 2 !== 0) return 0;
+  const goal = (total + target) / 2; // the numbers given a + sign must sum to this
+  const ways: number[] = new Array(goal + 1).fill(0);
+  ways[0] = 1;
+  for (const x of nums) for (let b = goal; b &gt;= x; b--) ways[b] += ways[b - x];
+  return ways[goal];
+}
+
+/** Combinations of coins (unlimited supply) that make amount. */
+function change(amount: number, coins: readonly number[]): number {
+  const ways: number[] = new Array(amount + 1).fill(0);
+  ways[0] = 1;
+  for (const c of coins) for (let b = c; b &lt;= amount; b++) ways[b] += ways[b - c]; // coins outside, budgets upwards
+  return ways[amount];
+}
+
+function lastStoneWeightII(stones: readonly number[]): number {
+  const total = stones.reduce((s, x) =&gt; s + x, 0);
+  const half = Math.floor(total / 2);
+  const reach: boolean[] = new Array(half + 1).fill(false);
+  reach[0] = true;
+  for (const s of stones) for (let b = half; b &gt;= s; b--) reach[b] = reach[b] || reach[b - s];
+  for (let b = half; ; b--) if (reach[b]) return total - 2 * b; // one side as close to half as possible
+}
+
+function main(): void {
+  console.log(`knapsack weights 1 3 4 5, values 1 4 5 7, capacity 7: ${knapsack([1, 3, 4, 5], [1, 4, 5, 7], 7)}`);
+  console.log(`canPartition(1 5 11 5) = ${canPartition([1, 5, 11, 5])}, (1 2 3 5) = ${canPartition([1, 2, 3, 5])}`);
+  console.log(`targetSumWays(1 1 1 1 1, 3) = ${targetSumWays([1, 1, 1, 1, 1], 3)}`);
+  console.log(`change(5, [1 2 5]) = ${change(5, [1, 2, 5])}, change(3, [2]) = ${change(3, [2])}`);
+  console.log(`lastStoneWeightII(2 7 4 1 8 1) = ${lastStoneWeightII([2, 7, 4, 1, 8, 1])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-knapsack-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">knapsack</span>(<span class="hljs-params">weight: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], value: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], capacity: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="5">    dp = [<span class="hljs-number">0</span>] * (capacity + <span class="hljs-number">1</span>)</span><span class="ln" data-line="6">    <span class="hljs-keyword">for</span> w, v <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(weight, value):</span><span class="ln" data-line="7">        <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(capacity, w - <span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):  <span class="hljs-comment"># downwards: each item once</span></span><span class="ln" data-line="8">            dp[b] = <span class="hljs-built_in">max</span>(dp[b], dp[b - w] + v)</span><span class="ln" data-line="9">    <span class="hljs-keyword">return</span> dp[capacity]</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"><span class="hljs-keyword">def</span> <span class="hljs-title function_">can_partition</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="13">    total = <span class="hljs-built_in">sum</span>(nums)</span><span class="ln" data-line="14">    <span class="hljs-keyword">if</span> total % <span class="hljs-number">2</span>:</span><span class="ln" data-line="15">        <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span></span><span class="ln" data-line="16">    reach = [<span class="hljs-literal">True</span>] + [<span class="hljs-literal">False</span>] * (total // <span class="hljs-number">2</span>)</span><span class="ln" data-line="17">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> nums:</span><span class="ln" data-line="18">        <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(total // <span class="hljs-number">2</span>, x - <span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):</span><span class="ln" data-line="19">            reach[b] = reach[b] <span class="hljs-keyword">or</span> reach[b - x]</span><span class="ln" data-line="20">    <span class="hljs-keyword">return</span> reach[total // <span class="hljs-number">2</span>]</span><span class="ln" data-line="21"> </span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-keyword">def</span> <span class="hljs-title function_">target_sum_ways</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], target: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="24">    <span class="hljs-string">&quot;&quot;&quot;Ways to put + or - before each number to reach target.&quot;&quot;&quot;</span></span><span class="ln" data-line="25">    total = <span class="hljs-built_in">sum</span>(nums)</span><span class="ln" data-line="26">    <span class="hljs-keyword">if</span> <span class="hljs-built_in">abs</span>(target) &gt; total <span class="hljs-keyword">or</span> (total + target) % <span class="hljs-number">2</span>:</span><span class="ln" data-line="27">        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span></span><span class="ln" data-line="28">    goal = (total + target) // <span class="hljs-number">2</span>  <span class="hljs-comment"># the numbers given a + sign must sum to this</span></span><span class="ln" data-line="29">    ways = [<span class="hljs-number">1</span>] + [<span class="hljs-number">0</span>] * goal</span><span class="ln" data-line="30">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> nums:</span><span class="ln" data-line="31">        <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(goal, x - <span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):</span><span class="ln" data-line="32">            ways[b] += ways[b - x]</span><span class="ln" data-line="33">    <span class="hljs-keyword">return</span> ways[goal]</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"><span class="hljs-keyword">def</span> <span class="hljs-title function_">change</span>(<span class="hljs-params">amount: <span class="hljs-built_in">int</span>, coins: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="37">    <span class="hljs-string">&quot;&quot;&quot;Combinations of coins (unlimited supply) that make amount.&quot;&quot;&quot;</span></span><span class="ln" data-line="38">    ways = [<span class="hljs-number">1</span>] + [<span class="hljs-number">0</span>] * amount</span><span class="ln" data-line="39">    <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> coins:  <span class="hljs-comment"># coins outside: combinations, not orderings</span></span><span class="ln" data-line="40">        <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(c, amount + <span class="hljs-number">1</span>):  <span class="hljs-comment"># upwards: reuse allowed</span></span><span class="ln" data-line="41">            ways[b] += ways[b - c]</span><span class="ln" data-line="42">    <span class="hljs-keyword">return</span> ways[amount]</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"><span class="hljs-keyword">def</span> <span class="hljs-title function_">last_stone_weight_ii</span>(<span class="hljs-params">stones: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="46">    total = <span class="hljs-built_in">sum</span>(stones)</span><span class="ln" data-line="47">    half = total // <span class="hljs-number">2</span></span><span class="ln" data-line="48">    reach = [<span class="hljs-literal">True</span>] + [<span class="hljs-literal">False</span>] * half</span><span class="ln" data-line="49">    <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> stones:</span><span class="ln" data-line="50">        <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(half, s - <span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):</span><span class="ln" data-line="51">            reach[b] = reach[b] <span class="hljs-keyword">or</span> reach[b - s]</span><span class="ln" data-line="52">    best = <span class="hljs-built_in">max</span>(b <span class="hljs-keyword">for</span> b <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(half + <span class="hljs-number">1</span>) <span class="hljs-keyword">if</span> reach[b])  <span class="hljs-comment"># one side as close to half as possible</span></span><span class="ln" data-line="53">    <span class="hljs-keyword">return</span> total - <span class="hljs-number">2</span> * best</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55"> </span><span class="ln" data-line="56"><span class="hljs-keyword">def</span> <span class="hljs-title function_">b2s</span>(<span class="hljs-params">x: <span class="hljs-built_in">bool</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="57">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;true&quot;</span> <span class="hljs-keyword">if</span> x <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;false&quot;</span></span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="61">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;knapsack weights 1 3 4 5, values 1 4 5 7, capacity 7: <span class="hljs-subst">{knapsack([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">7</span>], <span class="hljs-number">7</span>)}</span>&quot;</span>)</span><span class="ln" data-line="62">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;canPartition(1 5 11 5) = <span class="hljs-subst">{b2s(can_partition([<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">11</span>, <span class="hljs-number">5</span>]))}</span>, (1 2 3 5) = <span class="hljs-subst">{b2s(can_partition([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>]))}</span>&quot;</span>)</span><span class="ln" data-line="63">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;targetSumWays(1 1 1 1 1, 3) = <span class="hljs-subst">{target_sum_ways([<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], <span class="hljs-number">3</span>)}</span>&quot;</span>)</span><span class="ln" data-line="64">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;change(5, [1 2 5]) = <span class="hljs-subst">{change(<span class="hljs-number">5</span>, [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>])}</span>, change(3, [2]) = <span class="hljs-subst">{change(<span class="hljs-number">3</span>, [<span class="hljs-number">2</span>])}</span>&quot;</span>)</span><span class="ln" data-line="65">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;lastStoneWeightII(2 7 4 1 8 1) = <span class="hljs-subst">{last_stone_weight_ii([<span class="hljs-number">2</span>, <span class="hljs-number">7</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">1</span>])}</span>&quot;</span>)</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="69">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List
+
+
+def knapsack(weight: List[int], value: List[int], capacity: int) -&gt; int:
+    dp = [0] * (capacity + 1)
+    for w, v in zip(weight, value):
+        for b in range(capacity, w - 1, -1):  # downwards: each item once
+            dp[b] = max(dp[b], dp[b - w] + v)
+    return dp[capacity]
+
+
+def can_partition(nums: List[int]) -&gt; bool:
+    total = sum(nums)
+    if total % 2:
+        return False
+    reach = [True] + [False] * (total // 2)
+    for x in nums:
+        for b in range(total // 2, x - 1, -1):
+            reach[b] = reach[b] or reach[b - x]
+    return reach[total // 2]
+
+
+def target_sum_ways(nums: List[int], target: int) -&gt; int:
+    &quot;&quot;&quot;Ways to put + or - before each number to reach target.&quot;&quot;&quot;
+    total = sum(nums)
+    if abs(target) &gt; total or (total + target) % 2:
+        return 0
+    goal = (total + target) // 2  # the numbers given a + sign must sum to this
+    ways = [1] + [0] * goal
+    for x in nums:
+        for b in range(goal, x - 1, -1):
+            ways[b] += ways[b - x]
+    return ways[goal]
+
+
+def change(amount: int, coins: List[int]) -&gt; int:
+    &quot;&quot;&quot;Combinations of coins (unlimited supply) that make amount.&quot;&quot;&quot;
+    ways = [1] + [0] * amount
+    for c in coins:  # coins outside: combinations, not orderings
+        for b in range(c, amount + 1):  # upwards: reuse allowed
+            ways[b] += ways[b - c]
+    return ways[amount]
+
+
+def last_stone_weight_ii(stones: List[int]) -&gt; int:
+    total = sum(stones)
+    half = total // 2
+    reach = [True] + [False] * half
+    for s in stones:
+        for b in range(half, s - 1, -1):
+            reach[b] = reach[b] or reach[b - s]
+    best = max(b for b in range(half + 1) if reach[b])  # one side as close to half as possible
+    return total - 2 * best
+
+
+def b2s(x: bool) -&gt; str:
+    return &quot;true&quot; if x else &quot;false&quot;
+
+
+def main() -&gt; None:
+    print(f&quot;knapsack weights 1 3 4 5, values 1 4 5 7, capacity 7: {knapsack([1, 3, 4, 5], [1, 4, 5, 7], 7)}&quot;)
+    print(f&quot;canPartition(1 5 11 5) = {b2s(can_partition([1, 5, 11, 5]))}, (1 2 3 5) = {b2s(can_partition([1, 2, 3, 5]))}&quot;)
+    print(f&quot;targetSumWays(1 1 1 1 1, 3) = {target_sum_ways([1, 1, 1, 1, 1], 3)}&quot;)
+    print(f&quot;change(5, [1 2 5]) = {change(5, [1, 2, 5])}, change(3, [2]) = {change(3, [2])}&quot;)
+    print(f&quot;lastStoneWeightII(2 7 4 1 8 1) = {last_stone_weight_ii([2, 7, 4, 1, 8, 1])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>knapsack weights 1 3 4 5, values 1 4 5 7, capacity 7: 9
+canPartition(1 5 11 5) = true, (1 2 3 5) = false
+targetSumWays(1 1 1 1 1, 3) = 5
+change(5, [1 2 5]) = 4, change(3, [2]) = 0
+lastStoneWeightII(2 7 4 1 8 1) = 1</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Looping budgets upwards for 0/1 problems, which reuses items.</li><li>Swapping the loops in coin change II and counting permutations instead of combinations.</li><li>Forgetting the parity check: if (total + target) is odd, or the total is odd for an equal partition, the answer is immediately 0 or false.</li><li>Not seeding <code>dp[0]</code> (one way to make 0; true for reaching 0).</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/partition-equal-subset-sum/" rel="noopener" target="_blank">Partition Equal Subset Sum<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>416</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/target-sum/" rel="noopener" target="_blank">Target Sum<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>494</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/coin-change-ii/" rel="noopener" target="_blank">Coin Change II<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>518</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/last-stone-weight-ii/" rel="noopener" target="_blank">Last Stone Weight II<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>1049</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/ones-and-zeroes/" rel="noopener" target="_blank">Ones and Zeroes<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>474</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/profitable-schemes/" rel="noopener" target="_blank">Profitable Schemes<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>879</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../algorithms/dynamic-programming/index.html">Dynamic programming</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../dp-2d/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">2D dynamic programming</span></a><a class="pn pn-next" href="../interval-dp/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Interval DP</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

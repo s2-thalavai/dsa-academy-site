@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Read-write lock and KV store · DSA Academy</title>
+<meta name="description" content="Many readers, one writer, no starvation.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../index.html" aria-current="page">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Low-level design</a></li><li><span aria-current="page">Read-write lock and KV store</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Read-write lock and KV store</h1>
+  <p class="lede">Most stores are read far more than they&#39;re written. A read-write lock lets any number of readers in together but gives a writer the store to itself. Building one by hand shows where starvation comes from and how writer preference prevents it.</p>
+  <p class="tags"><span class="pill">Low-level design</span><span class="pill">Concurrency</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A museum gallery. Any number of visitors can look at the paintings at once, but when a curator needs to rehang a wall, new visitors are held at the door, the room empties, the curator works alone, and then everyone is let back in.</p></aside>
+<h2 id="requirements">Requirements</h2>
+<p><strong>Functional</strong></p>
+<ul>
+<li><code>get</code>, <code>getAll(keys)</code> for consistent multi-key reads, <code>put</code>, <code>putAll</code> for atomic multi-key writes, and <code>update(key, fn)</code>.</li>
+<li>Many concurrent readers; a writer has exclusive access.</li>
+<li><code>tryLockRead()</code> fails immediately rather than waiting.</li>
+</ul>
+<p><strong>Non-functional</strong></p>
+<ul>
+<li>Readers never see half of a multi-key write.</li>
+<li>Writers are not starved by a constant stream of readers.</li>
+<li>Reads proceed in parallel.</li>
+</ul>
+<h2 id="entities-and-relationships">Entities and relationships</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 544 197" role="img" aria-label="Class diagram: KVStore holds a HashMap and a WriterPreferringRWLock; the lock has reader count, writing flag and waiting-writer count guarded by a ReentrantLock and Condition"><defs><marker id="ah1-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker></defs><path class="dg-line" d="M252.0 83.5 L314.0 89.0" marker-end="url(#ah1-dg-head)"/><rect class="dg-box" x="20.0" y="20" width="228" height="106" rx="6"/><rect class="dg-hd" x="20.0" y="20" width="228" height="28" rx="6"/><text class="dg-ch" x="134.0" y="34">KVStore&lt;K,V&gt;</text><text class="dg-c" x="30.0" y="66">- map: HashMap</text><text class="dg-c" x="30.0" y="83">- rw: WriterPreferringRWLock</text><text class="dg-c" x="30.0" y="100">+ get / getAll</text><text class="dg-c" x="30.0" y="117">+ put / putAll / update</text><rect class="dg-box" x="318.0" y="20" width="206" height="157" rx="6"/><rect class="dg-hd" x="318.0" y="20" width="206" height="28" rx="6"/><text class="dg-ch" x="421.0" y="34">WriterPreferringRWLock</text><text class="dg-c" x="328.0" y="66">- readers: int</text><text class="dg-c" x="328.0" y="83">- writing: boolean</text><text class="dg-c" x="328.0" y="100">- writersWaiting: int</text><text class="dg-c" x="328.0" y="117">- lock, ok: Condition</text><text class="dg-c" x="328.0" y="134">+ lockRead / unlockRead</text><text class="dg-c" x="328.0" y="151">+ lockWrite / unlockWrite</text><text class="dg-c" x="328.0" y="168">+ tryLockRead()</text><rect class="dg-bg" x="257.0" y="76.23867595818815" width="52" height="18" rx="4"/><text class="dg-sq" x="283.0" y="90.23867595818815">guards</text></svg><figcaption>The store does no locking of its own beyond choosing read or write mode for each method.</figcaption></figure><p><strong>The lock&#39;s rules</strong> (all under one internal mutex):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Waits while</th>
+<th>Then</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>lockRead</code></td>
+<td>a writer is writing <strong>or waiting</strong></td>
+<td><code>readers++</code></td>
+</tr>
+<tr>
+<td><code>unlockRead</code></td>
+<td>—</td>
+<td><code>readers--</code>; wake all if it reached 0</td>
+</tr>
+<tr>
+<td><code>lockWrite</code></td>
+<td>a writer is writing or <code>readers &gt; 0</code></td>
+<td><code>writing = true</code> (counted as waiting meanwhile)</td>
+</tr>
+<tr>
+<td><code>unlockWrite</code></td>
+<td>—</td>
+<td><code>writing = false</code>; wake all</td>
+</tr>
+</tbody></table></div>
+<p>Making readers also wait for <strong>waiting</strong> writers is the writer preference. Without
+it, overlapping readers can keep <code>readers &gt; 0</code> forever and a writer never runs.</p>
+<h2 id="design-patterns-used">Design patterns used</h2>
+<ul>
+<li><strong>Read-write lock</strong>: separate shared and exclusive modes for read-heavy data.</li>
+<li><strong>Monitor</strong>: the lock&#39;s own state is protected by a mutex and a condition.</li>
+<li><strong>Copy-on-write (alternative)</strong>: for tiny, rarely written maps, readers can use an immutable snapshot with no lock at all.</li>
+</ul>
+<h2 id="how-a-request-flows">How a request flows</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 720 328" role="img" aria-label="Sequence diagram: two readers hold the lock; a writer arrives and waits; a third reader arrives and is held back; readers leave; writer runs; then the third reader enters"><defs><marker id="ah2-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker></defs><rect class="dg-hd" x="50.85" y="20" width="108.3" height="30" rx="6"/><text class="dg-ch" x="105.0" y="35">Reader 1, 2</text><path class="dg-dash" d="M105.0 50 L105.0 318"/><rect class="dg-hd" x="235.45" y="20" width="79.1" height="30" rx="6"/><text class="dg-ch" x="275.0" y="35">RW lock</text><path class="dg-dash" d="M275.0 50 L275.0 318"/><rect class="dg-hd" x="409.1" y="20" width="71.8" height="30" rx="6"/><text class="dg-ch" x="445.0" y="35">Writer</text><path class="dg-dash" d="M445.0 50 L445.0 318"/><rect class="dg-hd" x="571.8" y="20" width="86.4" height="30" rx="6"/><text class="dg-ch" x="615.0" y="35">Reader 3</text><path class="dg-dash" d="M615.0 50 L615.0 318"/><path class="dg-line" d="M105.0 88 L271.0 88" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="190.0" y="82">lockRead() × 2</text><path class="dg-line" d="M445.0 122 L279.0 122" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="360.0" y="116">lockWrite(): waits (readers=2)</text><path class="dg-line" d="M615.0 156 L279.0 156" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="445.0" y="150">lockRead(): waits (writer waiting)</text><path class="dg-line" d="M105.0 190 L271.0 190" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="190.0" y="184">unlockRead() × 2</text><path class="dg-dash" d="M275.0 224 L441.0 224" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="360.0" y="218">granted</text><path class="dg-line" d="M445.0 258 L279.0 258" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="360.0" y="252">unlockWrite()</text><path class="dg-dash" d="M275.0 292 L611.0 292" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="445.0" y="286">granted</text></svg><figcaption>Once a writer is waiting, new readers queue behind it, so the writer gets in as soon as the current readers finish.</figcaption></figure><p>In production Java, use <code>ReentrantReadWriteLock</code> (optionally fair) or
+<code>StampedLock</code>, whose optimistic reads take no lock at all and only retry if a
+write happened meanwhile. Building it by hand is a common interview question
+because it tests conditions, invariants and starvation.</p>
+<h2 id="concurrency">Concurrency</h2>
+<ul>
+<li><code>getAll</code> holds one read lock across all keys, so it sees either all or none of a <code>putAll</code>.</li>
+<li><code>update(key, fn)</code> is a read-modify-write, so it takes the <strong>write</strong> lock; doing get then put under separate locks loses updates.</li>
+<li><code>signalAll</code> (not <code>signal</code>) on release, because readers and writers wait on the same condition for different things.</li>
+<li>Writer preference can starve readers if writes never stop. A fair lock alternates batches of readers and writers.</li>
+<li>A read lock is not upgradable to a write lock here: two readers upgrading at once would deadlock.</li>
+</ul>
+<h2 id="cost-of-each-operation">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>get / put</td><td class="nowrap">O(1) + lock</td><td>A hash map operation under the read or write lock.</td></tr><tr><td>getAll / putAll of k keys</td><td class="nowrap">O(k)</td><td>All under one lock acquisition.</td></tr><tr><td>Readers in parallel</td><td class="nowrap">unbounded</td><td>Readers only touch the counter briefly.</td></tr></tbody></table></div><h2 id="code">Code</h2>
+<p>Writers update keys <code>a</code> and <code>b</code> together while readers check that they&#39;re always equal; the counter shows no lost updates; and a writer gets in while four readers keep re-acquiring the lock.</p><figure class="codeblock" id="code-rw-lock-kv" aria-label="A writer-preferring read-write lock and a key-value store built on it">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-rw-lock-kv-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-rw-lock-kv-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-rw-lock-kv-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.HashMap;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.Map;</span><span class="ln" data-line="5"><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicBoolean;</span><span class="ln" data-line="6"><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><span class="ln" data-line="7"><span class="hljs-keyword">import</span> java.util.concurrent.locks.Condition;</span><span class="ln" data-line="8"><span class="hljs-keyword">import</span> java.util.concurrent.locks.ReentrantLock;</span><span class="ln" data-line="9"><span class="hljs-keyword">import</span> java.util.function.UnaryOperator;</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="12"> </span><span class="ln" data-line="13">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">WriterPreferringRWLock</span> {</span><span class="ln" data-line="14">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">lock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLock</span>();</span><span class="ln" data-line="15">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Condition</span> <span class="hljs-variable">ok</span> <span class="hljs-operator">=</span> lock.newCondition();</span><span class="ln" data-line="16">        <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> readers, writersWaiting;</span><span class="ln" data-line="17">        <span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> writing;</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19">        <span class="hljs-type">void</span> <span class="hljs-title function_">lockRead</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="20">            lock.lock();</span><span class="ln" data-line="21">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="22">                <span class="hljs-keyword">while</span> (writing || writersWaiting &gt; <span class="hljs-number">0</span>) ok.await(); <span class="hljs-comment">// waiting writers go first</span></span><span class="ln" data-line="23">                readers++;</span><span class="ln" data-line="24">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="25">                lock.unlock();</span><span class="ln" data-line="26">            }</span><span class="ln" data-line="27">        }</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29">        <span class="hljs-type">boolean</span> <span class="hljs-title function_">tryLockRead</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="30">            lock.lock();</span><span class="ln" data-line="31">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="32">                <span class="hljs-keyword">if</span> (writing || writersWaiting &gt; <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="33">                readers++;</span><span class="ln" data-line="34">                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="35">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="36">                lock.unlock();</span><span class="ln" data-line="37">            }</span><span class="ln" data-line="38">        }</span><span class="ln" data-line="39"> </span><span class="ln" data-line="40">        <span class="hljs-type">void</span> <span class="hljs-title function_">unlockRead</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="41">            lock.lock();</span><span class="ln" data-line="42">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="43">                <span class="hljs-keyword">if</span> (--readers == <span class="hljs-number">0</span>) ok.signalAll();</span><span class="ln" data-line="44">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="45">                lock.unlock();</span><span class="ln" data-line="46">            }</span><span class="ln" data-line="47">        }</span><span class="ln" data-line="48"> </span><span class="ln" data-line="49">        <span class="hljs-type">void</span> <span class="hljs-title function_">lockWrite</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="50">            lock.lock();</span><span class="ln" data-line="51">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="52">                writersWaiting++;</span><span class="ln" data-line="53">                <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="54">                    <span class="hljs-keyword">while</span> (writing || readers &gt; <span class="hljs-number">0</span>) ok.await();</span><span class="ln" data-line="55">                } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="56">                    writersWaiting--;</span><span class="ln" data-line="57">                }</span><span class="ln" data-line="58">                writing = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="59">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="60">                lock.unlock();</span><span class="ln" data-line="61">            }</span><span class="ln" data-line="62">        }</span><span class="ln" data-line="63"> </span><span class="ln" data-line="64">        <span class="hljs-type">void</span> <span class="hljs-title function_">unlockWrite</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="65">            lock.lock();</span><span class="ln" data-line="66">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="67">                writing = <span class="hljs-literal">false</span>;</span><span class="ln" data-line="68">                ok.signalAll(); <span class="hljs-comment">// readers and writers wait for different things</span></span><span class="ln" data-line="69">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="70">                lock.unlock();</span><span class="ln" data-line="71">            }</span><span class="ln" data-line="72">        }</span><span class="ln" data-line="73">    }</span><span class="ln" data-line="74"> </span><span class="ln" data-line="75">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">KVStore</span>&lt;K, V&gt; {</span><span class="ln" data-line="76">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span>&lt;K, V&gt; <span class="hljs-variable">map</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();</span><span class="ln" data-line="77">        <span class="hljs-keyword">final</span> <span class="hljs-type">WriterPreferringRWLock</span> <span class="hljs-variable">rw</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">WriterPreferringRWLock</span>();</span><span class="ln" data-line="78"> </span><span class="ln" data-line="79">        <span class="hljs-type">V</span> <span class="hljs-title function_">get</span><span class="hljs-params">(K key)</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="80">            rw.lockRead();</span><span class="ln" data-line="81">            <span class="hljs-keyword">try</span> { <span class="hljs-keyword">return</span> map.get(key); } <span class="hljs-keyword">finally</span> { rw.unlockRead(); }</span><span class="ln" data-line="82">        }</span><span class="ln" data-line="83"> </span><span class="ln" data-line="84">        <span class="hljs-type">List</span>&lt;V&gt; <span class="hljs-title function_">getAll</span><span class="hljs-params">(List&lt;K&gt; keys)</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="85">            rw.lockRead(); <span class="hljs-comment">// one lock across every key: a consistent snapshot</span></span><span class="ln" data-line="86">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="87">                <span class="hljs-type">List</span>&lt;V&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="88">                <span class="hljs-keyword">for</span> (K k : keys) out.add(map.get(k));</span><span class="ln" data-line="89">                <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="90">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="91">                rw.unlockRead();</span><span class="ln" data-line="92">            }</span><span class="ln" data-line="93">        }</span><span class="ln" data-line="94"> </span><span class="ln" data-line="95">        <span class="hljs-type">void</span> <span class="hljs-title function_">put</span><span class="hljs-params">(K key, V value)</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="96">            rw.lockWrite();</span><span class="ln" data-line="97">            <span class="hljs-keyword">try</span> { map.put(key, value); } <span class="hljs-keyword">finally</span> { rw.unlockWrite(); }</span><span class="ln" data-line="98">        }</span><span class="ln" data-line="99"> </span><span class="ln" data-line="100">        <span class="hljs-type">void</span> <span class="hljs-title function_">putAll</span><span class="hljs-params">(Map&lt;K, V&gt; entries)</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="101">            rw.lockWrite();</span><span class="ln" data-line="102">            <span class="hljs-keyword">try</span> { map.putAll(entries); } <span class="hljs-keyword">finally</span> { rw.unlockWrite(); }</span><span class="ln" data-line="103">        }</span><span class="ln" data-line="104"> </span><span class="ln" data-line="105">        <span class="hljs-type">V</span> <span class="hljs-title function_">update</span><span class="hljs-params">(K key, UnaryOperator&lt;V&gt; fn)</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="106">            rw.lockWrite(); <span class="hljs-comment">// read-modify-write needs the write lock</span></span><span class="ln" data-line="107">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="108">                <span class="hljs-type">V</span> <span class="hljs-variable">next</span> <span class="hljs-operator">=</span> fn.apply(map.get(key));</span><span class="ln" data-line="109">                map.put(key, next);</span><span class="ln" data-line="110">                <span class="hljs-keyword">return</span> next;</span><span class="ln" data-line="111">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="112">                rw.unlockWrite();</span><span class="ln" data-line="113">            }</span><span class="ln" data-line="114">        }</span><span class="ln" data-line="115">    }</span><span class="ln" data-line="116"> </span><span class="ln" data-line="117">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception {</span><span class="ln" data-line="118">        <span class="hljs-type">KVStore</span>&lt;String, Integer&gt; <span class="hljs-variable">store</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">KVStore</span>&lt;&gt;();</span><span class="ln" data-line="119">        store.put(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-number">1</span>);</span><span class="ln" data-line="120">        System.out.println(<span class="hljs-string">&quot;put x=1, get x = &quot;</span> + store.get(<span class="hljs-string">&quot;x&quot;</span>) + <span class="hljs-string">&quot;, get y = &quot;</span> + store.get(<span class="hljs-string">&quot;y&quot;</span>));</span><span class="ln" data-line="121"> </span><span class="ln" data-line="122">        store.rw.lockWrite();</span><span class="ln" data-line="123">        <span class="hljs-type">boolean</span> <span class="hljs-variable">readWhileWriting</span> <span class="hljs-operator">=</span> store.rw.tryLockRead();</span><span class="ln" data-line="124">        store.rw.unlockWrite();</span><span class="ln" data-line="125">        <span class="hljs-type">boolean</span> <span class="hljs-variable">readAfter</span> <span class="hljs-operator">=</span> store.rw.tryLockRead();</span><span class="ln" data-line="126">        <span class="hljs-keyword">if</span> (readAfter) store.rw.unlockRead();</span><span class="ln" data-line="127">        System.out.println(<span class="hljs-string">&quot;tryLockRead while a writer holds the lock: &quot;</span> + readWhileWriting + <span class="hljs-string">&quot;, after it releases: &quot;</span> + readAfter);</span><span class="ln" data-line="128"> </span><span class="ln" data-line="129">        store.putAll(Map.of(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-number">0</span>, <span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-number">0</span>, <span class="hljs-string">&quot;counter&quot;</span>, <span class="hljs-number">0</span>));</span><span class="ln" data-line="130">        <span class="hljs-type">AtomicBoolean</span> <span class="hljs-variable">writersDone</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicBoolean</span>();</span><span class="ln" data-line="131">        <span class="hljs-type">AtomicInteger</span> <span class="hljs-variable">torn</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>();</span><span class="ln" data-line="132">        <span class="hljs-type">List</span>&lt;Thread&gt; <span class="hljs-variable">readers</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(), writers = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="133">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; r &lt; <span class="hljs-number">4</span>; r++) {</span><span class="ln" data-line="134">            readers.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; {</span><span class="ln" data-line="135">                <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="136">                    <span class="hljs-keyword">while</span> (!writersDone.get()) {</span><span class="ln" data-line="137">                        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">ab</span> <span class="hljs-operator">=</span> store.getAll(List.of(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>));</span><span class="ln" data-line="138">                        <span class="hljs-keyword">if</span> (!ab.get(<span class="hljs-number">0</span>).equals(ab.get(<span class="hljs-number">1</span>))) torn.incrementAndGet();</span><span class="ln" data-line="139">                    }</span><span class="ln" data-line="140">                } <span class="hljs-keyword">catch</span> (InterruptedException e) {</span><span class="ln" data-line="141">                    Thread.currentThread().interrupt();</span><span class="ln" data-line="142">                }</span><span class="ln" data-line="143">            }));</span><span class="ln" data-line="144">        }</span><span class="ln" data-line="145">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">w</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; w &lt; <span class="hljs-number">4</span>; w++) {</span><span class="ln" data-line="146">            <span class="hljs-type">int</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> w;</span><span class="ln" data-line="147">            writers.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; {</span><span class="ln" data-line="148">                <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="149">                    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">500</span>; i++) {</span><span class="ln" data-line="150">                        <span class="hljs-type">int</span> <span class="hljs-variable">v</span> <span class="hljs-operator">=</span> id * <span class="hljs-number">1000</span> + i;</span><span class="ln" data-line="151">                        store.putAll(Map.of(<span class="hljs-string">&quot;a&quot;</span>, v, <span class="hljs-string">&quot;b&quot;</span>, v)); <span class="hljs-comment">// both keys change together</span></span><span class="ln" data-line="152">                        store.update(<span class="hljs-string">&quot;counter&quot;</span>, c -&gt; c + <span class="hljs-number">1</span>);</span><span class="ln" data-line="153">                    }</span><span class="ln" data-line="154">                } <span class="hljs-keyword">catch</span> (InterruptedException e) {</span><span class="ln" data-line="155">                    Thread.currentThread().interrupt();</span><span class="ln" data-line="156">                }</span><span class="ln" data-line="157">            }));</span><span class="ln" data-line="158">        }</span><span class="ln" data-line="159">        <span class="hljs-keyword">for</span> (Thread t : readers) t.start();</span><span class="ln" data-line="160">        <span class="hljs-keyword">for</span> (Thread t : writers) t.start();</span><span class="ln" data-line="161">        <span class="hljs-keyword">for</span> (Thread t : writers) t.join();</span><span class="ln" data-line="162">        writersDone.set(<span class="hljs-literal">true</span>);</span><span class="ln" data-line="163">        <span class="hljs-keyword">for</span> (Thread t : readers) t.join();</span><span class="ln" data-line="164">        System.out.println(<span class="hljs-string">&quot;4 writers x 500 paired updates: readers never saw a torn update: &quot;</span> + (torn.get() == <span class="hljs-number">0</span>) + <span class="hljs-string">&quot;, counter = &quot;</span> + store.get(<span class="hljs-string">&quot;counter&quot;</span>));</span><span class="ln" data-line="165"> </span><span class="ln" data-line="166">        <span class="hljs-type">AtomicBoolean</span> <span class="hljs-variable">stopReaders</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicBoolean</span>();</span><span class="ln" data-line="167">        <span class="hljs-type">List</span>&lt;Thread&gt; <span class="hljs-variable">busy</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="168">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; r &lt; <span class="hljs-number">4</span>; r++) {</span><span class="ln" data-line="169">            <span class="hljs-type">Thread</span> <span class="hljs-variable">t</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; {</span><span class="ln" data-line="170">                <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="171">                    <span class="hljs-keyword">while</span> (!stopReaders.get()) {</span><span class="ln" data-line="172">                        store.rw.lockRead();</span><span class="ln" data-line="173">                        <span class="hljs-keyword">try</span> { Thread.sleep(<span class="hljs-number">1</span>); } <span class="hljs-keyword">finally</span> { store.rw.unlockRead(); }</span><span class="ln" data-line="174">                    }</span><span class="ln" data-line="175">                } <span class="hljs-keyword">catch</span> (InterruptedException e) {</span><span class="ln" data-line="176">                    Thread.currentThread().interrupt();</span><span class="ln" data-line="177">                }</span><span class="ln" data-line="178">            });</span><span class="ln" data-line="179">            t.start();</span><span class="ln" data-line="180">            busy.add(t);</span><span class="ln" data-line="181">        }</span><span class="ln" data-line="182">        Thread.sleep(<span class="hljs-number">30</span>);</span><span class="ln" data-line="183">        store.put(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-number">2</span>); <span class="hljs-comment">// would starve without writer preference</span></span><span class="ln" data-line="184">        <span class="hljs-type">boolean</span> <span class="hljs-variable">readersStillGoing</span> <span class="hljs-operator">=</span> !stopReaders.get();</span><span class="ln" data-line="185">        stopReaders.set(<span class="hljs-literal">true</span>);</span><span class="ln" data-line="186">        <span class="hljs-keyword">for</span> (Thread t : busy) t.join();</span><span class="ln" data-line="187">        System.out.println(<span class="hljs-string">&quot;a writer got in while 4 readers kept reading: &quot;</span> + readersStillGoing + <span class="hljs-string">&quot;, x = &quot;</span> + store.get(<span class="hljs-string">&quot;x&quot;</span>));</span><span class="ln" data-line="188">    }</span><span class="ln" data-line="189">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.UnaryOperator;
+
+public class Solution {
+
+    static final class WriterPreferringRWLock {
+        private final ReentrantLock lock = new ReentrantLock();
+        private final Condition ok = lock.newCondition();
+        private int readers, writersWaiting;
+        private boolean writing;
+
+        void lockRead() throws InterruptedException {
+            lock.lock();
+            try {
+                while (writing || writersWaiting &gt; 0) ok.await(); // waiting writers go first
+                readers++;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        boolean tryLockRead() {
+            lock.lock();
+            try {
+                if (writing || writersWaiting &gt; 0) return false;
+                readers++;
+                return true;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        void unlockRead() {
+            lock.lock();
+            try {
+                if (--readers == 0) ok.signalAll();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        void lockWrite() throws InterruptedException {
+            lock.lock();
+            try {
+                writersWaiting++;
+                try {
+                    while (writing || readers &gt; 0) ok.await();
+                } finally {
+                    writersWaiting--;
+                }
+                writing = true;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        void unlockWrite() {
+            lock.lock();
+            try {
+                writing = false;
+                ok.signalAll(); // readers and writers wait for different things
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+    static final class KVStore&lt;K, V&gt; {
+        private final Map&lt;K, V&gt; map = new HashMap&lt;&gt;();
+        final WriterPreferringRWLock rw = new WriterPreferringRWLock();
+
+        V get(K key) throws InterruptedException {
+            rw.lockRead();
+            try { return map.get(key); } finally { rw.unlockRead(); }
+        }
+
+        List&lt;V&gt; getAll(List&lt;K&gt; keys) throws InterruptedException {
+            rw.lockRead(); // one lock across every key: a consistent snapshot
+            try {
+                List&lt;V&gt; out = new ArrayList&lt;&gt;();
+                for (K k : keys) out.add(map.get(k));
+                return out;
+            } finally {
+                rw.unlockRead();
+            }
+        }
+
+        void put(K key, V value) throws InterruptedException {
+            rw.lockWrite();
+            try { map.put(key, value); } finally { rw.unlockWrite(); }
+        }
+
+        void putAll(Map&lt;K, V&gt; entries) throws InterruptedException {
+            rw.lockWrite();
+            try { map.putAll(entries); } finally { rw.unlockWrite(); }
+        }
+
+        V update(K key, UnaryOperator&lt;V&gt; fn) throws InterruptedException {
+            rw.lockWrite(); // read-modify-write needs the write lock
+            try {
+                V next = fn.apply(map.get(key));
+                map.put(key, next);
+                return next;
+            } finally {
+                rw.unlockWrite();
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        KVStore&lt;String, Integer&gt; store = new KVStore&lt;&gt;();
+        store.put(&quot;x&quot;, 1);
+        System.out.println(&quot;put x=1, get x = &quot; + store.get(&quot;x&quot;) + &quot;, get y = &quot; + store.get(&quot;y&quot;));
+
+        store.rw.lockWrite();
+        boolean readWhileWriting = store.rw.tryLockRead();
+        store.rw.unlockWrite();
+        boolean readAfter = store.rw.tryLockRead();
+        if (readAfter) store.rw.unlockRead();
+        System.out.println(&quot;tryLockRead while a writer holds the lock: &quot; + readWhileWriting + &quot;, after it releases: &quot; + readAfter);
+
+        store.putAll(Map.of(&quot;a&quot;, 0, &quot;b&quot;, 0, &quot;counter&quot;, 0));
+        AtomicBoolean writersDone = new AtomicBoolean();
+        AtomicInteger torn = new AtomicInteger();
+        List&lt;Thread&gt; readers = new ArrayList&lt;&gt;(), writers = new ArrayList&lt;&gt;();
+        for (int r = 0; r &lt; 4; r++) {
+            readers.add(new Thread(() -&gt; {
+                try {
+                    while (!writersDone.get()) {
+                        List&lt;Integer&gt; ab = store.getAll(List.of(&quot;a&quot;, &quot;b&quot;));
+                        if (!ab.get(0).equals(ab.get(1))) torn.incrementAndGet();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }));
+        }
+        for (int w = 0; w &lt; 4; w++) {
+            int id = w;
+            writers.add(new Thread(() -&gt; {
+                try {
+                    for (int i = 0; i &lt; 500; i++) {
+                        int v = id * 1000 + i;
+                        store.putAll(Map.of(&quot;a&quot;, v, &quot;b&quot;, v)); // both keys change together
+                        store.update(&quot;counter&quot;, c -&gt; c + 1);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }));
+        }
+        for (Thread t : readers) t.start();
+        for (Thread t : writers) t.start();
+        for (Thread t : writers) t.join();
+        writersDone.set(true);
+        for (Thread t : readers) t.join();
+        System.out.println(&quot;4 writers x 500 paired updates: readers never saw a torn update: &quot; + (torn.get() == 0) + &quot;, counter = &quot; + store.get(&quot;counter&quot;));
+
+        AtomicBoolean stopReaders = new AtomicBoolean();
+        List&lt;Thread&gt; busy = new ArrayList&lt;&gt;();
+        for (int r = 0; r &lt; 4; r++) {
+            Thread t = new Thread(() -&gt; {
+                try {
+                    while (!stopReaders.get()) {
+                        store.rw.lockRead();
+                        try { Thread.sleep(1); } finally { store.rw.unlockRead(); }
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            t.start();
+            busy.add(t);
+        }
+        Thread.sleep(30);
+        store.put(&quot;x&quot;, 2); // would starve without writer preference
+        boolean readersStillGoing = !stopReaders.get();
+        stopReaders.set(true);
+        for (Thread t : busy) t.join();
+        System.out.println(&quot;a writer got in while 4 readers kept reading: &quot; + readersStillGoing + &quot;, x = &quot; + store.get(&quot;x&quot;));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-rw-lock-kv-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> threading</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> time</span><span class="ln" data-line="3"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Callable</span>, <span class="hljs-type">Dict</span>, <span class="hljs-type">Generic</span>, Hashable, <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span>, TypeVar</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5">K = TypeVar(<span class="hljs-string">&quot;K&quot;</span>, bound=Hashable)</span><span class="ln" data-line="6">V = TypeVar(<span class="hljs-string">&quot;V&quot;</span>)</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">class</span> <span class="hljs-title class_">WriterPreferringRWLock</span>:</span><span class="ln" data-line="10">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="11">        <span class="hljs-variable language_">self</span>._ok = threading.Condition()</span><span class="ln" data-line="12">        <span class="hljs-variable language_">self</span>._readers = <span class="hljs-number">0</span></span><span class="ln" data-line="13">        <span class="hljs-variable language_">self</span>._writers_waiting = <span class="hljs-number">0</span></span><span class="ln" data-line="14">        <span class="hljs-variable language_">self</span>._writing = <span class="hljs-literal">False</span></span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">lock_read</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="17">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._ok:</span><span class="ln" data-line="18">            <span class="hljs-keyword">while</span> <span class="hljs-variable language_">self</span>._writing <span class="hljs-keyword">or</span> <span class="hljs-variable language_">self</span>._writers_waiting &gt; <span class="hljs-number">0</span>:  <span class="hljs-comment"># waiting writers go first</span></span><span class="ln" data-line="19">                <span class="hljs-variable language_">self</span>._ok.wait()</span><span class="ln" data-line="20">            <span class="hljs-variable language_">self</span>._readers += <span class="hljs-number">1</span></span><span class="ln" data-line="21"> </span><span class="ln" data-line="22">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">try_lock_read</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="23">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._ok:</span><span class="ln" data-line="24">            <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._writing <span class="hljs-keyword">or</span> <span class="hljs-variable language_">self</span>._writers_waiting &gt; <span class="hljs-number">0</span>:</span><span class="ln" data-line="25">                <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span></span><span class="ln" data-line="26">            <span class="hljs-variable language_">self</span>._readers += <span class="hljs-number">1</span></span><span class="ln" data-line="27">            <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span></span><span class="ln" data-line="28"> </span><span class="ln" data-line="29">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">unlock_read</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="30">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._ok:</span><span class="ln" data-line="31">            <span class="hljs-variable language_">self</span>._readers -= <span class="hljs-number">1</span></span><span class="ln" data-line="32">            <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._readers == <span class="hljs-number">0</span>:</span><span class="ln" data-line="33">                <span class="hljs-variable language_">self</span>._ok.notify_all()</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">lock_write</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="36">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._ok:</span><span class="ln" data-line="37">            <span class="hljs-variable language_">self</span>._writers_waiting += <span class="hljs-number">1</span></span><span class="ln" data-line="38">            <span class="hljs-keyword">try</span>:</span><span class="ln" data-line="39">                <span class="hljs-keyword">while</span> <span class="hljs-variable language_">self</span>._writing <span class="hljs-keyword">or</span> <span class="hljs-variable language_">self</span>._readers &gt; <span class="hljs-number">0</span>:</span><span class="ln" data-line="40">                    <span class="hljs-variable language_">self</span>._ok.wait()</span><span class="ln" data-line="41">            <span class="hljs-keyword">finally</span>:</span><span class="ln" data-line="42">                <span class="hljs-variable language_">self</span>._writers_waiting -= <span class="hljs-number">1</span></span><span class="ln" data-line="43">            <span class="hljs-variable language_">self</span>._writing = <span class="hljs-literal">True</span></span><span class="ln" data-line="44"> </span><span class="ln" data-line="45">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">unlock_write</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="46">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._ok:</span><span class="ln" data-line="47">            <span class="hljs-variable language_">self</span>._writing = <span class="hljs-literal">False</span></span><span class="ln" data-line="48">            <span class="hljs-variable language_">self</span>._ok.notify_all()  <span class="hljs-comment"># readers and writers wait for different things</span></span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"><span class="hljs-keyword">class</span> <span class="hljs-title class_">KVStore</span>(<span class="hljs-type">Generic</span>[K, V]):</span><span class="ln" data-line="52">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="53">        <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>: <span class="hljs-type">Dict</span>[K, V] = {}</span><span class="ln" data-line="54">        <span class="hljs-variable language_">self</span>.rw = WriterPreferringRWLock()</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get</span>(<span class="hljs-params">self, key: K</span>) -&gt; <span class="hljs-type">Optional</span>[V]:</span><span class="ln" data-line="57">        <span class="hljs-variable language_">self</span>.rw.lock_read()</span><span class="ln" data-line="58">        <span class="hljs-keyword">try</span>:</span><span class="ln" data-line="59">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>.get(key)</span><span class="ln" data-line="60">        <span class="hljs-keyword">finally</span>:</span><span class="ln" data-line="61">            <span class="hljs-variable language_">self</span>.rw.unlock_read()</span><span class="ln" data-line="62"> </span><span class="ln" data-line="63">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_all</span>(<span class="hljs-params">self, keys: <span class="hljs-type">List</span>[K]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-type">Optional</span>[V]]:</span><span class="ln" data-line="64">        <span class="hljs-variable language_">self</span>.rw.lock_read()  <span class="hljs-comment"># one lock across every key: a consistent snapshot</span></span><span class="ln" data-line="65">        <span class="hljs-keyword">try</span>:</span><span class="ln" data-line="66">            <span class="hljs-keyword">return</span> [<span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>.get(k) <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> keys]</span><span class="ln" data-line="67">        <span class="hljs-keyword">finally</span>:</span><span class="ln" data-line="68">            <span class="hljs-variable language_">self</span>.rw.unlock_read()</span><span class="ln" data-line="69"> </span><span class="ln" data-line="70">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">put</span>(<span class="hljs-params">self, key: K, value: V</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="71">        <span class="hljs-variable language_">self</span>.rw.lock_write()</span><span class="ln" data-line="72">        <span class="hljs-keyword">try</span>:</span><span class="ln" data-line="73">            <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>[key] = value</span><span class="ln" data-line="74">        <span class="hljs-keyword">finally</span>:</span><span class="ln" data-line="75">            <span class="hljs-variable language_">self</span>.rw.unlock_write()</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">put_all</span>(<span class="hljs-params">self, entries: <span class="hljs-type">Dict</span>[K, V]</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="78">        <span class="hljs-variable language_">self</span>.rw.lock_write()</span><span class="ln" data-line="79">        <span class="hljs-keyword">try</span>:</span><span class="ln" data-line="80">            <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>.update(entries)</span><span class="ln" data-line="81">        <span class="hljs-keyword">finally</span>:</span><span class="ln" data-line="82">            <span class="hljs-variable language_">self</span>.rw.unlock_write()</span><span class="ln" data-line="83"> </span><span class="ln" data-line="84">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">update</span>(<span class="hljs-params">self, key: K, fn: <span class="hljs-type">Callable</span>[[<span class="hljs-type">Optional</span>[V]], V]</span>) -&gt; V:</span><span class="ln" data-line="85">        <span class="hljs-variable language_">self</span>.rw.lock_write()  <span class="hljs-comment"># read-modify-write needs the write lock</span></span><span class="ln" data-line="86">        <span class="hljs-keyword">try</span>:</span><span class="ln" data-line="87">            <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>[key] = fn(<span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>.get(key))</span><span class="ln" data-line="88">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>[key]</span><span class="ln" data-line="89">        <span class="hljs-keyword">finally</span>:</span><span class="ln" data-line="90">            <span class="hljs-variable language_">self</span>.rw.unlock_write()</span><span class="ln" data-line="91"> </span><span class="ln" data-line="92"> </span><span class="ln" data-line="93"><span class="hljs-keyword">def</span> <span class="hljs-title function_">b</span>(<span class="hljs-params">x: <span class="hljs-built_in">bool</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="94">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;true&quot;</span> <span class="hljs-keyword">if</span> x <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;false&quot;</span></span><span class="ln" data-line="95"> </span><span class="ln" data-line="96"> </span><span class="ln" data-line="97"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="98">    store: KVStore[<span class="hljs-built_in">str</span>, <span class="hljs-built_in">int</span>] = KVStore()</span><span class="ln" data-line="99">    store.put(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-number">1</span>)</span><span class="ln" data-line="100">    y = store.get(<span class="hljs-string">&quot;y&quot;</span>)</span><span class="ln" data-line="101">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;put x=1, get x = <span class="hljs-subst">{store.get(<span class="hljs-string">&#x27;x&#x27;</span>)}</span>, get y = <span class="hljs-subst">{<span class="hljs-string">&#x27;null&#x27;</span> <span class="hljs-keyword">if</span> y <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> y}</span>&quot;</span>)</span><span class="ln" data-line="102"> </span><span class="ln" data-line="103">    store.rw.lock_write()</span><span class="ln" data-line="104">    read_while_writing = store.rw.try_lock_read()</span><span class="ln" data-line="105">    store.rw.unlock_write()</span><span class="ln" data-line="106">    read_after = store.rw.try_lock_read()</span><span class="ln" data-line="107">    <span class="hljs-keyword">if</span> read_after:</span><span class="ln" data-line="108">        store.rw.unlock_read()</span><span class="ln" data-line="109">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;tryLockRead while a writer holds the lock: <span class="hljs-subst">{b(read_while_writing)}</span>, after it releases: <span class="hljs-subst">{b(read_after)}</span>&quot;</span>)</span><span class="ln" data-line="110"> </span><span class="ln" data-line="111">    store.put_all({<span class="hljs-string">&quot;a&quot;</span>: <span class="hljs-number">0</span>, <span class="hljs-string">&quot;b&quot;</span>: <span class="hljs-number">0</span>, <span class="hljs-string">&quot;counter&quot;</span>: <span class="hljs-number">0</span>})</span><span class="ln" data-line="112">    writers_done = threading.Event()</span><span class="ln" data-line="113">    torn = [<span class="hljs-number">0</span>]</span><span class="ln" data-line="114">    torn_lock = threading.Lock()</span><span class="ln" data-line="115"> </span><span class="ln" data-line="116">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">reader</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="117">        <span class="hljs-keyword">while</span> <span class="hljs-keyword">not</span> writers_done.is_set():</span><span class="ln" data-line="118">            a, bb = store.get_all([<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>])</span><span class="ln" data-line="119">            <span class="hljs-keyword">if</span> a != bb:</span><span class="ln" data-line="120">                <span class="hljs-keyword">with</span> torn_lock:</span><span class="ln" data-line="121">                    torn[<span class="hljs-number">0</span>] += <span class="hljs-number">1</span></span><span class="ln" data-line="122"> </span><span class="ln" data-line="123">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">writer</span>(<span class="hljs-params">wid: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="124">        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">500</span>):</span><span class="ln" data-line="125">            v = wid * <span class="hljs-number">1000</span> + i</span><span class="ln" data-line="126">            store.put_all({<span class="hljs-string">&quot;a&quot;</span>: v, <span class="hljs-string">&quot;b&quot;</span>: v})  <span class="hljs-comment"># both keys change together</span></span><span class="ln" data-line="127">            store.update(<span class="hljs-string">&quot;counter&quot;</span>, <span class="hljs-keyword">lambda</span> c: c + <span class="hljs-number">1</span>)</span><span class="ln" data-line="128"> </span><span class="ln" data-line="129">    readers = [threading.Thread(target=reader) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>)]</span><span class="ln" data-line="130">    writers = [threading.Thread(target=writer, args=(w,)) <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>)]</span><span class="ln" data-line="131">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> readers + writers:</span><span class="ln" data-line="132">        t.start()</span><span class="ln" data-line="133">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> writers:</span><span class="ln" data-line="134">        t.join()</span><span class="ln" data-line="135">    writers_done.<span class="hljs-built_in">set</span>()</span><span class="ln" data-line="136">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> readers:</span><span class="ln" data-line="137">        t.join()</span><span class="ln" data-line="138">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;4 writers x 500 paired updates: readers never saw a torn update: <span class="hljs-subst">{b(torn[<span class="hljs-number">0</span>] == <span class="hljs-number">0</span>)}</span>, counter = <span class="hljs-subst">{store.get(<span class="hljs-string">&#x27;counter&#x27;</span>)}</span>&quot;</span>)</span><span class="ln" data-line="139"> </span><span class="ln" data-line="140">    stop_readers = threading.Event()</span><span class="ln" data-line="141"> </span><span class="ln" data-line="142">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">busy_reader</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="143">        <span class="hljs-keyword">while</span> <span class="hljs-keyword">not</span> stop_readers.is_set():</span><span class="ln" data-line="144">            store.rw.lock_read()</span><span class="ln" data-line="145">            <span class="hljs-keyword">try</span>:</span><span class="ln" data-line="146">                time.sleep(<span class="hljs-number">0.001</span>)</span><span class="ln" data-line="147">            <span class="hljs-keyword">finally</span>:</span><span class="ln" data-line="148">                store.rw.unlock_read()</span><span class="ln" data-line="149"> </span><span class="ln" data-line="150">    busy = [threading.Thread(target=busy_reader) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">4</span>)]</span><span class="ln" data-line="151">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> busy:</span><span class="ln" data-line="152">        t.start()</span><span class="ln" data-line="153">    time.sleep(<span class="hljs-number">0.03</span>)</span><span class="ln" data-line="154">    store.put(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-number">2</span>)  <span class="hljs-comment"># would starve without writer preference</span></span><span class="ln" data-line="155">    still_going = <span class="hljs-keyword">not</span> stop_readers.is_set()</span><span class="ln" data-line="156">    stop_readers.<span class="hljs-built_in">set</span>()</span><span class="ln" data-line="157">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> busy:</span><span class="ln" data-line="158">        t.join()</span><span class="ln" data-line="159">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;a writer got in while 4 readers kept reading: <span class="hljs-subst">{b(still_going)}</span>, x = <span class="hljs-subst">{store.get(<span class="hljs-string">&#x27;x&#x27;</span>)}</span>&quot;</span>)</span><span class="ln" data-line="160"> </span><span class="ln" data-line="161"> </span><span class="ln" data-line="162"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="163">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import threading
+import time
+from typing import Callable, Dict, Generic, Hashable, List, Optional, TypeVar
+
+K = TypeVar(&quot;K&quot;, bound=Hashable)
+V = TypeVar(&quot;V&quot;)
+
+
+class WriterPreferringRWLock:
+    def __init__(self) -&gt; None:
+        self._ok = threading.Condition()
+        self._readers = 0
+        self._writers_waiting = 0
+        self._writing = False
+
+    def lock_read(self) -&gt; None:
+        with self._ok:
+            while self._writing or self._writers_waiting &gt; 0:  # waiting writers go first
+                self._ok.wait()
+            self._readers += 1
+
+    def try_lock_read(self) -&gt; bool:
+        with self._ok:
+            if self._writing or self._writers_waiting &gt; 0:
+                return False
+            self._readers += 1
+            return True
+
+    def unlock_read(self) -&gt; None:
+        with self._ok:
+            self._readers -= 1
+            if self._readers == 0:
+                self._ok.notify_all()
+
+    def lock_write(self) -&gt; None:
+        with self._ok:
+            self._writers_waiting += 1
+            try:
+                while self._writing or self._readers &gt; 0:
+                    self._ok.wait()
+            finally:
+                self._writers_waiting -= 1
+            self._writing = True
+
+    def unlock_write(self) -&gt; None:
+        with self._ok:
+            self._writing = False
+            self._ok.notify_all()  # readers and writers wait for different things
+
+
+class KVStore(Generic[K, V]):
+    def __init__(self) -&gt; None:
+        self._map: Dict[K, V] = {}
+        self.rw = WriterPreferringRWLock()
+
+    def get(self, key: K) -&gt; Optional[V]:
+        self.rw.lock_read()
+        try:
+            return self._map.get(key)
+        finally:
+            self.rw.unlock_read()
+
+    def get_all(self, keys: List[K]) -&gt; List[Optional[V]]:
+        self.rw.lock_read()  # one lock across every key: a consistent snapshot
+        try:
+            return [self._map.get(k) for k in keys]
+        finally:
+            self.rw.unlock_read()
+
+    def put(self, key: K, value: V) -&gt; None:
+        self.rw.lock_write()
+        try:
+            self._map[key] = value
+        finally:
+            self.rw.unlock_write()
+
+    def put_all(self, entries: Dict[K, V]) -&gt; None:
+        self.rw.lock_write()
+        try:
+            self._map.update(entries)
+        finally:
+            self.rw.unlock_write()
+
+    def update(self, key: K, fn: Callable[[Optional[V]], V]) -&gt; V:
+        self.rw.lock_write()  # read-modify-write needs the write lock
+        try:
+            self._map[key] = fn(self._map.get(key))
+            return self._map[key]
+        finally:
+            self.rw.unlock_write()
+
+
+def b(x: bool) -&gt; str:
+    return &quot;true&quot; if x else &quot;false&quot;
+
+
+def main() -&gt; None:
+    store: KVStore[str, int] = KVStore()
+    store.put(&quot;x&quot;, 1)
+    y = store.get(&quot;y&quot;)
+    print(f&quot;put x=1, get x = {store.get(&#39;x&#39;)}, get y = {&#39;null&#39; if y is None else y}&quot;)
+
+    store.rw.lock_write()
+    read_while_writing = store.rw.try_lock_read()
+    store.rw.unlock_write()
+    read_after = store.rw.try_lock_read()
+    if read_after:
+        store.rw.unlock_read()
+    print(f&quot;tryLockRead while a writer holds the lock: {b(read_while_writing)}, after it releases: {b(read_after)}&quot;)
+
+    store.put_all({&quot;a&quot;: 0, &quot;b&quot;: 0, &quot;counter&quot;: 0})
+    writers_done = threading.Event()
+    torn = [0]
+    torn_lock = threading.Lock()
+
+    def reader() -&gt; None:
+        while not writers_done.is_set():
+            a, bb = store.get_all([&quot;a&quot;, &quot;b&quot;])
+            if a != bb:
+                with torn_lock:
+                    torn[0] += 1
+
+    def writer(wid: int) -&gt; None:
+        for i in range(500):
+            v = wid * 1000 + i
+            store.put_all({&quot;a&quot;: v, &quot;b&quot;: v})  # both keys change together
+            store.update(&quot;counter&quot;, lambda c: c + 1)
+
+    readers = [threading.Thread(target=reader) for _ in range(4)]
+    writers = [threading.Thread(target=writer, args=(w,)) for w in range(4)]
+    for t in readers + writers:
+        t.start()
+    for t in writers:
+        t.join()
+    writers_done.set()
+    for t in readers:
+        t.join()
+    print(f&quot;4 writers x 500 paired updates: readers never saw a torn update: {b(torn[0] == 0)}, counter = {store.get(&#39;counter&#39;)}&quot;)
+
+    stop_readers = threading.Event()
+
+    def busy_reader() -&gt; None:
+        while not stop_readers.is_set():
+            store.rw.lock_read()
+            try:
+                time.sleep(0.001)
+            finally:
+                store.rw.unlock_read()
+
+    busy = [threading.Thread(target=busy_reader) for _ in range(4)]
+    for t in busy:
+        t.start()
+    time.sleep(0.03)
+    store.put(&quot;x&quot;, 2)  # would starve without writer preference
+    still_going = not stop_readers.is_set()
+    stop_readers.set()
+    for t in busy:
+        t.join()
+    print(f&quot;a writer got in while 4 readers kept reading: {b(still_going)}, x = {store.get(&#39;x&#39;)}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>put x=1, get x = 1, get y = null
+tryLockRead while a writer holds the lock: false, after it releases: true
+4 writers x 500 paired updates: readers never saw a torn update: true, counter = 2000
+a writer got in while 4 readers kept reading: true, x = 2</samp></pre></div>
+</figure><p class="muted">Shown in Java and Python: JavaScript runs your code on one thread, so locks and conditions have no real equivalent there. Java and Python show the design with real threads.</p><h2 id="common-mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Using a read lock for an operation that mutates (LRU <code>get</code>, lazy initialisation, counters).</li><li>No writer preference, so writers starve under steady reads.</li><li>Trying to upgrade a read lock to a write lock.</li><li>Forgetting <code>finally { unlock }</code>, which leaves the reader count wrong forever.</li></ul><h2 id="interview-follow-ups">Interview follow-ups</h2>
+<ul>
+<li>Add versions per key and a time-based get (<code>get(key, timestamp)</code>).</li>
+<li>Implement optimistic reads like <code>StampedLock</code>.</li>
+<li>Shard the store so writes to different shards don&#39;t block each other.</li>
+<li>Add TTL expiry and a snapshot for backups without stopping writers.</li>
+</ul>
+
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/time-based-key-value-store/" rel="noopener" target="_blank">Time Based Key-Value Store<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>981</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/building-h2o/" rel="noopener" target="_blank">Building H2O<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">more practice with conditions</span></td><td>1117</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../pub-sub/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Pub-sub message queue</span></a><a class="pn pn-next" href="../elevator/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Elevator system</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

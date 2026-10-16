@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course introduction · DSA Academy</title>
+<meta name="description" content="Who this course is for, what you need before you start, and how every page is laid out.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="../assets/css/languages.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="index.html" aria-current="page">Start here</a></li><li><a href="../roadmap/index.html">Roadmap</a></li><li><a href="../data-structures/index.html">Data structures</a></li><li><a href="../algorithms/index.html">Algorithms</a></li><li><a href="../patterns/index.html">Patterns</a></li><li><a href="../lld/index.html">Low-level design</a></li><li><a href="../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Home</a></li><li><span aria-current="page">Course introduction</span></li></ol></nav>
+<article class="prose">
+<header class="page-head"><h1>Course introduction</h1><p class="lede">Who this course is for, what you need before you start, and how every page is laid out.</p></header>
+<h2 id="who-this-is-for">Who this is for</h2>
+<p>You write code for a living and you have an interview coming up. You can build
+a service, but it has been a while since you thought about why a hash map is
+O(1), or how to spot a sliding window problem in the first minute.</p>
+<p>This course gets you back there. It is built for people who learn by seeing
+the data move, then reading the code that moves it.</p>
+<h2 id="what-you-need-before-you-start">What you need before you start</h2>
+<ul>
+<li>Comfort with one of Java, JavaScript, TypeScript or Python. Every solution
+is written in all four, so pick the one you will use in interviews.</li>
+<li>Loops, functions, classes and basic recursion. You don&#39;t need any maths
+beyond school algebra; the course teaches the rest as it goes.</li>
+<li>A way to run code. Each solution is a single file with its own <code>main</code>, so
+you can paste it into your editor and run it as is.</li>
+</ul>
+<h2 id="how-every-page-is-laid-out">How every page is laid out</h2>
+<p>Each concept page follows the same order, so you always know where to look.</p>
+<ol>
+<li><strong>Explanation.</strong> A plain-English description, with a concrete example
+before any theory.</li>
+<li><strong>Picture.</strong> A labelled diagram of the structure, including how it sits in
+memory.</li>
+<li><strong>Animation.</strong> A step-by-step demo with play, pause, step and speed
+controls. The matching line of code lights up as it runs. Where it makes
+sense, you can type your own input and run it again.</li>
+<li><strong>Code.</strong> A full, runnable solution in your chosen language, with its
+expected output. Every sample on the site is run by an automated test.</li>
+<li><strong>Practice.</strong> Problems to try next, from easy to hard, each linked to
+LeetCode.</li>
+</ol>
+<h2 id="how-to-use-the-site">How to use the site</h2>
+<ul>
+<li><strong>Choose your language once.</strong> The language menu at the top changes every
+code block on every page, and the site remembers your choice.</li>
+<li><strong>Follow the roadmap.</strong> It orders the topics so that each one only depends
+on things you have already covered. Tick topics off as you finish them;
+your progress stays in this browser.</li>
+<li><strong>Predict before you press play.</strong> Before running an animation, guess what
+the next step will be. The guesses you get wrong teach you the most.</li>
+<li><strong>Solve before you read.</strong> On problem pages, try the problem on LeetCode
+first. Then read the brute-force approach, then the optimal one.</li>
+</ul>
+<h2 id="what-the-course-covers">What the course covers</h2>
+<p>The course has five parts: data structures, algorithms, coding patterns,
+low-level design, and a practice index that collects every problem in one
+filterable list. The roadmap shows how they fit together and roughly how
+long each stage takes at a pace of 8 to 10 hours a week.</p>
+
+<p class="actions"><a class="btn" href="../roadmap/index.html">Go to the roadmap</a></p>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Home</span></a><a class="pn pn-next" href="../roadmap/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Roadmap</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../assets/js/visualizers.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

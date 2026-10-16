@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coding patterns · DSA Academy</title>
+<meta name="description" content="Thirty-one problem shapes that cover most interview questions. Each pattern links to the structures and techniques it builds on.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="../assets/css/languages.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../intro/index.html">Start here</a></li><li><a href="../roadmap/index.html">Roadmap</a></li><li><a href="../data-structures/index.html">Data structures</a></li><li><a href="../algorithms/index.html">Algorithms</a></li><li><a href="index.html" aria-current="page">Patterns</a></li><li><a href="../lld/index.html">Low-level design</a></li><li><a href="../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Home</a></li><li><span aria-current="page">Coding patterns</span></li></ol></nav>
+<header class="page-head"><h1>Coding patterns</h1><p class="lede">Thirty-one problem shapes that cover most interview questions. Each pattern links to the structures and techniques it builds on.</p></header>
+<ul class="entries"><li class="entry" id="two-pointers">
+  <h2 class="entry-title"><a href="two-pointers/index.html">Two pointers</a></h2>
+  <p>Two indices walk the data toward each other or in step.</p>
+  <p class="entry-rel">Builds on Arrays.</p>
+  
+  <p class="entry-rel">Solved: <a href="../problems/two-sum-ii-sorted/index.html">Two Sum II, sorted input</a></p>
+  
+</li>
+<li class="entry" id="sliding-window">
+  <h2 class="entry-title"><a href="sliding-window/index.html">Sliding window</a></h2>
+  <p>Grow and shrink a contiguous range instead of rescanning it.</p>
+  <p class="entry-rel">Builds on Arrays, Hash tables.</p>
+  <p class="entry-rel">Used by Monotonic deque.</p>
+  
+  
+</li>
+<li class="entry" id="prefix-sum">
+  <h2 class="entry-title"><a href="prefix-sum/index.html">Prefix sum</a></h2>
+  <p>Precompute running totals so any range sum is one subtraction.</p>
+  <p class="entry-rel">Builds on Arrays, Hash tables.</p>
+  
+  
+  
+</li>
+<li class="entry" id="hashing">
+  <h2 class="entry-title"><a href="hashing/index.html">Hashing</a></h2>
+  <p>Trade memory for O(1) lookups of what you&#39;ve already seen.</p>
+  <p class="entry-rel">Builds on Hash tables.</p>
+  
+  
+  
+</li>
+<li class="entry" id="cyclic-sort">
+  <h2 class="entry-title"><a href="cyclic-sort/index.html">Cyclic sort</a></h2>
+  <p>Place each number 1..n at its own index in one pass.</p>
+  <p class="entry-rel">Builds on Arrays.</p>
+  
+  
+  
+</li>
+<li class="entry" id="merge-intervals">
+  <h2 class="entry-title"><a href="merge-intervals/index.html">Merge intervals</a></h2>
+  <p>Sort by start, then merge or count overlaps.</p>
+  <p class="entry-rel">Builds on Arrays, Sorting.</p>
+  
+  
+  
+</li>
+<li class="entry" id="kadane">
+  <h2 class="entry-title"><a href="kadane/index.html">Kadane&#39;s algorithm</a></h2>
+  <p>Best subarray ending here, carried forward in O(1) space.</p>
+  <p class="entry-rel">Builds on Arrays, Dynamic programming.</p>
+  
+  
+  
+</li>
+<li class="entry" id="fast-slow-pointers">
+  <h2 class="entry-title"><a href="fast-slow-pointers/index.html">Fast and slow pointers</a></h2>
+  <p>Two speeds detect cycles and find middles.</p>
+  <p class="entry-rel">Builds on Linked lists.</p>
+  
+  
+  
+</li>
+<li class="entry" id="in-place-reversal">
+  <h2 class="entry-title"><a href="in-place-reversal/index.html">In-place list reversal</a></h2>
+  <p>Reverse links in place with three pointers.</p>
+  <p class="entry-rel">Builds on Linked lists.</p>
+  
+  
+  
+</li>
+<li class="entry" id="monotonic-stack">
+  <h2 class="entry-title"><a href="monotonic-stack/index.html">Monotonic stack</a></h2>
+  <p>Keep a sorted stack to find the next greater or smaller element.</p>
+  <p class="entry-rel">Builds on Stacks, Arrays.</p>
+  
+  
+  
+</li>
+<li class="entry" id="monotonic-deque">
+  <h2 class="entry-title"><a href="monotonic-deque/index.html">Monotonic deque</a></h2>
+  <p>Window maximum or minimum in O(n).</p>
+  <p class="entry-rel">Builds on Queues, Sliding window.</p>
+  
+  
+  
+</li>
+<li class="entry" id="modified-binary-search">
+  <h2 class="entry-title"><a href="modified-binary-search/index.html">Modified binary search</a></h2>
+  <p>Binary search on rotated arrays, boundaries and answers.</p>
+  <p class="entry-rel">Builds on Arrays, Searching.</p>
+  
+  
+  
+</li>
+<li class="entry" id="top-k">
+  <h2 class="entry-title"><a href="top-k/index.html">Top K elements</a></h2>
+  <p>A size-K heap keeps the best K seen so far.</p>
+  <p class="entry-rel">Builds on Heaps, Hash tables.</p>
+  
+  
+  
+</li>
+<li class="entry" id="two-heaps">
+  <h2 class="entry-title"><a href="two-heaps/index.html">Two heaps</a></h2>
+  <p>A max-heap and a min-heap split the data at the median.</p>
+  <p class="entry-rel">Builds on Heaps.</p>
+  
+  
+  
+</li>
+<li class="entry" id="k-way-merge">
+  <h2 class="entry-title"><a href="k-way-merge/index.html">K-way merge</a></h2>
+  <p>Merge K sorted inputs using a heap of their heads.</p>
+  <p class="entry-rel">Builds on Heaps, Linked lists.</p>
+  
+  
+  
+</li>
+<li class="entry" id="tree-dfs">
+  <h2 class="entry-title"><a href="tree-dfs/index.html">Tree DFS</a></h2>
+  <p>Pre, in and post order, and passing state down or up.</p>
+  <p class="entry-rel">Builds on Trees, Recursion.</p>
+  
+  
+  
+</li>
+<li class="entry" id="tree-bfs">
+  <h2 class="entry-title"><a href="tree-bfs/index.html">Tree BFS</a></h2>
+  <p>Level by level with a queue.</p>
+  <p class="entry-rel">Builds on Trees, Queues.</p>
+  
+  
+  
+</li>
+<li class="entry" id="graph-bfs-dfs">
+  <h2 class="entry-title"><a href="graph-bfs-dfs/index.html">Graph BFS and DFS</a></h2>
+  <p>Explore reachable nodes, count components, find shortest hops.</p>
+  <p class="entry-rel">Builds on Graphs, Queues, Stacks, Graph algorithms.</p>
+  
+  
+  
+</li>
+<li class="entry" id="topological-sort">
+  <h2 class="entry-title"><a href="topological-sort/index.html">Topological sort</a></h2>
+  <p>Order tasks so every dependency comes first.</p>
+  <p class="entry-rel">Builds on Graphs, Graph algorithms.</p>
+  
+  
+  
+</li>
+<li class="entry" id="union-find">
+  <h2 class="entry-title"><a href="union-find/index.html">Union-Find</a></h2>
+  <p>Merge groups and ask whether two items are connected.</p>
+  <p class="entry-rel">Builds on Disjoint set (Union-Find), Graphs.</p>
+  
+  
+  
+</li>
+<li class="entry" id="shortest-path">
+  <h2 class="entry-title"><a href="shortest-path/index.html">Shortest path</a></h2>
+  <p>Dijkstra, Bellman-Ford and 0-1 BFS on weighted graphs.</p>
+  <p class="entry-rel">Builds on Graphs, Heaps, Graph algorithms.</p>
+  
+  
+  
+</li>
+<li class="entry" id="trie-pattern">
+  <h2 class="entry-title"><a href="trie-pattern/index.html">Trie</a></h2>
+  <p>Prefix search, autocomplete and word games.</p>
+  <p class="entry-rel">Builds on Trie.</p>
+  
+  
+  
+</li>
+<li class="entry" id="backtracking">
+  <h2 class="entry-title"><a href="backtracking/index.html">Backtracking</a></h2>
+  <p>Subsets, permutations, combinations and constraint puzzles.</p>
+  <p class="entry-rel">Builds on Recursion, Backtracking.</p>
+  
+  
+  
+</li>
+<li class="entry" id="dp-1d">
+  <h2 class="entry-title"><a href="dp-1d/index.html">1D dynamic programming</a></h2>
+  <p>One index of state: stairs, robbers and decoding.</p>
+  <p class="entry-rel">Builds on Dynamic programming, Arrays.</p>
+  
+  
+  
+</li>
+<li class="entry" id="dp-2d">
+  <h2 class="entry-title"><a href="dp-2d/index.html">2D dynamic programming</a></h2>
+  <p>Grids and two-string problems like edit distance.</p>
+  <p class="entry-rel">Builds on Dynamic programming, Arrays.</p>
+  
+  
+  
+</li>
+<li class="entry" id="knapsack">
+  <h2 class="entry-title"><a href="knapsack/index.html">Knapsack</a></h2>
+  <p>Choose items under a capacity: 0/1 and unbounded.</p>
+  <p class="entry-rel">Builds on Dynamic programming.</p>
+  
+  
+  
+</li>
+<li class="entry" id="interval-dp">
+  <h2 class="entry-title"><a href="interval-dp/index.html">Interval DP</a></h2>
+  <p>Solve every subrange, shortest first.</p>
+  <p class="entry-rel">Builds on Dynamic programming.</p>
+  
+  
+  
+</li>
+<li class="entry" id="greedy">
+  <h2 class="entry-title"><a href="greedy/index.html">Greedy</a></h2>
+  <p>Interval scheduling, jumps and gas stations.</p>
+  <p class="entry-rel">Builds on Greedy, Sorting, Heaps.</p>
+  
+  
+  
+</li>
+<li class="entry" id="bit-manipulation">
+  <h2 class="entry-title"><a href="bit-manipulation/index.html">Bit manipulation</a></h2>
+  <p>XOR tricks, counting bits and subset masks.</p>
+  <p class="entry-rel">Builds on Bit manipulation.</p>
+  
+  
+  
+</li>
+<li class="entry" id="matrix-traversal">
+  <h2 class="entry-title"><a href="matrix-traversal/index.html">Matrix traversal</a></h2>
+  <p>Spirals, rotations and flood fill on 2D grids.</p>
+  <p class="entry-rel">Builds on Arrays, Graphs.</p>
+  
+  
+  
+</li>
+<li class="entry" id="data-structure-design">
+  <h2 class="entry-title"><a href="data-structure-design/index.html">Data structure design</a></h2>
+  <p>Build LRU caches, min stacks and iterators.</p>
+  <p class="entry-rel">Builds on Hash tables, Linked lists, Heaps.</p>
+  
+  
+  
+</li></ul>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../algorithms/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Algorithms</span></a><a class="pn pn-next" href="../lld/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Low-level design</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../assets/js/visualizers.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

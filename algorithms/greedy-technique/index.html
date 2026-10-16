@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greedy · DSA Academy</title>
+<meta name="description" content="Take the best local choice, and prove it never hurts later.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../index.html" aria-current="page">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Algorithms</a></li><li><span aria-current="page">Greedy</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Greedy</h1>
+  <p class="lede">A greedy algorithm builds its answer one step at a time, always taking the choice that looks best right now and never going back. When it works it&#39;s simple and fast; the hard part is proving it works.</p>
+  <p class="tags"><span class="pill">Technique</span> <span class="muted">12 minute read</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Giving change with the largest coin that fits, over and over. With rupee or dollar coins that gives the fewest coins. With coins of 1, 3 and 4, paying 6 that way takes 4 + 1 + 1, while 3 + 3 uses two. Greedy is right only when the problem&#39;s structure guarantees it.</p></aside>
+<h2 id="how-greedy-works">How greedy works</h2>
+<p>At each step, make the choice that&#39;s best by some simple rule (earliest
+finish, largest value, cheapest edge), commit to it, and move on. There&#39;s no
+backtracking and no table of subproblems. That&#39;s why greedy algorithms are
+usually short and run in O(n) or O(n log n).</p>
+<h2 id="classic-example-activity-selection">Classic example: activity selection</h2>
+<p>Given activities with start and end times, choose as many as possible with no
+overlaps.</p>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 680 230" role="img" aria-label="Activity selection on a timeline: sort by end time and keep each activity that starts after the last kept one ends"><defs></defs><rect class="dg-ok" x="76" y="10" width="108" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="21">[1,4]</text><rect class="dg-box" x="148" y="28" width="72" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="39">[3,5]</text><rect class="dg-box" x="40" y="46" width="216" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="57">[0,6]</text><rect class="dg-ok" x="220" y="64" width="72" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="75">[5,7]</text><rect class="dg-box" x="148" y="82" width="216" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="93">[3,9]</text><rect class="dg-box" x="220" y="100" width="144" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="111">[5,9]</text><rect class="dg-box" x="256" y="118" width="144" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="129">[6,10]</text><rect class="dg-ok" x="328" y="136" width="108" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="147">[8,11]</text><rect class="dg-box" x="328" y="154" width="144" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="165">[8,12]</text><rect class="dg-box" x="112" y="172" width="432" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="183">[2,14]</text><rect class="dg-ok" x="472" y="190" width="144" height="14" rx="3"/><text class="dg-s dg-end" x="30" y="201">[12,16]</text><text class="dg-s" x="40" y="222">0</text><text class="dg-s" x="112" y="222">2</text><text class="dg-s" x="184" y="222">4</text><text class="dg-s" x="256" y="222">6</text><text class="dg-s" x="328" y="222">8</text><text class="dg-s" x="400" y="222">10</text><text class="dg-s" x="472" y="222">12</text><text class="dg-s" x="544" y="222">14</text><text class="dg-s" x="616" y="222">16</text></svg><figcaption>Sorted by end time, keep an activity if it starts no earlier than the last kept activity ends. Finishing early leaves the most room for the rest.</figcaption></figure><p>Greedy rule: <strong>pick the activity that ends first</strong>, discard everything that
+overlaps it, and repeat. Choosing by earliest start or shortest length both
+fail on some inputs; earliest end doesn&#39;t.</p>
+<h2 id="proving-a-greedy-choice-the-exchange-argument">Proving a greedy choice: the exchange argument</h2>
+<p>Suppose an optimal answer doesn&#39;t include the activity with the earliest end,
+<code>g</code>. Its first activity, <code>o</code>, ends at or after <code>g</code> ends. Swap <code>o</code> for <code>g</code>:
+nothing else overlaps <code>g</code> that didn&#39;t overlap <code>o</code>, so the answer is still valid
+and still the same size. So some optimal answer starts with <code>g</code>, and the same
+argument repeats on what&#39;s left.</p>
+<p>Interviewers rarely want a formal proof, but they do want you to say <em>why</em> the
+greedy choice is safe, or to show a counterexample when it isn&#39;t.</p>
+<h2 id="when-greedy-fails">When greedy fails</h2>
+<p>Coins <code>{1, 3, 4}</code>, amount 6. Greedy takes 4, then 1, then 1: three coins.
+The optimum is 3 + 3: two coins. Taking the biggest coin first isn&#39;t safe in
+this system, so you need dynamic programming, which tries every last coin.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Typical greedy: sort, then one pass</td><td class="nowrap">O(n log n)</td><td>The sort dominates; the pass is O(n).</td></tr><tr><td>Greedy with a heap (repeatedly take the best)</td><td class="nowrap">O(n log n)</td><td>Each push or pop is O(log n).</td></tr><tr><td>Greedy single pass (jump game, gas station)</td><td class="nowrap">O(n)</td><td>Track one running quantity.</td></tr><tr><td>Space</td><td class="nowrap">O(1) to O(n)</td><td>Usually just a few variables, or a heap.</td></tr></tbody></table></div>
+<h2 id="use-when">When to use it</h2>
+<div class="two-col"><div><h3>Reach for it when</h3><ul><li>Interval scheduling: maximise non-overlapping meetings, minimise rooms or arrows.</li><li>A local choice can be shown never to hurt: the exchange argument works.</li><li>Huffman coding, minimum spanning trees (Prim, Kruskal) and Dijkstra&#39;s algorithm are all greedy.</li></ul></div><div><h3>Think twice when</h3><ul><li>A small counterexample breaks it, like coins 1, 3, 4. Use dynamic programming.</li><li>Choices affect the options available later in complicated ways (0/1 knapsack).</li></ul></div></div>
+<h2 id="lang-notes">In your language</h2>
+<div class="lang-notes"><div class="lang-note" data-lang="java"><p class="lang-note-label">Notes for Java</p><ul>
+<li>Sort intervals by end time with <code>Arrays.sort(iv, (a, b) -&gt; Integer.compare(a[1], b[1]))</code>.</li>
+<li><code>PriorityQueue</code> is the go-to for &quot;always take the current best&quot; greedy loops.</li>
+</ul>
+</div><div class="lang-note" data-lang="javascript"><p class="lang-note-label">Notes for JavaScript</p><ul>
+<li><code>intervals.sort((a, b) =&gt; a[1] - b[1])</code> sorts by end. Remember the comparator.</li>
+</ul>
+</div><div class="lang-note" data-lang="typescript"><p class="lang-note-label">Notes for TypeScript</p><ul>
+<li>Type intervals as <code>[number, number][]</code> so destructuring <code>const [start, end] = iv</code> is checked.</li>
+</ul>
+</div><div class="lang-note" data-lang="python"><p class="lang-note-label">Notes for Python</p><ul>
+<li><code>intervals.sort(key=lambda iv: iv[1])</code> sorts by end. <code>heapq</code> covers the priority-based greedy loops.</li>
+</ul>
+</div><p class="muted lang-note-hint">Switch the language at the top of the page to see notes for another language.</p></div>
+<h2 id="code">Code</h2>
+<p>The coin example runs the greedy strategy and a small dynamic programming check side by side, so you can see one coin system where greedy is optimal and one where it isn&#39;t.</p><figure class="codeblock" id="code-greedy-technique" aria-label="Activity selection, jump game, and greedy vs optimal coin change">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-greedy-technique-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-greedy-technique-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-greedy-technique-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-greedy-technique-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-greedy-technique-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.Arrays;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7">    <span class="hljs-comment">/** Maximum set of non-overlapping activities: sort by end, keep what fits. */</span></span><span class="ln" data-line="8">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-title function_">selectActivities</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] activities)</span> {</span><span class="ln" data-line="9">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> activities.clone();</span><span class="ln" data-line="10">        Arrays.sort(a, (x, y) -&gt; Integer.compare(x[<span class="hljs-number">1</span>], y[<span class="hljs-number">1</span>]));</span><span class="ln" data-line="11">        <span class="hljs-type">List</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">kept</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="12">        <span class="hljs-type">int</span> <span class="hljs-variable">lastEnd</span> <span class="hljs-operator">=</span> Integer.MIN_VALUE;</span><span class="ln" data-line="13">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] act : a) {</span><span class="ln" data-line="14">            <span class="hljs-keyword">if</span> (act[<span class="hljs-number">0</span>] &gt;= lastEnd) { <span class="hljs-comment">// starts after the last kept one ends</span></span><span class="ln" data-line="15">                kept.add(act);</span><span class="ln" data-line="16">                lastEnd = act[<span class="hljs-number">1</span>];</span><span class="ln" data-line="17">            }</span><span class="ln" data-line="18">        }</span><span class="ln" data-line="19">        <span class="hljs-keyword">return</span> kept;</span><span class="ln" data-line="20">    }</span><span class="ln" data-line="21"> </span><span class="ln" data-line="22">    <span class="hljs-comment">/** Can you reach the last index? Track the furthest reachable index. */</span></span><span class="ln" data-line="23">    <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">canJump</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="24">        <span class="hljs-type">int</span> <span class="hljs-variable">furthest</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="25">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; nums.length; i++) {</span><span class="ln" data-line="26">            <span class="hljs-keyword">if</span> (i &gt; furthest) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>; <span class="hljs-comment">// stuck before i</span></span><span class="ln" data-line="27">            furthest = Math.max(furthest, i + nums[i]);</span><span class="ln" data-line="28">        }</span><span class="ln" data-line="29">        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="30">    }</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">greedyCoins</span><span class="hljs-params">(<span class="hljs-type">int</span>[] coins, <span class="hljs-type">int</span> amount)</span> {</span><span class="ln" data-line="33">        <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="34">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> coins.length - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) { <span class="hljs-comment">// coins sorted ascending</span></span><span class="ln" data-line="35">            count += amount / coins[i];</span><span class="ln" data-line="36">            amount %= coins[i];</span><span class="ln" data-line="37">        }</span><span class="ln" data-line="38">        <span class="hljs-keyword">return</span> amount == <span class="hljs-number">0</span> ? count : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="39">    }</span><span class="ln" data-line="40"> </span><span class="ln" data-line="41">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">optimalCoins</span><span class="hljs-params">(<span class="hljs-type">int</span>[] coins, <span class="hljs-type">int</span> amount)</span> {</span><span class="ln" data-line="42">        <span class="hljs-type">int</span>[] <span class="hljs-variable">best</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[amount + <span class="hljs-number">1</span>];</span><span class="ln" data-line="43">        Arrays.fill(best, Integer.MAX_VALUE);</span><span class="ln" data-line="44">        best[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="45">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; x &lt;= amount; x++) {</span><span class="ln" data-line="46">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> c : coins) {</span><span class="ln" data-line="47">                <span class="hljs-keyword">if</span> (c &lt;= x &amp;&amp; best[x - c] != Integer.MAX_VALUE) best[x] = Math.min(best[x], best[x - c] + <span class="hljs-number">1</span>);</span><span class="ln" data-line="48">            }</span><span class="ln" data-line="49">        }</span><span class="ln" data-line="50">        <span class="hljs-keyword">return</span> best[amount] == Integer.MAX_VALUE ? -<span class="hljs-number">1</span> : best[amount];</span><span class="ln" data-line="51">    }</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="54">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">acts</span> <span class="hljs-operator">=</span> { { <span class="hljs-number">1</span>, <span class="hljs-number">4</span> }, { <span class="hljs-number">3</span>, <span class="hljs-number">5</span> }, { <span class="hljs-number">0</span>, <span class="hljs-number">6</span> }, { <span class="hljs-number">5</span>, <span class="hljs-number">7</span> }, { <span class="hljs-number">3</span>, <span class="hljs-number">9</span> }, { <span class="hljs-number">5</span>, <span class="hljs-number">9</span> }, { <span class="hljs-number">6</span>, <span class="hljs-number">10</span> }, { <span class="hljs-number">8</span>, <span class="hljs-number">11</span> }, { <span class="hljs-number">8</span>, <span class="hljs-number">12</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">14</span> }, { <span class="hljs-number">12</span>, <span class="hljs-number">16</span> } };</span><span class="ln" data-line="55">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="56">        <span class="hljs-type">List</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">kept</span> <span class="hljs-operator">=</span> selectActivities(acts);</span><span class="ln" data-line="57">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] k : kept) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(<span class="hljs-string">&quot;[&quot;</span>).append(k[<span class="hljs-number">0</span>]).append(<span class="hljs-string">&quot;,&quot;</span>).append(k[<span class="hljs-number">1</span>]).append(<span class="hljs-string">&quot;]&quot;</span>);</span><span class="ln" data-line="58">        System.out.println(<span class="hljs-string">&quot;activities chosen: &quot;</span> + sb + <span class="hljs-string">&quot; (&quot;</span> + kept.size() + <span class="hljs-string">&quot; of &quot;</span> + acts.length + <span class="hljs-string">&quot;)&quot;</span>);</span><span class="ln" data-line="59">        System.out.println(<span class="hljs-string">&quot;can jump 2 3 1 1 4: &quot;</span> + canJump(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span> }) + <span class="hljs-string">&quot;, 3 2 1 0 4: &quot;</span> + canJump(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span> }));</span><span class="ln" data-line="60">        <span class="hljs-type">int</span>[] <span class="hljs-variable">us</span> <span class="hljs-operator">=</span> { <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span> }, odd = { <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span> };</span><span class="ln" data-line="61">        System.out.println(<span class="hljs-string">&quot;coins 1 5 10 25, amount 63: greedy &quot;</span> + greedyCoins(us, <span class="hljs-number">63</span>) + <span class="hljs-string">&quot;, optimal &quot;</span> + optimalCoins(us, <span class="hljs-number">63</span>));</span><span class="ln" data-line="62">        System.out.println(<span class="hljs-string">&quot;coins 1 3 4, amount 6: greedy &quot;</span> + greedyCoins(odd, <span class="hljs-number">6</span>) + <span class="hljs-string">&quot;, optimal &quot;</span> + optimalCoins(odd, <span class="hljs-number">6</span>));</span><span class="ln" data-line="63">    }</span><span class="ln" data-line="64">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Solution {
+
+    /** Maximum set of non-overlapping activities: sort by end, keep what fits. */
+    static List&lt;int[]&gt; selectActivities(int[][] activities) {
+        int[][] a = activities.clone();
+        Arrays.sort(a, (x, y) -&gt; Integer.compare(x[1], y[1]));
+        List&lt;int[]&gt; kept = new ArrayList&lt;&gt;();
+        int lastEnd = Integer.MIN_VALUE;
+        for (int[] act : a) {
+            if (act[0] &gt;= lastEnd) { // starts after the last kept one ends
+                kept.add(act);
+                lastEnd = act[1];
+            }
+        }
+        return kept;
+    }
+
+    /** Can you reach the last index? Track the furthest reachable index. */
+    static boolean canJump(int[] nums) {
+        int furthest = 0;
+        for (int i = 0; i &lt; nums.length; i++) {
+            if (i &gt; furthest) return false; // stuck before i
+            furthest = Math.max(furthest, i + nums[i]);
+        }
+        return true;
+    }
+
+    static int greedyCoins(int[] coins, int amount) {
+        int count = 0;
+        for (int i = coins.length - 1; i &gt;= 0; i--) { // coins sorted ascending
+            count += amount / coins[i];
+            amount %= coins[i];
+        }
+        return amount == 0 ? count : -1;
+    }
+
+    static int optimalCoins(int[] coins, int amount) {
+        int[] best = new int[amount + 1];
+        Arrays.fill(best, Integer.MAX_VALUE);
+        best[0] = 0;
+        for (int x = 1; x &lt;= amount; x++) {
+            for (int c : coins) {
+                if (c &lt;= x &amp;&amp; best[x - c] != Integer.MAX_VALUE) best[x] = Math.min(best[x], best[x - c] + 1);
+            }
+        }
+        return best[amount] == Integer.MAX_VALUE ? -1 : best[amount];
+    }
+
+    public static void main(String[] args) {
+        int[][] acts = { { 1, 4 }, { 3, 5 }, { 0, 6 }, { 5, 7 }, { 3, 9 }, { 5, 9 }, { 6, 10 }, { 8, 11 }, { 8, 12 }, { 2, 14 }, { 12, 16 } };
+        StringBuilder sb = new StringBuilder();
+        List&lt;int[]&gt; kept = selectActivities(acts);
+        for (int[] k : kept) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(&quot;[&quot;).append(k[0]).append(&quot;,&quot;).append(k[1]).append(&quot;]&quot;);
+        System.out.println(&quot;activities chosen: &quot; + sb + &quot; (&quot; + kept.size() + &quot; of &quot; + acts.length + &quot;)&quot;);
+        System.out.println(&quot;can jump 2 3 1 1 4: &quot; + canJump(new int[] { 2, 3, 1, 1, 4 }) + &quot;, 3 2 1 0 4: &quot; + canJump(new int[] { 3, 2, 1, 0, 4 }));
+        int[] us = { 1, 5, 10, 25 }, odd = { 1, 3, 4 };
+        System.out.println(&quot;coins 1 5 10 25, amount 63: greedy &quot; + greedyCoins(us, 63) + &quot;, optimal &quot; + optimalCoins(us, 63));
+        System.out.println(&quot;coins 1 3 4, amount 6: greedy &quot; + greedyCoins(odd, 6) + &quot;, optimal &quot; + optimalCoins(odd, 6));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-greedy-technique-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Maximum set of non-overlapping activities: sort by end, keep what fits. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">selectActivities</span>(<span class="hljs-params">activities</span>) {</span><span class="ln" data-line="3">  <span class="hljs-keyword">const</span> sorted = [...activities].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">1</span>] - b[<span class="hljs-number">1</span>]);</span><span class="ln" data-line="4">  <span class="hljs-keyword">const</span> kept = [];</span><span class="ln" data-line="5">  <span class="hljs-keyword">let</span> lastEnd = -<span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="6">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [start, end] <span class="hljs-keyword">of</span> sorted) {</span><span class="ln" data-line="7">    <span class="hljs-keyword">if</span> (start &gt;= lastEnd) {</span><span class="ln" data-line="8">      kept.<span class="hljs-title function_">push</span>([start, end]); <span class="hljs-comment">// starts after the last kept one ends</span></span><span class="ln" data-line="9">      lastEnd = end;</span><span class="ln" data-line="10">    }</span><span class="ln" data-line="11">  }</span><span class="ln" data-line="12">  <span class="hljs-keyword">return</span> kept;</span><span class="ln" data-line="13">}</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-comment">/** Can you reach the last index? Track the furthest reachable index. */</span></span><span class="ln" data-line="16"><span class="hljs-keyword">function</span> <span class="hljs-title function_">canJump</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="17">  <span class="hljs-keyword">let</span> furthest = <span class="hljs-number">0</span>;</span><span class="ln" data-line="18">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="19">    <span class="hljs-keyword">if</span> (i &gt; furthest) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>; <span class="hljs-comment">// stuck before i</span></span><span class="ln" data-line="20">    furthest = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(furthest, i + nums[i]);</span><span class="ln" data-line="21">  }</span><span class="ln" data-line="22">  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="23">}</span><span class="ln" data-line="24"> </span><span class="ln" data-line="25"><span class="hljs-keyword">function</span> <span class="hljs-title function_">greedyCoins</span>(<span class="hljs-params">coins, amount</span>) {</span><span class="ln" data-line="26">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="27">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = coins.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) {</span><span class="ln" data-line="28">    count += <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(amount / coins[i]);</span><span class="ln" data-line="29">    amount %= coins[i];</span><span class="ln" data-line="30">  }</span><span class="ln" data-line="31">  <span class="hljs-keyword">return</span> amount === <span class="hljs-number">0</span> ? count : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="32">}</span><span class="ln" data-line="33"> </span><span class="ln" data-line="34"><span class="hljs-keyword">function</span> <span class="hljs-title function_">optimalCoins</span>(<span class="hljs-params">coins, amount</span>) {</span><span class="ln" data-line="35">  <span class="hljs-keyword">const</span> best = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(amount + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>);</span><span class="ln" data-line="36">  best[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="37">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> x = <span class="hljs-number">1</span>; x &lt;= amount; x++) {</span><span class="ln" data-line="38">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> c <span class="hljs-keyword">of</span> coins) <span class="hljs-keyword">if</span> (c &lt;= x) best[x] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(best[x], best[x - c] + <span class="hljs-number">1</span>);</span><span class="ln" data-line="39">  }</span><span class="ln" data-line="40">  <span class="hljs-keyword">return</span> best[amount] === <span class="hljs-title class_">Infinity</span> ? -<span class="hljs-number">1</span> : best[amount];</span><span class="ln" data-line="41">}</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="44">  <span class="hljs-keyword">const</span> acts = [[<span class="hljs-number">1</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">6</span>], [<span class="hljs-number">5</span>, <span class="hljs-number">7</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">9</span>], [<span class="hljs-number">5</span>, <span class="hljs-number">9</span>], [<span class="hljs-number">6</span>, <span class="hljs-number">10</span>], [<span class="hljs-number">8</span>, <span class="hljs-number">11</span>], [<span class="hljs-number">8</span>, <span class="hljs-number">12</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">14</span>], [<span class="hljs-number">12</span>, <span class="hljs-number">16</span>]];</span><span class="ln" data-line="45">  <span class="hljs-keyword">const</span> kept = <span class="hljs-title function_">selectActivities</span>(acts);</span><span class="ln" data-line="46">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`activities chosen: <span class="hljs-subst">${kept.map(([s, e]) =&gt; <span class="hljs-string">`[<span class="hljs-subst">${s}</span>,<span class="hljs-subst">${e}</span>]`</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span> (<span class="hljs-subst">${kept.length}</span> of <span class="hljs-subst">${acts.length}</span>)`</span>);</span><span class="ln" data-line="47">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`can jump 2 3 1 1 4: <span class="hljs-subst">${canJump([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>])}</span>, 3 2 1 0 4: <span class="hljs-subst">${canJump([<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="48">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`coins 1 5 10 25, amount 63: greedy <span class="hljs-subst">${greedyCoins([<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>], <span class="hljs-number">63</span>)}</span>, optimal <span class="hljs-subst">${optimalCoins([<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>], <span class="hljs-number">63</span>)}</span>`</span>);</span><span class="ln" data-line="49">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`coins 1 3 4, amount 6: greedy <span class="hljs-subst">${greedyCoins([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], <span class="hljs-number">6</span>)}</span>, optimal <span class="hljs-subst">${optimalCoins([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], <span class="hljs-number">6</span>)}</span>`</span>);</span><span class="ln" data-line="50">}</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Maximum set of non-overlapping activities: sort by end, keep what fits. */
+function selectActivities(activities) {
+  const sorted = [...activities].sort((a, b) =&gt; a[1] - b[1]);
+  const kept = [];
+  let lastEnd = -Infinity;
+  for (const [start, end] of sorted) {
+    if (start &gt;= lastEnd) {
+      kept.push([start, end]); // starts after the last kept one ends
+      lastEnd = end;
+    }
+  }
+  return kept;
+}
+
+/** Can you reach the last index? Track the furthest reachable index. */
+function canJump(nums) {
+  let furthest = 0;
+  for (let i = 0; i &lt; nums.length; i++) {
+    if (i &gt; furthest) return false; // stuck before i
+    furthest = Math.max(furthest, i + nums[i]);
+  }
+  return true;
+}
+
+function greedyCoins(coins, amount) {
+  let count = 0;
+  for (let i = coins.length - 1; i &gt;= 0; i--) {
+    count += Math.floor(amount / coins[i]);
+    amount %= coins[i];
+  }
+  return amount === 0 ? count : -1;
+}
+
+function optimalCoins(coins, amount) {
+  const best = new Array(amount + 1).fill(Infinity);
+  best[0] = 0;
+  for (let x = 1; x &lt;= amount; x++) {
+    for (const c of coins) if (c &lt;= x) best[x] = Math.min(best[x], best[x - c] + 1);
+  }
+  return best[amount] === Infinity ? -1 : best[amount];
+}
+
+function main() {
+  const acts = [[1, 4], [3, 5], [0, 6], [5, 7], [3, 9], [5, 9], [6, 10], [8, 11], [8, 12], [2, 14], [12, 16]];
+  const kept = selectActivities(acts);
+  console.log(`activities chosen: ${kept.map(([s, e]) =&gt; `[${s},${e}]`).join(&quot; &quot;)} (${kept.length} of ${acts.length})`);
+  console.log(`can jump 2 3 1 1 4: ${canJump([2, 3, 1, 1, 4])}, 3 2 1 0 4: ${canJump([3, 2, 1, 0, 4])}`);
+  console.log(`coins 1 5 10 25, amount 63: greedy ${greedyCoins([1, 5, 10, 25], 63)}, optimal ${optimalCoins([1, 5, 10, 25], 63)}`);
+  console.log(`coins 1 3 4, amount 6: greedy ${greedyCoins([1, 3, 4], 6)}, optimal ${optimalCoins([1, 3, 4], 6)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-greedy-technique-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">type</span> <span class="hljs-title class_">Interval</span> = [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>];</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-comment">/** Maximum set of non-overlapping activities: sort by end, keep what fits. */</span></span><span class="ln" data-line="4"><span class="hljs-keyword">function</span> <span class="hljs-title function_">selectActivities</span>(<span class="hljs-params"><span class="hljs-attr">activities</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Interval</span>[]</span>): <span class="hljs-title class_">Interval</span>[] {</span><span class="ln" data-line="5">  <span class="hljs-keyword">const</span> sorted = [...activities].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">1</span>] - b[<span class="hljs-number">1</span>]);</span><span class="ln" data-line="6">  <span class="hljs-keyword">const</span> <span class="hljs-attr">kept</span>: <span class="hljs-title class_">Interval</span>[] = [];</span><span class="ln" data-line="7">  <span class="hljs-keyword">let</span> lastEnd = -<span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="8">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [start, end] <span class="hljs-keyword">of</span> sorted) {</span><span class="ln" data-line="9">    <span class="hljs-keyword">if</span> (start &gt;= lastEnd) {</span><span class="ln" data-line="10">      kept.<span class="hljs-title function_">push</span>([start, end]); <span class="hljs-comment">// starts after the last kept one ends</span></span><span class="ln" data-line="11">      lastEnd = end;</span><span class="ln" data-line="12">    }</span><span class="ln" data-line="13">  }</span><span class="ln" data-line="14">  <span class="hljs-keyword">return</span> kept;</span><span class="ln" data-line="15">}</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-comment">/** Can you reach the last index? Track the furthest reachable index. */</span></span><span class="ln" data-line="18"><span class="hljs-keyword">function</span> <span class="hljs-title function_">canJump</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="19">  <span class="hljs-keyword">let</span> furthest = <span class="hljs-number">0</span>;</span><span class="ln" data-line="20">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="21">    <span class="hljs-keyword">if</span> (i &gt; furthest) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>; <span class="hljs-comment">// stuck before i</span></span><span class="ln" data-line="22">    furthest = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(furthest, i + nums[i]);</span><span class="ln" data-line="23">  }</span><span class="ln" data-line="24">  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="25">}</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"><span class="hljs-keyword">function</span> <span class="hljs-title function_">greedyCoins</span>(<span class="hljs-params"><span class="hljs-attr">coins</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">amount</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="28">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="29">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = coins.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) {</span><span class="ln" data-line="30">    count += <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(amount / coins[i]);</span><span class="ln" data-line="31">    amount %= coins[i];</span><span class="ln" data-line="32">  }</span><span class="ln" data-line="33">  <span class="hljs-keyword">return</span> amount === <span class="hljs-number">0</span> ? count : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="34">}</span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"><span class="hljs-keyword">function</span> <span class="hljs-title function_">optimalCoins</span>(<span class="hljs-params"><span class="hljs-attr">coins</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">amount</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="37">  <span class="hljs-keyword">const</span> <span class="hljs-attr">best</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(amount + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>);</span><span class="ln" data-line="38">  best[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="39">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> x = <span class="hljs-number">1</span>; x &lt;= amount; x++) {</span><span class="ln" data-line="40">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> c <span class="hljs-keyword">of</span> coins) <span class="hljs-keyword">if</span> (c &lt;= x) best[x] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(best[x], best[x - c] + <span class="hljs-number">1</span>);</span><span class="ln" data-line="41">  }</span><span class="ln" data-line="42">  <span class="hljs-keyword">return</span> best[amount] === <span class="hljs-title class_">Infinity</span> ? -<span class="hljs-number">1</span> : best[amount];</span><span class="ln" data-line="43">}</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="46">  <span class="hljs-keyword">const</span> <span class="hljs-attr">acts</span>: <span class="hljs-title class_">Interval</span>[] = [[<span class="hljs-number">1</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">6</span>], [<span class="hljs-number">5</span>, <span class="hljs-number">7</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">9</span>], [<span class="hljs-number">5</span>, <span class="hljs-number">9</span>], [<span class="hljs-number">6</span>, <span class="hljs-number">10</span>], [<span class="hljs-number">8</span>, <span class="hljs-number">11</span>], [<span class="hljs-number">8</span>, <span class="hljs-number">12</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">14</span>], [<span class="hljs-number">12</span>, <span class="hljs-number">16</span>]];</span><span class="ln" data-line="47">  <span class="hljs-keyword">const</span> kept = <span class="hljs-title function_">selectActivities</span>(acts);</span><span class="ln" data-line="48">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`activities chosen: <span class="hljs-subst">${kept.map(([s, e]) =&gt; <span class="hljs-string">`[<span class="hljs-subst">${s}</span>,<span class="hljs-subst">${e}</span>]`</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span> (<span class="hljs-subst">${kept.length}</span> of <span class="hljs-subst">${acts.length}</span>)`</span>);</span><span class="ln" data-line="49">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`can jump 2 3 1 1 4: <span class="hljs-subst">${canJump([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>])}</span>, 3 2 1 0 4: <span class="hljs-subst">${canJump([<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="50">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`coins 1 5 10 25, amount 63: greedy <span class="hljs-subst">${greedyCoins([<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>], <span class="hljs-number">63</span>)}</span>, optimal <span class="hljs-subst">${optimalCoins([<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>], <span class="hljs-number">63</span>)}</span>`</span>);</span><span class="ln" data-line="51">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`coins 1 3 4, amount 6: greedy <span class="hljs-subst">${greedyCoins([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], <span class="hljs-number">6</span>)}</span>, optimal <span class="hljs-subst">${optimalCoins([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], <span class="hljs-number">6</span>)}</span>`</span>);</span><span class="ln" data-line="52">}</span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">type Interval = [number, number];
+
+/** Maximum set of non-overlapping activities: sort by end, keep what fits. */
+function selectActivities(activities: readonly Interval[]): Interval[] {
+  const sorted = [...activities].sort((a, b) =&gt; a[1] - b[1]);
+  const kept: Interval[] = [];
+  let lastEnd = -Infinity;
+  for (const [start, end] of sorted) {
+    if (start &gt;= lastEnd) {
+      kept.push([start, end]); // starts after the last kept one ends
+      lastEnd = end;
+    }
+  }
+  return kept;
+}
+
+/** Can you reach the last index? Track the furthest reachable index. */
+function canJump(nums: readonly number[]): boolean {
+  let furthest = 0;
+  for (let i = 0; i &lt; nums.length; i++) {
+    if (i &gt; furthest) return false; // stuck before i
+    furthest = Math.max(furthest, i + nums[i]);
+  }
+  return true;
+}
+
+function greedyCoins(coins: readonly number[], amount: number): number {
+  let count = 0;
+  for (let i = coins.length - 1; i &gt;= 0; i--) {
+    count += Math.floor(amount / coins[i]);
+    amount %= coins[i];
+  }
+  return amount === 0 ? count : -1;
+}
+
+function optimalCoins(coins: readonly number[], amount: number): number {
+  const best: number[] = new Array(amount + 1).fill(Infinity);
+  best[0] = 0;
+  for (let x = 1; x &lt;= amount; x++) {
+    for (const c of coins) if (c &lt;= x) best[x] = Math.min(best[x], best[x - c] + 1);
+  }
+  return best[amount] === Infinity ? -1 : best[amount];
+}
+
+function main(): void {
+  const acts: Interval[] = [[1, 4], [3, 5], [0, 6], [5, 7], [3, 9], [5, 9], [6, 10], [8, 11], [8, 12], [2, 14], [12, 16]];
+  const kept = selectActivities(acts);
+  console.log(`activities chosen: ${kept.map(([s, e]) =&gt; `[${s},${e}]`).join(&quot; &quot;)} (${kept.length} of ${acts.length})`);
+  console.log(`can jump 2 3 1 1 4: ${canJump([2, 3, 1, 1, 4])}, 3 2 1 0 4: ${canJump([3, 2, 1, 0, 4])}`);
+  console.log(`coins 1 5 10 25, amount 63: greedy ${greedyCoins([1, 5, 10, 25], 63)}, optimal ${optimalCoins([1, 5, 10, 25], 63)}`);
+  console.log(`coins 1 3 4, amount 6: greedy ${greedyCoins([1, 3, 4], 6)}, optimal ${optimalCoins([1, 3, 4], 6)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-greedy-technique-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Tuple</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">select_activities</span>(<span class="hljs-params">activities: <span class="hljs-type">List</span>[<span class="hljs-type">Tuple</span>[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-type">Tuple</span>[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>]]:</span><span class="ln" data-line="5">    <span class="hljs-string">&quot;&quot;&quot;Maximum set of non-overlapping activities: sort by end, keep what fits.&quot;&quot;&quot;</span></span><span class="ln" data-line="6">    kept, last_end = [], <span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;-inf&quot;</span>)</span><span class="ln" data-line="7">    <span class="hljs-keyword">for</span> start, end <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(activities, key=<span class="hljs-keyword">lambda</span> a: a[<span class="hljs-number">1</span>]):</span><span class="ln" data-line="8">        <span class="hljs-keyword">if</span> start &gt;= last_end:  <span class="hljs-comment"># starts after the last kept one ends</span></span><span class="ln" data-line="9">            kept.append((start, end))</span><span class="ln" data-line="10">            last_end = end</span><span class="ln" data-line="11">    <span class="hljs-keyword">return</span> kept</span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"><span class="hljs-keyword">def</span> <span class="hljs-title function_">can_jump</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="15">    <span class="hljs-string">&quot;&quot;&quot;Can you reach the last index? Track the furthest reachable index.&quot;&quot;&quot;</span></span><span class="ln" data-line="16">    furthest = <span class="hljs-number">0</span></span><span class="ln" data-line="17">    <span class="hljs-keyword">for</span> i, n <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(nums):</span><span class="ln" data-line="18">        <span class="hljs-keyword">if</span> i &gt; furthest:  <span class="hljs-comment"># stuck before i</span></span><span class="ln" data-line="19">            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span></span><span class="ln" data-line="20">        furthest = <span class="hljs-built_in">max</span>(furthest, i + n)</span><span class="ln" data-line="21">    <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span></span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">def</span> <span class="hljs-title function_">greedy_coins</span>(<span class="hljs-params">coins: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], amount: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="25">    count = <span class="hljs-number">0</span></span><span class="ln" data-line="26">    <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> <span class="hljs-built_in">reversed</span>(coins):</span><span class="ln" data-line="27">        count += amount // c</span><span class="ln" data-line="28">        amount %= c</span><span class="ln" data-line="29">    <span class="hljs-keyword">return</span> count <span class="hljs-keyword">if</span> amount == <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span></span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-keyword">def</span> <span class="hljs-title function_">optimal_coins</span>(<span class="hljs-params">coins: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], amount: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="33">    inf = <span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;inf&quot;</span>)</span><span class="ln" data-line="34">    best = [<span class="hljs-number">0</span>] + [inf] * amount</span><span class="ln" data-line="35">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, amount + <span class="hljs-number">1</span>):</span><span class="ln" data-line="36">        <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> coins:</span><span class="ln" data-line="37">            <span class="hljs-keyword">if</span> c &lt;= x:</span><span class="ln" data-line="38">                best[x] = <span class="hljs-built_in">min</span>(best[x], best[x - c] + <span class="hljs-number">1</span>)</span><span class="ln" data-line="39">    <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> best[amount] == inf <span class="hljs-keyword">else</span> best[amount]</span><span class="ln" data-line="40"> </span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="43">    acts = [(<span class="hljs-number">1</span>, <span class="hljs-number">4</span>), (<span class="hljs-number">3</span>, <span class="hljs-number">5</span>), (<span class="hljs-number">0</span>, <span class="hljs-number">6</span>), (<span class="hljs-number">5</span>, <span class="hljs-number">7</span>), (<span class="hljs-number">3</span>, <span class="hljs-number">9</span>), (<span class="hljs-number">5</span>, <span class="hljs-number">9</span>), (<span class="hljs-number">6</span>, <span class="hljs-number">10</span>), (<span class="hljs-number">8</span>, <span class="hljs-number">11</span>), (<span class="hljs-number">8</span>, <span class="hljs-number">12</span>), (<span class="hljs-number">2</span>, <span class="hljs-number">14</span>), (<span class="hljs-number">12</span>, <span class="hljs-number">16</span>)]</span><span class="ln" data-line="44">    kept = select_activities(acts)</span><span class="ln" data-line="45">    chosen = <span class="hljs-string">&quot; &quot;</span>.join(<span class="hljs-string">f&quot;[<span class="hljs-subst">{s}</span>,<span class="hljs-subst">{e}</span>]&quot;</span> <span class="hljs-keyword">for</span> s, e <span class="hljs-keyword">in</span> kept)</span><span class="ln" data-line="46">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;activities chosen: <span class="hljs-subst">{chosen}</span> (<span class="hljs-subst">{<span class="hljs-built_in">len</span>(kept)}</span> of <span class="hljs-subst">{<span class="hljs-built_in">len</span>(acts)}</span>)&quot;</span>)</span><span class="ln" data-line="47">    a, b = can_jump([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>]), can_jump([<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span>])</span><span class="ln" data-line="48">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;can jump 2 3 1 1 4: <span class="hljs-subst">{<span class="hljs-built_in">str</span>(a).lower()}</span>, 3 2 1 0 4: <span class="hljs-subst">{<span class="hljs-built_in">str</span>(b).lower()}</span>&quot;</span>)</span><span class="ln" data-line="49">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;coins 1 5 10 25, amount 63: greedy <span class="hljs-subst">{greedy_coins([<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>], <span class="hljs-number">63</span>)}</span>, optimal <span class="hljs-subst">{optimal_coins([<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">25</span>], <span class="hljs-number">63</span>)}</span>&quot;</span>)</span><span class="ln" data-line="50">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;coins 1 3 4, amount 6: greedy <span class="hljs-subst">{greedy_coins([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], <span class="hljs-number">6</span>)}</span>, optimal <span class="hljs-subst">{optimal_coins([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], <span class="hljs-number">6</span>)}</span>&quot;</span>)</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="54">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List, Tuple
+
+
+def select_activities(activities: List[Tuple[int, int]]) -&gt; List[Tuple[int, int]]:
+    &quot;&quot;&quot;Maximum set of non-overlapping activities: sort by end, keep what fits.&quot;&quot;&quot;
+    kept, last_end = [], float(&quot;-inf&quot;)
+    for start, end in sorted(activities, key=lambda a: a[1]):
+        if start &gt;= last_end:  # starts after the last kept one ends
+            kept.append((start, end))
+            last_end = end
+    return kept
+
+
+def can_jump(nums: List[int]) -&gt; bool:
+    &quot;&quot;&quot;Can you reach the last index? Track the furthest reachable index.&quot;&quot;&quot;
+    furthest = 0
+    for i, n in enumerate(nums):
+        if i &gt; furthest:  # stuck before i
+            return False
+        furthest = max(furthest, i + n)
+    return True
+
+
+def greedy_coins(coins: List[int], amount: int) -&gt; int:
+    count = 0
+    for c in reversed(coins):
+        count += amount // c
+        amount %= c
+    return count if amount == 0 else -1
+
+
+def optimal_coins(coins: List[int], amount: int) -&gt; int:
+    inf = float(&quot;inf&quot;)
+    best = [0] + [inf] * amount
+    for x in range(1, amount + 1):
+        for c in coins:
+            if c &lt;= x:
+                best[x] = min(best[x], best[x - c] + 1)
+    return -1 if best[amount] == inf else best[amount]
+
+
+def main() -&gt; None:
+    acts = [(1, 4), (3, 5), (0, 6), (5, 7), (3, 9), (5, 9), (6, 10), (8, 11), (8, 12), (2, 14), (12, 16)]
+    kept = select_activities(acts)
+    chosen = &quot; &quot;.join(f&quot;[{s},{e}]&quot; for s, e in kept)
+    print(f&quot;activities chosen: {chosen} ({len(kept)} of {len(acts)})&quot;)
+    a, b = can_jump([2, 3, 1, 1, 4]), can_jump([3, 2, 1, 0, 4])
+    print(f&quot;can jump 2 3 1 1 4: {str(a).lower()}, 3 2 1 0 4: {str(b).lower()}&quot;)
+    print(f&quot;coins 1 5 10 25, amount 63: greedy {greedy_coins([1, 5, 10, 25], 63)}, optimal {optimal_coins([1, 5, 10, 25], 63)}&quot;)
+    print(f&quot;coins 1 3 4, amount 6: greedy {greedy_coins([1, 3, 4], 6)}, optimal {optimal_coins([1, 3, 4], 6)}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>activities chosen: [1,4] [5,7] [8,11] [12,16] (4 of 11)
+can jump 2 3 1 1 4: true, 3 2 1 0 4: false
+coins 1 5 10 25, amount 63: greedy 6, optimal 6
+coins 1 3 4, amount 6: greedy 3, optimal 2</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Assuming greedy works without checking a counterexample. Try small inputs by hand first.</li><li>Sorting by the wrong key: start time instead of end time for maximum non-overlapping intervals.</li><li>Using <code>&gt;</code> where the problem allows touching intervals (<code>&gt;=</code>), or the other way round.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/assign-cookies/" rel="noopener" target="_blank">Assign Cookies<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>455</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/jump-game/" rel="noopener" target="_blank">Jump Game<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>55</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/non-overlapping-intervals/" rel="noopener" target="_blank">Non-overlapping Intervals<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>435</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/gas-station/" rel="noopener" target="_blank">Gas Station<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>134</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/" rel="noopener" target="_blank">Minimum Number of Arrows to Burst Balloons<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>452</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/coin-change/" rel="noopener" target="_blank">Coin Change<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Where greedy fails: solve it with DP.</span></td><td>322</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Used by <a href="../../patterns/greedy/index.html">Greedy</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../divide-and-conquer/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Divide and conquer</span></a><a class="pn pn-next" href="../dynamic-programming/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Dynamic programming</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

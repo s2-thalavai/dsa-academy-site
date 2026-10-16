@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prefix sum · DSA Academy</title>
+<meta name="description" content="Precompute running totals so any range sum is one subtraction.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Prefix sum</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Prefix sum</h1>
+  <p class="lede">A prefix sum array stores running totals, so the sum of any range is one subtraction. Combined with a hash map, it also counts subarrays with a given sum in one pass.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A car&#39;s odometer. To find how far you drove between two towns, you don&#39;t add up every kilometre; you subtract the reading at the first town from the reading at the second.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Many questions about the <strong>sum of a range</strong> <code>a[l..r]</code> on an array that doesn&#39;t change.</li>
+<li>Counting subarrays whose sum equals, or is divisible by, some k.</li>
+<li>Balancing left and right totals: pivot index, equal partitions.</li>
+<li>2D versions: sums of rectangles in a grid.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">prefix[0] = a[0]
+for i from 1 to n − 1: prefix[i] = prefix[i − 1] + a[i]
+sum(l..r) = prefix[r] − (l &gt; 0 ? prefix[l − 1] : 0)
+
+Count subarrays with sum k:
+    seen = {0: 1}; running = 0; count = 0
+    for x in a:
+        running += x
+        count += seen[running − k]        ← earlier prefixes that leave exactly k
+        seen[running] += 1
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>Once <code>prefix[i]</code> holds <code>a[0] + … + a[i]</code>, the sum from <code>l</code> to <code>r</code> is everything
+up to <code>r</code> minus everything before <code>l</code>. Building the array takes one pass, and
+every query after that is O(1).</p>
+<p>The counting trick turns that around: a subarray ending at <code>i</code> sums to <code>k</code>
+exactly when some earlier running total equals <code>running − k</code>. A hash map of how
+many times each running total has appeared answers that in O(1), so the whole
+count is one O(n) pass. This works with negative numbers, where a sliding window
+doesn&#39;t.</p>
+<section class="player" id="player-prefix-sum" data-player="{&quot;visualizer&quot;:&quot;prefix-sum&quot;,&quot;input&quot;:{&quot;nums&quot;:[3,1,4,1,5,9,2],&quot;l&quot;:2,&quot;r&quot;:5},&quot;codeId&quot;:&quot;code-prefix-sum&quot;,&quot;autoplay&quot;:false}" aria-label="Building running totals, then answering a range sum with one subtraction">
+  <div class="v-stage" aria-hidden="true"></div>
+  <p class="caption" aria-live="polite"></p>
+  <div class="controls">
+    <button type="button" class="ctl" data-act="restart" aria-label="Restart">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5v6h6"/><path d="M5.5 15a7 7 0 1 0 1.6-7.3L4 11"/></svg></button>
+    <button type="button" class="ctl" data-act="back" aria-label="Step back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button type="button" class="ctl ctl-play" data-act="play" aria-label="Play">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="i-play"><path d="M7 4.5v15l12-7.5z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="i-pause"><path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z"/></svg></button>
+    <button type="button" class="ctl" data-act="forward" aria-label="Step forward">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    <span class="counter" data-counter>Step 1 of 1</span>
+    <label class="speed"><span class="vh">Speed</span>
+      <select data-speed aria-label="Animation speed">
+        <option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="650">Fast</option>
+      </select></label>
+  </div>
+  <details class="try" open>
+    <summary>Try your own input</summary>
+    <form class="try-form" novalidate>
+      <label class="field"><span class="field-label">Numbers</span><input type="text" name="nums" value="3, 1, 4, 1, 5, 9, 2" inputmode="text" autocomplete="off" spellcheck="false" aria-describedby="player-prefix-sum-nums-hint"><span class="field-hint" id="player-prefix-sum-nums-hint">2 to 10 whole numbers</span></label><label class="field"><span class="field-label">Query from</span><input type="text" name="l" value="2" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="player-prefix-sum-l-hint"><span class="field-hint" id="player-prefix-sum-l-hint">start index</span></label><label class="field"><span class="field-label">Query to</span><input type="text" name="r" value="5" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="player-prefix-sum-r-hint"><span class="field-hint" id="player-prefix-sum-r-hint">end index</span></label>
+      <button type="submit" class="btn btn-small">Run animation</button>
+      <p class="form-error" role="alert"></p>
+    </form>
+  </details>
+</section>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Build the prefix array</td><td class="nowrap">O(n) time, O(n) space</td><td>One addition per element.</td></tr><tr><td>Range sum query</td><td class="nowrap">O(1)</td><td>One subtraction.</td></tr><tr><td>Count subarrays with sum k</td><td class="nowrap">O(n) time, O(n) space</td><td>One pass with a hash map of running totals.</td></tr><tr><td>2D prefix sums</td><td class="nowrap">O(R × C) build, O(1) per rectangle</td><td>Inclusion–exclusion with four lookups.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>The prefix array uses inclusive totals, matching the animation. <code>subarraySum</code> shows the running-total-plus-hash-map version.</p><figure class="codeblock" id="code-prefix-sum" aria-label="Range sums, counting subarrays with sum k and the pivot index">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-prefix-sum-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-prefix-sum-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-prefix-sum-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-prefix-sum-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-prefix-sum-java" data-lang="java" data-anchors="{&quot;init&quot;:[8],&quot;add&quot;:[10],&quot;query&quot;:[16]}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.HashMap;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.Map;</span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">    <span class="hljs-keyword">static</span> <span class="hljs-type">long</span>[] <span class="hljs-title function_">buildPrefix</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a)</span> {</span><span class="ln" data-line="7">        <span class="hljs-type">long</span>[] <span class="hljs-variable">prefix</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">long</span>[a.length];</span><span class="ln" data-line="8">        prefix[<span class="hljs-number">0</span>] = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="9">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; a.length; i++) {</span><span class="ln" data-line="10">            prefix[i] = prefix[i - <span class="hljs-number">1</span>] + a[i];</span><span class="ln" data-line="11">        }</span><span class="ln" data-line="12">        <span class="hljs-keyword">return</span> prefix;</span><span class="ln" data-line="13">    }</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15">    <span class="hljs-keyword">static</span> <span class="hljs-type">long</span> <span class="hljs-title function_">rangeSum</span><span class="hljs-params">(<span class="hljs-type">long</span>[] prefix, <span class="hljs-type">int</span> l, <span class="hljs-type">int</span> r)</span> {</span><span class="ln" data-line="16">        <span class="hljs-keyword">return</span> prefix[r] - (l &gt; <span class="hljs-number">0</span> ? prefix[l - <span class="hljs-number">1</span>] : <span class="hljs-number">0</span>);</span><span class="ln" data-line="17">    }</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">subarraySum</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums, <span class="hljs-type">int</span> k)</span> {</span><span class="ln" data-line="20">        <span class="hljs-type">Map</span>&lt;Long, Integer&gt; <span class="hljs-variable">seen</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();</span><span class="ln" data-line="21">        seen.put(<span class="hljs-number">0L</span>, <span class="hljs-number">1</span>); <span class="hljs-comment">// the empty prefix, for subarrays starting at index 0</span></span><span class="ln" data-line="22">        <span class="hljs-type">long</span> <span class="hljs-variable">running</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="23">        <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="24">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : nums) {</span><span class="ln" data-line="25">            running += x;</span><span class="ln" data-line="26">            count += seen.getOrDefault(running - k, <span class="hljs-number">0</span>);</span><span class="ln" data-line="27">            seen.merge(running, <span class="hljs-number">1</span>, Integer::sum);</span><span class="ln" data-line="28">        }</span><span class="ln" data-line="29">        <span class="hljs-keyword">return</span> count;</span><span class="ln" data-line="30">    }</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">pivotIndex</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="33">        <span class="hljs-type">long</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, left = <span class="hljs-number">0</span>;</span><span class="ln" data-line="34">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : nums) total += x;</span><span class="ln" data-line="35">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; nums.length; i++) {</span><span class="ln" data-line="36">            <span class="hljs-keyword">if</span> (left == total - left - nums[i]) <span class="hljs-keyword">return</span> i;</span><span class="ln" data-line="37">            left += nums[i];</span><span class="ln" data-line="38">        }</span><span class="ln" data-line="39">        <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="40">    }</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="43">        <span class="hljs-type">int</span>[] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> { <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">9</span>, <span class="hljs-number">2</span> };</span><span class="ln" data-line="44">        <span class="hljs-type">long</span>[] <span class="hljs-variable">prefix</span> <span class="hljs-operator">=</span> buildPrefix(a);</span><span class="ln" data-line="45">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="46">        <span class="hljs-keyword">for</span> (<span class="hljs-type">long</span> p : prefix) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(p);</span><span class="ln" data-line="47">        System.out.println(<span class="hljs-string">&quot;prefix of 3 1 4 1 5 9 2: &quot;</span> + sb);</span><span class="ln" data-line="48">        System.out.println(<span class="hljs-string">&quot;sum(2..5) = &quot;</span> + rangeSum(prefix, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>) + <span class="hljs-string">&quot;, sum(0..6) = &quot;</span> + rangeSum(prefix, <span class="hljs-number">0</span>, <span class="hljs-number">6</span>));</span><span class="ln" data-line="49">        System.out.println(<span class="hljs-string">&quot;subarrays of [1, 1, 1] summing to 2: &quot;</span> + subarraySum(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span> }, <span class="hljs-number">2</span>)</span><span class="ln" data-line="50">                + <span class="hljs-string">&quot;, of [1, -1, 0] summing to 0: &quot;</span> + subarraySum(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, <span class="hljs-number">0</span>));</span><span class="ln" data-line="51">        System.out.println(<span class="hljs-string">&quot;pivot index of [1, 7, 3, 6, 5, 6]: &quot;</span> + pivotIndex(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">7</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span> }));</span><span class="ln" data-line="52">    }</span><span class="ln" data-line="53">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.HashMap;
+import java.util.Map;
+
+public class Solution {
+
+    static long[] buildPrefix(int[] a) {
+        long[] prefix = new long[a.length];
+        prefix[0] = a[0];
+        for (int i = 1; i &lt; a.length; i++) {
+            prefix[i] = prefix[i - 1] + a[i];
+        }
+        return prefix;
+    }
+
+    static long rangeSum(long[] prefix, int l, int r) {
+        return prefix[r] - (l &gt; 0 ? prefix[l - 1] : 0);
+    }
+
+    static int subarraySum(int[] nums, int k) {
+        Map&lt;Long, Integer&gt; seen = new HashMap&lt;&gt;();
+        seen.put(0L, 1); // the empty prefix, for subarrays starting at index 0
+        long running = 0;
+        int count = 0;
+        for (int x : nums) {
+            running += x;
+            count += seen.getOrDefault(running - k, 0);
+            seen.merge(running, 1, Integer::sum);
+        }
+        return count;
+    }
+
+    static int pivotIndex(int[] nums) {
+        long total = 0, left = 0;
+        for (int x : nums) total += x;
+        for (int i = 0; i &lt; nums.length; i++) {
+            if (left == total - left - nums[i]) return i;
+            left += nums[i];
+        }
+        return -1;
+    }
+
+    public static void main(String[] args) {
+        int[] a = { 3, 1, 4, 1, 5, 9, 2 };
+        long[] prefix = buildPrefix(a);
+        StringBuilder sb = new StringBuilder();
+        for (long p : prefix) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(p);
+        System.out.println(&quot;prefix of 3 1 4 1 5 9 2: &quot; + sb);
+        System.out.println(&quot;sum(2..5) = &quot; + rangeSum(prefix, 2, 5) + &quot;, sum(0..6) = &quot; + rangeSum(prefix, 0, 6));
+        System.out.println(&quot;subarrays of [1, 1, 1] summing to 2: &quot; + subarraySum(new int[] { 1, 1, 1 }, 2)
+                + &quot;, of [1, -1, 0] summing to 0: &quot; + subarraySum(new int[] { 1, -1, 0 }, 0));
+        System.out.println(&quot;pivot index of [1, 7, 3, 6, 5, 6]: &quot; + pivotIndex(new int[] { 1, 7, 3, 6, 5, 6 }));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-prefix-sum-javascript" data-lang="javascript" data-anchors="{&quot;init&quot;:[3],&quot;add&quot;:[5],&quot;query&quot;:[11]}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">buildPrefix</span>(<span class="hljs-params">a</span>) {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> prefix = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(a.<span class="hljs-property">length</span>);</span><span class="ln" data-line="3">  prefix[<span class="hljs-number">0</span>] = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="4">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; a.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="5">    prefix[i] = prefix[i - <span class="hljs-number">1</span>] + a[i];</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">return</span> prefix;</span><span class="ln" data-line="8">}</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-keyword">function</span> <span class="hljs-title function_">rangeSum</span>(<span class="hljs-params">prefix, l, r</span>) {</span><span class="ln" data-line="11">  <span class="hljs-keyword">return</span> prefix[r] - (l &gt; <span class="hljs-number">0</span> ? prefix[l - <span class="hljs-number">1</span>] : <span class="hljs-number">0</span>);</span><span class="ln" data-line="12">}</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"><span class="hljs-keyword">function</span> <span class="hljs-title function_">subarraySum</span>(<span class="hljs-params">nums, k</span>) {</span><span class="ln" data-line="15">  <span class="hljs-keyword">const</span> seen = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>([[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]]); <span class="hljs-comment">// the empty prefix, for subarrays starting at index 0</span></span><span class="ln" data-line="16">  <span class="hljs-keyword">let</span> running = <span class="hljs-number">0</span>;</span><span class="ln" data-line="17">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="18">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) {</span><span class="ln" data-line="19">    running += x;</span><span class="ln" data-line="20">    count += seen.<span class="hljs-title function_">get</span>(running - k) ?? <span class="hljs-number">0</span>;</span><span class="ln" data-line="21">    seen.<span class="hljs-title function_">set</span>(running, (seen.<span class="hljs-title function_">get</span>(running) ?? <span class="hljs-number">0</span>) + <span class="hljs-number">1</span>);</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">  <span class="hljs-keyword">return</span> count;</span><span class="ln" data-line="24">}</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"><span class="hljs-keyword">function</span> <span class="hljs-title function_">pivotIndex</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="27">  <span class="hljs-keyword">const</span> total = nums.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="28">  <span class="hljs-keyword">let</span> left = <span class="hljs-number">0</span>;</span><span class="ln" data-line="29">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="30">    <span class="hljs-keyword">if</span> (left === total - left - nums[i]) <span class="hljs-keyword">return</span> i;</span><span class="ln" data-line="31">    left += nums[i];</span><span class="ln" data-line="32">  }</span><span class="ln" data-line="33">  <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="34">}</span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="37">  <span class="hljs-keyword">const</span> prefix = <span class="hljs-title function_">buildPrefix</span>([<span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">9</span>, <span class="hljs-number">2</span>]);</span><span class="ln" data-line="38">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`prefix of 3 1 4 1 5 9 2: <span class="hljs-subst">${prefix.join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="39">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`sum(2..5) = <span class="hljs-subst">${rangeSum(prefix, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>)}</span>, sum(0..6) = <span class="hljs-subst">${rangeSum(prefix, <span class="hljs-number">0</span>, <span class="hljs-number">6</span>)}</span>`</span>);</span><span class="ln" data-line="40">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`subarrays of [1, 1, 1] summing to 2: <span class="hljs-subst">${subarraySum([<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], <span class="hljs-number">2</span>)}</span>, of [1, -1, 0] summing to 0: <span class="hljs-subst">${subarraySum([<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], <span class="hljs-number">0</span>)}</span>`</span>);</span><span class="ln" data-line="41">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`pivot index of [1, 7, 3, 6, 5, 6]: <span class="hljs-subst">${pivotIndex([<span class="hljs-number">1</span>, <span class="hljs-number">7</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>])}</span>`</span>);</span><span class="ln" data-line="42">}</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function buildPrefix(a) {
+  const prefix = new Array(a.length);
+  prefix[0] = a[0];
+  for (let i = 1; i &lt; a.length; i++) {
+    prefix[i] = prefix[i - 1] + a[i];
+  }
+  return prefix;
+}
+
+function rangeSum(prefix, l, r) {
+  return prefix[r] - (l &gt; 0 ? prefix[l - 1] : 0);
+}
+
+function subarraySum(nums, k) {
+  const seen = new Map([[0, 1]]); // the empty prefix, for subarrays starting at index 0
+  let running = 0;
+  let count = 0;
+  for (const x of nums) {
+    running += x;
+    count += seen.get(running - k) ?? 0;
+    seen.set(running, (seen.get(running) ?? 0) + 1);
+  }
+  return count;
+}
+
+function pivotIndex(nums) {
+  const total = nums.reduce((s, x) =&gt; s + x, 0);
+  let left = 0;
+  for (let i = 0; i &lt; nums.length; i++) {
+    if (left === total - left - nums[i]) return i;
+    left += nums[i];
+  }
+  return -1;
+}
+
+function main() {
+  const prefix = buildPrefix([3, 1, 4, 1, 5, 9, 2]);
+  console.log(`prefix of 3 1 4 1 5 9 2: ${prefix.join(&quot; &quot;)}`);
+  console.log(`sum(2..5) = ${rangeSum(prefix, 2, 5)}, sum(0..6) = ${rangeSum(prefix, 0, 6)}`);
+  console.log(`subarrays of [1, 1, 1] summing to 2: ${subarraySum([1, 1, 1], 2)}, of [1, -1, 0] summing to 0: ${subarraySum([1, -1, 0], 0)}`);
+  console.log(`pivot index of [1, 7, 3, 6, 5, 6]: ${pivotIndex([1, 7, 3, 6, 5, 6])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-prefix-sum-typescript" data-lang="typescript" data-anchors="{&quot;init&quot;:[3],&quot;add&quot;:[5],&quot;query&quot;:[11]}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">buildPrefix</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> <span class="hljs-attr">prefix</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(a.<span class="hljs-property">length</span>);</span><span class="ln" data-line="3">  prefix[<span class="hljs-number">0</span>] = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="4">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; a.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="5">    prefix[i] = prefix[i - <span class="hljs-number">1</span>] + a[i];</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">return</span> prefix;</span><span class="ln" data-line="8">}</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-keyword">function</span> <span class="hljs-title function_">rangeSum</span>(<span class="hljs-params"><span class="hljs-attr">prefix</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">l</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">r</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="11">  <span class="hljs-keyword">return</span> prefix[r] - (l &gt; <span class="hljs-number">0</span> ? prefix[l - <span class="hljs-number">1</span>] : <span class="hljs-number">0</span>);</span><span class="ln" data-line="12">}</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"><span class="hljs-keyword">function</span> <span class="hljs-title function_">subarraySum</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="15">  <span class="hljs-keyword">const</span> seen = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>&gt;([[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]]); <span class="hljs-comment">// the empty prefix, for subarrays starting at index 0</span></span><span class="ln" data-line="16">  <span class="hljs-keyword">let</span> running = <span class="hljs-number">0</span>;</span><span class="ln" data-line="17">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="18">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) {</span><span class="ln" data-line="19">    running += x;</span><span class="ln" data-line="20">    count += seen.<span class="hljs-title function_">get</span>(running - k) ?? <span class="hljs-number">0</span>;</span><span class="ln" data-line="21">    seen.<span class="hljs-title function_">set</span>(running, (seen.<span class="hljs-title function_">get</span>(running) ?? <span class="hljs-number">0</span>) + <span class="hljs-number">1</span>);</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">  <span class="hljs-keyword">return</span> count;</span><span class="ln" data-line="24">}</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"><span class="hljs-keyword">function</span> <span class="hljs-title function_">pivotIndex</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="27">  <span class="hljs-keyword">const</span> total = nums.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="28">  <span class="hljs-keyword">let</span> left = <span class="hljs-number">0</span>;</span><span class="ln" data-line="29">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="30">    <span class="hljs-keyword">if</span> (left === total - left - nums[i]) <span class="hljs-keyword">return</span> i;</span><span class="ln" data-line="31">    left += nums[i];</span><span class="ln" data-line="32">  }</span><span class="ln" data-line="33">  <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="34">}</span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="37">  <span class="hljs-keyword">const</span> prefix = <span class="hljs-title function_">buildPrefix</span>([<span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">9</span>, <span class="hljs-number">2</span>]);</span><span class="ln" data-line="38">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`prefix of 3 1 4 1 5 9 2: <span class="hljs-subst">${prefix.join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="39">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`sum(2..5) = <span class="hljs-subst">${rangeSum(prefix, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>)}</span>, sum(0..6) = <span class="hljs-subst">${rangeSum(prefix, <span class="hljs-number">0</span>, <span class="hljs-number">6</span>)}</span>`</span>);</span><span class="ln" data-line="40">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`subarrays of [1, 1, 1] summing to 2: <span class="hljs-subst">${subarraySum([<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], <span class="hljs-number">2</span>)}</span>, of [1, -1, 0] summing to 0: <span class="hljs-subst">${subarraySum([<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], <span class="hljs-number">0</span>)}</span>`</span>);</span><span class="ln" data-line="41">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`pivot index of [1, 7, 3, 6, 5, 6]: <span class="hljs-subst">${pivotIndex([<span class="hljs-number">1</span>, <span class="hljs-number">7</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>])}</span>`</span>);</span><span class="ln" data-line="42">}</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function buildPrefix(a: readonly number[]): number[] {
+  const prefix: number[] = new Array(a.length);
+  prefix[0] = a[0];
+  for (let i = 1; i &lt; a.length; i++) {
+    prefix[i] = prefix[i - 1] + a[i];
+  }
+  return prefix;
+}
+
+function rangeSum(prefix: readonly number[], l: number, r: number): number {
+  return prefix[r] - (l &gt; 0 ? prefix[l - 1] : 0);
+}
+
+function subarraySum(nums: readonly number[], k: number): number {
+  const seen = new Map&lt;number, number&gt;([[0, 1]]); // the empty prefix, for subarrays starting at index 0
+  let running = 0;
+  let count = 0;
+  for (const x of nums) {
+    running += x;
+    count += seen.get(running - k) ?? 0;
+    seen.set(running, (seen.get(running) ?? 0) + 1);
+  }
+  return count;
+}
+
+function pivotIndex(nums: readonly number[]): number {
+  const total = nums.reduce((s, x) =&gt; s + x, 0);
+  let left = 0;
+  for (let i = 0; i &lt; nums.length; i++) {
+    if (left === total - left - nums[i]) return i;
+    left += nums[i];
+  }
+  return -1;
+}
+
+function main(): void {
+  const prefix = buildPrefix([3, 1, 4, 1, 5, 9, 2]);
+  console.log(`prefix of 3 1 4 1 5 9 2: ${prefix.join(&quot; &quot;)}`);
+  console.log(`sum(2..5) = ${rangeSum(prefix, 2, 5)}, sum(0..6) = ${rangeSum(prefix, 0, 6)}`);
+  console.log(`subarrays of [1, 1, 1] summing to 2: ${subarraySum([1, 1, 1], 2)}, of [1, -1, 0] summing to 0: ${subarraySum([1, -1, 0], 0)}`);
+  console.log(`pivot index of [1, 7, 3, 6, 5, 6]: ${pivotIndex([1, 7, 3, 6, 5, 6])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-prefix-sum-python" data-lang="python" data-anchors="{&quot;init&quot;:[7],&quot;add&quot;:[9],&quot;query&quot;:[14]}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> defaultdict</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">def</span> <span class="hljs-title function_">build_prefix</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="6">    prefix = [<span class="hljs-number">0</span>] * <span class="hljs-built_in">len</span>(a)</span><span class="ln" data-line="7">    prefix[<span class="hljs-number">0</span>] = a[<span class="hljs-number">0</span>]</span><span class="ln" data-line="8">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-built_in">len</span>(a)):</span><span class="ln" data-line="9">        prefix[i] = prefix[i - <span class="hljs-number">1</span>] + a[i]</span><span class="ln" data-line="10">    <span class="hljs-keyword">return</span> prefix</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"><span class="hljs-keyword">def</span> <span class="hljs-title function_">range_sum</span>(<span class="hljs-params">prefix: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], l: <span class="hljs-built_in">int</span>, r: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="14">    <span class="hljs-keyword">return</span> prefix[r] - (prefix[l - <span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> l &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>)</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">def</span> <span class="hljs-title function_">subarray_sum</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="18">    seen = defaultdict(<span class="hljs-built_in">int</span>)</span><span class="ln" data-line="19">    seen[<span class="hljs-number">0</span>] = <span class="hljs-number">1</span>  <span class="hljs-comment"># the empty prefix, for subarrays starting at index 0</span></span><span class="ln" data-line="20">    running = count = <span class="hljs-number">0</span></span><span class="ln" data-line="21">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> nums:</span><span class="ln" data-line="22">        running += x</span><span class="ln" data-line="23">        count += seen[running - k]</span><span class="ln" data-line="24">        seen[running] += <span class="hljs-number">1</span></span><span class="ln" data-line="25">    <span class="hljs-keyword">return</span> count</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"> </span><span class="ln" data-line="28"><span class="hljs-keyword">def</span> <span class="hljs-title function_">pivot_index</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="29">    total, left = <span class="hljs-built_in">sum</span>(nums), <span class="hljs-number">0</span></span><span class="ln" data-line="30">    <span class="hljs-keyword">for</span> i, x <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(nums):</span><span class="ln" data-line="31">        <span class="hljs-keyword">if</span> left == total - left - x:</span><span class="ln" data-line="32">            <span class="hljs-keyword">return</span> i</span><span class="ln" data-line="33">        left += x</span><span class="ln" data-line="34">    <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span></span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="38">    prefix = build_prefix([<span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">9</span>, <span class="hljs-number">2</span>])</span><span class="ln" data-line="39">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;prefix of 3 1 4 1 5 9 2: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, prefix))}</span>&quot;</span>)</span><span class="ln" data-line="40">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;sum(2..5) = <span class="hljs-subst">{range_sum(prefix, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>)}</span>, sum(0..6) = <span class="hljs-subst">{range_sum(prefix, <span class="hljs-number">0</span>, <span class="hljs-number">6</span>)}</span>&quot;</span>)</span><span class="ln" data-line="41">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;subarrays of [1, 1, 1] summing to 2: <span class="hljs-subst">{subarray_sum([<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], <span class="hljs-number">2</span>)}</span>, of [1, -1, 0] summing to 0: <span class="hljs-subst">{subarray_sum([<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], <span class="hljs-number">0</span>)}</span>&quot;</span>)</span><span class="ln" data-line="42">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;pivot index of [1, 7, 3, 6, 5, 6]: <span class="hljs-subst">{pivot_index([<span class="hljs-number">1</span>, <span class="hljs-number">7</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>])}</span>&quot;</span>)</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="46">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from collections import defaultdict
+from typing import List
+
+
+def build_prefix(a: List[int]) -&gt; List[int]:
+    prefix = [0] * len(a)
+    prefix[0] = a[0]
+    for i in range(1, len(a)):
+        prefix[i] = prefix[i - 1] + a[i]
+    return prefix
+
+
+def range_sum(prefix: List[int], l: int, r: int) -&gt; int:
+    return prefix[r] - (prefix[l - 1] if l &gt; 0 else 0)
+
+
+def subarray_sum(nums: List[int], k: int) -&gt; int:
+    seen = defaultdict(int)
+    seen[0] = 1  # the empty prefix, for subarrays starting at index 0
+    running = count = 0
+    for x in nums:
+        running += x
+        count += seen[running - k]
+        seen[running] += 1
+    return count
+
+
+def pivot_index(nums: List[int]) -&gt; int:
+    total, left = sum(nums), 0
+    for i, x in enumerate(nums):
+        if left == total - left - x:
+            return i
+        left += x
+    return -1
+
+
+def main() -&gt; None:
+    prefix = build_prefix([3, 1, 4, 1, 5, 9, 2])
+    print(f&quot;prefix of 3 1 4 1 5 9 2: {&#39; &#39;.join(map(str, prefix))}&quot;)
+    print(f&quot;sum(2..5) = {range_sum(prefix, 2, 5)}, sum(0..6) = {range_sum(prefix, 0, 6)}&quot;)
+    print(f&quot;subarrays of [1, 1, 1] summing to 2: {subarray_sum([1, 1, 1], 2)}, of [1, -1, 0] summing to 0: {subarray_sum([1, -1, 0], 0)}&quot;)
+    print(f&quot;pivot index of [1, 7, 3, 6, 5, 6]: {pivot_index([1, 7, 3, 6, 5, 6])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>prefix of 3 1 4 1 5 9 2: 3 4 8 9 14 23 25
+sum(2..5) = 19, sum(0..6) = 25
+subarrays of [1, 1, 1] summing to 2: 2, of [1, -1, 0] summing to 0: 3
+pivot index of [1, 7, 3, 6, 5, 6]: 3</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Off-by-one at the left edge: when <code>l = 0</code> there&#39;s nothing to subtract. Many people use a length n + 1 array with <code>prefix[0] = 0</code> to avoid the special case.</li><li>Forgetting to seed the map with <code>{0: 1}</code>, which misses subarrays that start at index 0.</li><li>Using prefix sums on an array that changes often. Use a Fenwick or segment tree instead.</li><li>Overflow when totals get large in Java; use <code>long</code>.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/range-sum-query-immutable/" rel="noopener" target="_blank">Range Sum Query - Immutable<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>303</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-pivot-index/" rel="noopener" target="_blank">Find Pivot Index<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>724</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/subarray-sum-equals-k/" rel="noopener" target="_blank">Subarray Sum Equals K<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>560</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/contiguous-array/" rel="noopener" target="_blank">Contiguous Array<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Treat 0 as −1, then look for equal prefixes.</span></td><td>525</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/range-sum-query-2d-immutable/" rel="noopener" target="_blank">Range Sum Query 2D - Immutable<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>304</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/arrays/index.html">Arrays</a>, <a href="../../data-structures/hash-tables/index.html">Hash tables</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../sliding-window/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Sliding window</span></a><a class="pn pn-next" href="../hashing/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Hashing</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

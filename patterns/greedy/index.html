@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greedy · DSA Academy</title>
+<meta name="description" content="Interval scheduling, jumps and gas stations.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Greedy</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Greedy</h1>
+  <p class="lede">These problems are solved by one sort and one pass, making the locally best choice each time. The work is in finding the right greedy rule and convincing yourself it can&#39;t backfire.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Handing out tickets for a concert to people queueing with different minimum seat needs. Give the smallest suitable seat to the least demanding person first. Wasting a big seat on someone who&#39;d be happy with a small one can only make things worse later.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Intervals: remove the fewest to stop overlaps, shoot the fewest arrows, schedule the most meetings.</li>
+<li>Matching two sorted lists (cookies to children, boats to people).</li>
+<li>&quot;Minimum jumps&quot;, &quot;can you complete the circuit?&quot;, running balances that must stay non-negative.</li>
+<li>The problem gets easy once the input is sorted by the right key.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">sort by the key that makes the greedy choice safe (often the end time)
+state = initial
+for each item in order:
+    if taking it keeps the solution valid: take it, update state
+    else: skip it (count it as removed, start a new group, …)
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>The technique and its proof style (the exchange argument) are on the Greedy
+technique page. Here are the rules for the common problem shapes:</p>
+<ul>
+<li><strong>Non-overlapping intervals</strong>: sort by end; keep an interval if it starts at or
+after the last kept end; everything else must be removed.</li>
+<li><strong>Minimum arrows</strong>: sort by end; one arrow at the current end bursts every
+balloon that starts before it.</li>
+<li><strong>Jump game II</strong>: treat it as BFS by ranges. Track the furthest reach of the
+current &quot;level&quot;; when you pass the level&#39;s end, you need another jump.</li>
+<li><strong>Gas station</strong>: if the total gas is at least the total cost, a start exists.
+Whenever the running tank goes negative, no station up to here can be the
+start, so try the next one.</li>
+<li><strong>Candy</strong>: two passes. Left to right gives each child more than a lower-rated
+left neighbour; right to left fixes the right neighbours.</li>
+</ul>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Interval greedy</td><td class="nowrap">O(n log n)</td><td>Sort, then one pass.</td></tr><tr><td>Jump game II, gas station</td><td class="nowrap">O(n) time, O(1) space</td><td>One pass with a couple of counters.</td></tr><tr><td>Candy</td><td class="nowrap">O(n) time, O(n) space</td><td>Two passes over an array of candy counts.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Each function is a sort (when needed) followed by a single pass.</p><figure class="codeblock" id="code-greedy" aria-label="Cookies, fewest removals, fewest arrows, gas station, fewest jumps and candy">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-greedy-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-greedy-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-greedy-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-greedy-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-greedy-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.Arrays;</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">findContentChildren</span><span class="hljs-params">(<span class="hljs-type">int</span>[] greed, <span class="hljs-type">int</span>[] cookies)</span> {</span><span class="ln" data-line="6">        <span class="hljs-type">int</span>[] <span class="hljs-variable">g</span> <span class="hljs-operator">=</span> greed.clone(), s = cookies.clone();</span><span class="ln" data-line="7">        Arrays.sort(g);</span><span class="ln" data-line="8">        Arrays.sort(s);</span><span class="ln" data-line="9">        <span class="hljs-type">int</span> <span class="hljs-variable">child</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="10">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; s.length &amp;&amp; child &lt; g.length; i++) <span class="hljs-keyword">if</span> (s[i] &gt;= g[child]) child++; <span class="hljs-comment">// smallest cookie that works</span></span><span class="ln" data-line="11">        <span class="hljs-keyword">return</span> child;</span><span class="ln" data-line="12">    }</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">eraseOverlapIntervals</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] input)</span> {</span><span class="ln" data-line="15">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">iv</span> <span class="hljs-operator">=</span> input.clone();</span><span class="ln" data-line="16">        Arrays.sort(iv, (a, b) -&gt; Integer.compare(a[<span class="hljs-number">1</span>], b[<span class="hljs-number">1</span>])); <span class="hljs-comment">// by end</span></span><span class="ln" data-line="17">        <span class="hljs-type">int</span> <span class="hljs-variable">kept</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, lastEnd = Integer.MIN_VALUE;</span><span class="ln" data-line="18">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] x : iv) <span class="hljs-keyword">if</span> (x[<span class="hljs-number">0</span>] &gt;= lastEnd) { kept++; lastEnd = x[<span class="hljs-number">1</span>]; }</span><span class="ln" data-line="19">        <span class="hljs-keyword">return</span> iv.length - kept;</span><span class="ln" data-line="20">    }</span><span class="ln" data-line="21"> </span><span class="ln" data-line="22">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">findMinArrows</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] input)</span> {</span><span class="ln" data-line="23">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> input.clone();</span><span class="ln" data-line="24">        Arrays.sort(b, (x, y) -&gt; Integer.compare(x[<span class="hljs-number">1</span>], y[<span class="hljs-number">1</span>]));</span><span class="ln" data-line="25">        <span class="hljs-type">int</span> <span class="hljs-variable">arrows</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="26">        <span class="hljs-type">long</span> <span class="hljs-variable">arrowAt</span> <span class="hljs-operator">=</span> Long.MIN_VALUE;</span><span class="ln" data-line="27">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] x : b) <span class="hljs-keyword">if</span> (x[<span class="hljs-number">0</span>] &gt; arrowAt) { arrows++; arrowAt = x[<span class="hljs-number">1</span>]; } <span class="hljs-comment">// this balloon starts after the last arrow</span></span><span class="ln" data-line="28">        <span class="hljs-keyword">return</span> arrows;</span><span class="ln" data-line="29">    }</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">canCompleteCircuit</span><span class="hljs-params">(<span class="hljs-type">int</span>[] gas, <span class="hljs-type">int</span>[] cost)</span> {</span><span class="ln" data-line="32">        <span class="hljs-type">int</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, tank = <span class="hljs-number">0</span>, start = <span class="hljs-number">0</span>;</span><span class="ln" data-line="33">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; gas.length; i++) {</span><span class="ln" data-line="34">            total += gas[i] - cost[i];</span><span class="ln" data-line="35">            tank += gas[i] - cost[i];</span><span class="ln" data-line="36">            <span class="hljs-keyword">if</span> (tank &lt; <span class="hljs-number">0</span>) { start = i + <span class="hljs-number">1</span>; tank = <span class="hljs-number">0</span>; } <span class="hljs-comment">// nothing up to i can be the start</span></span><span class="ln" data-line="37">        }</span><span class="ln" data-line="38">        <span class="hljs-keyword">return</span> total &gt;= <span class="hljs-number">0</span> ? start : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="39">    }</span><span class="ln" data-line="40"> </span><span class="ln" data-line="41">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">jump</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="42">        <span class="hljs-type">int</span> <span class="hljs-variable">jumps</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, levelEnd = <span class="hljs-number">0</span>, furthest = <span class="hljs-number">0</span>;</span><span class="ln" data-line="43">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; nums.length - <span class="hljs-number">1</span>; i++) {</span><span class="ln" data-line="44">            furthest = Math.max(furthest, i + nums[i]);</span><span class="ln" data-line="45">            <span class="hljs-keyword">if</span> (i == levelEnd) { jumps++; levelEnd = furthest; } <span class="hljs-comment">// leaving this range needs another jump</span></span><span class="ln" data-line="46">        }</span><span class="ln" data-line="47">        <span class="hljs-keyword">return</span> jumps;</span><span class="ln" data-line="48">    }</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">candy</span><span class="hljs-params">(<span class="hljs-type">int</span>[] ratings)</span> {</span><span class="ln" data-line="51">        <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> ratings.length;</span><span class="ln" data-line="52">        <span class="hljs-type">int</span>[] <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n];</span><span class="ln" data-line="53">        Arrays.fill(c, <span class="hljs-number">1</span>);</span><span class="ln" data-line="54">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; n; i++) <span class="hljs-keyword">if</span> (ratings[i] &gt; ratings[i - <span class="hljs-number">1</span>]) c[i] = c[i - <span class="hljs-number">1</span>] + <span class="hljs-number">1</span>;</span><span class="ln" data-line="55">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> n - <span class="hljs-number">2</span>; i &gt;= <span class="hljs-number">0</span>; i--) <span class="hljs-keyword">if</span> (ratings[i] &gt; ratings[i + <span class="hljs-number">1</span>]) c[i] = Math.max(c[i], c[i + <span class="hljs-number">1</span>] + <span class="hljs-number">1</span>);</span><span class="ln" data-line="56">        <span class="hljs-type">int</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="57">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : c) sum += x;</span><span class="ln" data-line="58">        <span class="hljs-keyword">return</span> sum;</span><span class="ln" data-line="59">    }</span><span class="ln" data-line="60"> </span><span class="ln" data-line="61">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="62">        System.out.println(<span class="hljs-string">&quot;content children (greed 1 2 3, cookies 1 1): &quot;</span> + findContentChildren(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span> }, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">1</span> }));</span><span class="ln" data-line="63">        System.out.println(<span class="hljs-string">&quot;intervals to remove from [1,2] [2,3] [3,4] [1,3]: &quot;</span> + eraseOverlapIntervals(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">2</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">3</span> }, { <span class="hljs-number">3</span>, <span class="hljs-number">4</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">3</span> } }));</span><span class="ln" data-line="64">        System.out.println(<span class="hljs-string">&quot;arrows for [10,16] [2,8] [1,6] [7,12]: &quot;</span> + findMinArrows(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">10</span>, <span class="hljs-number">16</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">8</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">6</span> }, { <span class="hljs-number">7</span>, <span class="hljs-number">12</span> } }));</span><span class="ln" data-line="65">        System.out.println(<span class="hljs-string">&quot;gas station start: &quot;</span> + canCompleteCircuit(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span> }, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span> })</span><span class="ln" data-line="66">                + <span class="hljs-string">&quot;, impossible case: &quot;</span> + canCompleteCircuit(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span> }, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">3</span> }));</span><span class="ln" data-line="67">        System.out.println(<span class="hljs-string">&quot;fewest jumps for 2 3 1 1 4: &quot;</span> + jump(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span> }));</span><span class="ln" data-line="68">        System.out.println(<span class="hljs-string">&quot;candy for ratings 1 0 2: &quot;</span> + candy(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span> }) + <span class="hljs-string">&quot;, for 1 2 2: &quot;</span> + candy(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span> }));</span><span class="ln" data-line="69">    }</span><span class="ln" data-line="70">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.Arrays;
+
+public class Solution {
+
+    static int findContentChildren(int[] greed, int[] cookies) {
+        int[] g = greed.clone(), s = cookies.clone();
+        Arrays.sort(g);
+        Arrays.sort(s);
+        int child = 0;
+        for (int i = 0; i &lt; s.length &amp;&amp; child &lt; g.length; i++) if (s[i] &gt;= g[child]) child++; // smallest cookie that works
+        return child;
+    }
+
+    static int eraseOverlapIntervals(int[][] input) {
+        int[][] iv = input.clone();
+        Arrays.sort(iv, (a, b) -&gt; Integer.compare(a[1], b[1])); // by end
+        int kept = 0, lastEnd = Integer.MIN_VALUE;
+        for (int[] x : iv) if (x[0] &gt;= lastEnd) { kept++; lastEnd = x[1]; }
+        return iv.length - kept;
+    }
+
+    static int findMinArrows(int[][] input) {
+        int[][] b = input.clone();
+        Arrays.sort(b, (x, y) -&gt; Integer.compare(x[1], y[1]));
+        int arrows = 0;
+        long arrowAt = Long.MIN_VALUE;
+        for (int[] x : b) if (x[0] &gt; arrowAt) { arrows++; arrowAt = x[1]; } // this balloon starts after the last arrow
+        return arrows;
+    }
+
+    static int canCompleteCircuit(int[] gas, int[] cost) {
+        int total = 0, tank = 0, start = 0;
+        for (int i = 0; i &lt; gas.length; i++) {
+            total += gas[i] - cost[i];
+            tank += gas[i] - cost[i];
+            if (tank &lt; 0) { start = i + 1; tank = 0; } // nothing up to i can be the start
+        }
+        return total &gt;= 0 ? start : -1;
+    }
+
+    static int jump(int[] nums) {
+        int jumps = 0, levelEnd = 0, furthest = 0;
+        for (int i = 0; i &lt; nums.length - 1; i++) {
+            furthest = Math.max(furthest, i + nums[i]);
+            if (i == levelEnd) { jumps++; levelEnd = furthest; } // leaving this range needs another jump
+        }
+        return jumps;
+    }
+
+    static int candy(int[] ratings) {
+        int n = ratings.length;
+        int[] c = new int[n];
+        Arrays.fill(c, 1);
+        for (int i = 1; i &lt; n; i++) if (ratings[i] &gt; ratings[i - 1]) c[i] = c[i - 1] + 1;
+        for (int i = n - 2; i &gt;= 0; i--) if (ratings[i] &gt; ratings[i + 1]) c[i] = Math.max(c[i], c[i + 1] + 1);
+        int sum = 0;
+        for (int x : c) sum += x;
+        return sum;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;content children (greed 1 2 3, cookies 1 1): &quot; + findContentChildren(new int[] { 1, 2, 3 }, new int[] { 1, 1 }));
+        System.out.println(&quot;intervals to remove from [1,2] [2,3] [3,4] [1,3]: &quot; + eraseOverlapIntervals(new int[][] { { 1, 2 }, { 2, 3 }, { 3, 4 }, { 1, 3 } }));
+        System.out.println(&quot;arrows for [10,16] [2,8] [1,6] [7,12]: &quot; + findMinArrows(new int[][] { { 10, 16 }, { 2, 8 }, { 1, 6 }, { 7, 12 } }));
+        System.out.println(&quot;gas station start: &quot; + canCompleteCircuit(new int[] { 1, 2, 3, 4, 5 }, new int[] { 3, 4, 5, 1, 2 })
+                + &quot;, impossible case: &quot; + canCompleteCircuit(new int[] { 2, 3, 4 }, new int[] { 3, 4, 3 }));
+        System.out.println(&quot;fewest jumps for 2 3 1 1 4: &quot; + jump(new int[] { 2, 3, 1, 1, 4 }));
+        System.out.println(&quot;candy for ratings 1 0 2: &quot; + candy(new int[] { 1, 0, 2 }) + &quot;, for 1 2 2: &quot; + candy(new int[] { 1, 2, 2 }));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-greedy-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findContentChildren</span>(<span class="hljs-params">greed, cookies</span>) {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> g = [...greed].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a - b);</span><span class="ln" data-line="3">  <span class="hljs-keyword">const</span> s = [...cookies].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a - b);</span><span class="ln" data-line="4">  <span class="hljs-keyword">let</span> child = <span class="hljs-number">0</span>;</span><span class="ln" data-line="5">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; s.<span class="hljs-property">length</span> &amp;&amp; child &lt; g.<span class="hljs-property">length</span>; i++) <span class="hljs-keyword">if</span> (s[i] &gt;= g[child]) child++; <span class="hljs-comment">// smallest cookie that works</span></span><span class="ln" data-line="6">  <span class="hljs-keyword">return</span> child;</span><span class="ln" data-line="7">}</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">function</span> <span class="hljs-title function_">eraseOverlapIntervals</span>(<span class="hljs-params">intervals</span>) {</span><span class="ln" data-line="10">  <span class="hljs-keyword">const</span> iv = [...intervals].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">1</span>] - b[<span class="hljs-number">1</span>]); <span class="hljs-comment">// by end</span></span><span class="ln" data-line="11">  <span class="hljs-keyword">let</span> kept = <span class="hljs-number">0</span>;</span><span class="ln" data-line="12">  <span class="hljs-keyword">let</span> lastEnd = -<span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="13">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [s, e] <span class="hljs-keyword">of</span> iv) {</span><span class="ln" data-line="14">    <span class="hljs-keyword">if</span> (s &gt;= lastEnd) {</span><span class="ln" data-line="15">      kept++;</span><span class="ln" data-line="16">      lastEnd = e;</span><span class="ln" data-line="17">    }</span><span class="ln" data-line="18">  }</span><span class="ln" data-line="19">  <span class="hljs-keyword">return</span> iv.<span class="hljs-property">length</span> - kept;</span><span class="ln" data-line="20">}</span><span class="ln" data-line="21"> </span><span class="ln" data-line="22"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findMinArrows</span>(<span class="hljs-params">balloons</span>) {</span><span class="ln" data-line="23">  <span class="hljs-keyword">const</span> b = [...balloons].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> x[<span class="hljs-number">1</span>] - y[<span class="hljs-number">1</span>]);</span><span class="ln" data-line="24">  <span class="hljs-keyword">let</span> arrows = <span class="hljs-number">0</span>;</span><span class="ln" data-line="25">  <span class="hljs-keyword">let</span> arrowAt = -<span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="26">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [s, e] <span class="hljs-keyword">of</span> b) {</span><span class="ln" data-line="27">    <span class="hljs-keyword">if</span> (s &gt; arrowAt) {</span><span class="ln" data-line="28">      arrows++; <span class="hljs-comment">// this balloon starts after the last arrow</span></span><span class="ln" data-line="29">      arrowAt = e;</span><span class="ln" data-line="30">    }</span><span class="ln" data-line="31">  }</span><span class="ln" data-line="32">  <span class="hljs-keyword">return</span> arrows;</span><span class="ln" data-line="33">}</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"><span class="hljs-keyword">function</span> <span class="hljs-title function_">canCompleteCircuit</span>(<span class="hljs-params">gas, cost</span>) {</span><span class="ln" data-line="36">  <span class="hljs-keyword">let</span> total = <span class="hljs-number">0</span>;</span><span class="ln" data-line="37">  <span class="hljs-keyword">let</span> tank = <span class="hljs-number">0</span>;</span><span class="ln" data-line="38">  <span class="hljs-keyword">let</span> start = <span class="hljs-number">0</span>;</span><span class="ln" data-line="39">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; gas.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="40">    total += gas[i] - cost[i];</span><span class="ln" data-line="41">    tank += gas[i] - cost[i];</span><span class="ln" data-line="42">    <span class="hljs-keyword">if</span> (tank &lt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="43">      start = i + <span class="hljs-number">1</span>; <span class="hljs-comment">// nothing up to i can be the start</span></span><span class="ln" data-line="44">      tank = <span class="hljs-number">0</span>;</span><span class="ln" data-line="45">    }</span><span class="ln" data-line="46">  }</span><span class="ln" data-line="47">  <span class="hljs-keyword">return</span> total &gt;= <span class="hljs-number">0</span> ? start : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="48">}</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"><span class="hljs-keyword">function</span> <span class="hljs-title function_">jump</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="51">  <span class="hljs-keyword">let</span> jumps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="52">  <span class="hljs-keyword">let</span> levelEnd = <span class="hljs-number">0</span>;</span><span class="ln" data-line="53">  <span class="hljs-keyword">let</span> furthest = <span class="hljs-number">0</span>;</span><span class="ln" data-line="54">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i++) {</span><span class="ln" data-line="55">    furthest = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(furthest, i + nums[i]);</span><span class="ln" data-line="56">    <span class="hljs-keyword">if</span> (i === levelEnd) {</span><span class="ln" data-line="57">      jumps++; <span class="hljs-comment">// leaving this range needs another jump</span></span><span class="ln" data-line="58">      levelEnd = furthest;</span><span class="ln" data-line="59">    }</span><span class="ln" data-line="60">  }</span><span class="ln" data-line="61">  <span class="hljs-keyword">return</span> jumps;</span><span class="ln" data-line="62">}</span><span class="ln" data-line="63"> </span><span class="ln" data-line="64"><span class="hljs-keyword">function</span> <span class="hljs-title function_">candy</span>(<span class="hljs-params">ratings</span>) {</span><span class="ln" data-line="65">  <span class="hljs-keyword">const</span> n = ratings.<span class="hljs-property">length</span>;</span><span class="ln" data-line="66">  <span class="hljs-keyword">const</span> c = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">1</span>);</span><span class="ln" data-line="67">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; n; i++) <span class="hljs-keyword">if</span> (ratings[i] &gt; ratings[i - <span class="hljs-number">1</span>]) c[i] = c[i - <span class="hljs-number">1</span>] + <span class="hljs-number">1</span>;</span><span class="ln" data-line="68">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = n - <span class="hljs-number">2</span>; i &gt;= <span class="hljs-number">0</span>; i--) <span class="hljs-keyword">if</span> (ratings[i] &gt; ratings[i + <span class="hljs-number">1</span>]) c[i] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(c[i], c[i + <span class="hljs-number">1</span>] + <span class="hljs-number">1</span>);</span><span class="ln" data-line="69">  <span class="hljs-keyword">return</span> c.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="70">}</span><span class="ln" data-line="71"> </span><span class="ln" data-line="72"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="73">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`content children (greed 1 2 3, cookies 1 1): <span class="hljs-subst">${findContentChildren([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>])}</span>`</span>);</span><span class="ln" data-line="74">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`intervals to remove from [1,2] [2,3] [3,4] [1,3]: <span class="hljs-subst">${eraseOverlapIntervals([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>]])}</span>`</span>);</span><span class="ln" data-line="75">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`arrows for [10,16] [2,8] [1,6] [7,12]: <span class="hljs-subst">${findMinArrows([[<span class="hljs-number">10</span>, <span class="hljs-number">16</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">8</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">6</span>], [<span class="hljs-number">7</span>, <span class="hljs-number">12</span>]])}</span>`</span>);</span><span class="ln" data-line="76">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`gas station start: <span class="hljs-subst">${canCompleteCircuit([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>])}</span>, impossible case: <span class="hljs-subst">${canCompleteCircuit([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">3</span>])}</span>`</span>);</span><span class="ln" data-line="77">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`fewest jumps for 2 3 1 1 4: <span class="hljs-subst">${jump([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="78">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`candy for ratings 1 0 2: <span class="hljs-subst">${candy([<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>])}</span>, for 1 2 2: <span class="hljs-subst">${candy([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="79">}</span><span class="ln" data-line="80"> </span><span class="ln" data-line="81"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function findContentChildren(greed, cookies) {
+  const g = [...greed].sort((a, b) =&gt; a - b);
+  const s = [...cookies].sort((a, b) =&gt; a - b);
+  let child = 0;
+  for (let i = 0; i &lt; s.length &amp;&amp; child &lt; g.length; i++) if (s[i] &gt;= g[child]) child++; // smallest cookie that works
+  return child;
+}
+
+function eraseOverlapIntervals(intervals) {
+  const iv = [...intervals].sort((a, b) =&gt; a[1] - b[1]); // by end
+  let kept = 0;
+  let lastEnd = -Infinity;
+  for (const [s, e] of iv) {
+    if (s &gt;= lastEnd) {
+      kept++;
+      lastEnd = e;
+    }
+  }
+  return iv.length - kept;
+}
+
+function findMinArrows(balloons) {
+  const b = [...balloons].sort((x, y) =&gt; x[1] - y[1]);
+  let arrows = 0;
+  let arrowAt = -Infinity;
+  for (const [s, e] of b) {
+    if (s &gt; arrowAt) {
+      arrows++; // this balloon starts after the last arrow
+      arrowAt = e;
+    }
+  }
+  return arrows;
+}
+
+function canCompleteCircuit(gas, cost) {
+  let total = 0;
+  let tank = 0;
+  let start = 0;
+  for (let i = 0; i &lt; gas.length; i++) {
+    total += gas[i] - cost[i];
+    tank += gas[i] - cost[i];
+    if (tank &lt; 0) {
+      start = i + 1; // nothing up to i can be the start
+      tank = 0;
+    }
+  }
+  return total &gt;= 0 ? start : -1;
+}
+
+function jump(nums) {
+  let jumps = 0;
+  let levelEnd = 0;
+  let furthest = 0;
+  for (let i = 0; i &lt; nums.length - 1; i++) {
+    furthest = Math.max(furthest, i + nums[i]);
+    if (i === levelEnd) {
+      jumps++; // leaving this range needs another jump
+      levelEnd = furthest;
+    }
+  }
+  return jumps;
+}
+
+function candy(ratings) {
+  const n = ratings.length;
+  const c = new Array(n).fill(1);
+  for (let i = 1; i &lt; n; i++) if (ratings[i] &gt; ratings[i - 1]) c[i] = c[i - 1] + 1;
+  for (let i = n - 2; i &gt;= 0; i--) if (ratings[i] &gt; ratings[i + 1]) c[i] = Math.max(c[i], c[i + 1] + 1);
+  return c.reduce((s, x) =&gt; s + x, 0);
+}
+
+function main() {
+  console.log(`content children (greed 1 2 3, cookies 1 1): ${findContentChildren([1, 2, 3], [1, 1])}`);
+  console.log(`intervals to remove from [1,2] [2,3] [3,4] [1,3]: ${eraseOverlapIntervals([[1, 2], [2, 3], [3, 4], [1, 3]])}`);
+  console.log(`arrows for [10,16] [2,8] [1,6] [7,12]: ${findMinArrows([[10, 16], [2, 8], [1, 6], [7, 12]])}`);
+  console.log(`gas station start: ${canCompleteCircuit([1, 2, 3, 4, 5], [3, 4, 5, 1, 2])}, impossible case: ${canCompleteCircuit([2, 3, 4], [3, 4, 3])}`);
+  console.log(`fewest jumps for 2 3 1 1 4: ${jump([2, 3, 1, 1, 4])}`);
+  console.log(`candy for ratings 1 0 2: ${candy([1, 0, 2])}, for 1 2 2: ${candy([1, 2, 2])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-greedy-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">type</span> <span class="hljs-title class_">Interval</span> = [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>];</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findContentChildren</span>(<span class="hljs-params"><span class="hljs-attr">greed</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">cookies</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="4">  <span class="hljs-keyword">const</span> g = [...greed].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a - b);</span><span class="ln" data-line="5">  <span class="hljs-keyword">const</span> s = [...cookies].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a - b);</span><span class="ln" data-line="6">  <span class="hljs-keyword">let</span> child = <span class="hljs-number">0</span>;</span><span class="ln" data-line="7">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; s.<span class="hljs-property">length</span> &amp;&amp; child &lt; g.<span class="hljs-property">length</span>; i++) <span class="hljs-keyword">if</span> (s[i] &gt;= g[child]) child++; <span class="hljs-comment">// smallest cookie that works</span></span><span class="ln" data-line="8">  <span class="hljs-keyword">return</span> child;</span><span class="ln" data-line="9">}</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"><span class="hljs-keyword">function</span> <span class="hljs-title function_">eraseOverlapIntervals</span>(<span class="hljs-params"><span class="hljs-attr">intervals</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Interval</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="12">  <span class="hljs-keyword">const</span> iv = [...intervals].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">1</span>] - b[<span class="hljs-number">1</span>]); <span class="hljs-comment">// by end</span></span><span class="ln" data-line="13">  <span class="hljs-keyword">let</span> kept = <span class="hljs-number">0</span>;</span><span class="ln" data-line="14">  <span class="hljs-keyword">let</span> lastEnd = -<span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="15">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [s, e] <span class="hljs-keyword">of</span> iv) {</span><span class="ln" data-line="16">    <span class="hljs-keyword">if</span> (s &gt;= lastEnd) {</span><span class="ln" data-line="17">      kept++;</span><span class="ln" data-line="18">      lastEnd = e;</span><span class="ln" data-line="19">    }</span><span class="ln" data-line="20">  }</span><span class="ln" data-line="21">  <span class="hljs-keyword">return</span> iv.<span class="hljs-property">length</span> - kept;</span><span class="ln" data-line="22">}</span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findMinArrows</span>(<span class="hljs-params"><span class="hljs-attr">balloons</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Interval</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="25">  <span class="hljs-keyword">const</span> b = [...balloons].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> x[<span class="hljs-number">1</span>] - y[<span class="hljs-number">1</span>]);</span><span class="ln" data-line="26">  <span class="hljs-keyword">let</span> arrows = <span class="hljs-number">0</span>;</span><span class="ln" data-line="27">  <span class="hljs-keyword">let</span> arrowAt = -<span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="28">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [s, e] <span class="hljs-keyword">of</span> b) {</span><span class="ln" data-line="29">    <span class="hljs-keyword">if</span> (s &gt; arrowAt) {</span><span class="ln" data-line="30">      arrows++; <span class="hljs-comment">// this balloon starts after the last arrow</span></span><span class="ln" data-line="31">      arrowAt = e;</span><span class="ln" data-line="32">    }</span><span class="ln" data-line="33">  }</span><span class="ln" data-line="34">  <span class="hljs-keyword">return</span> arrows;</span><span class="ln" data-line="35">}</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">function</span> <span class="hljs-title function_">canCompleteCircuit</span>(<span class="hljs-params"><span class="hljs-attr">gas</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">cost</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="38">  <span class="hljs-keyword">let</span> total = <span class="hljs-number">0</span>;</span><span class="ln" data-line="39">  <span class="hljs-keyword">let</span> tank = <span class="hljs-number">0</span>;</span><span class="ln" data-line="40">  <span class="hljs-keyword">let</span> start = <span class="hljs-number">0</span>;</span><span class="ln" data-line="41">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; gas.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="42">    total += gas[i] - cost[i];</span><span class="ln" data-line="43">    tank += gas[i] - cost[i];</span><span class="ln" data-line="44">    <span class="hljs-keyword">if</span> (tank &lt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="45">      start = i + <span class="hljs-number">1</span>; <span class="hljs-comment">// nothing up to i can be the start</span></span><span class="ln" data-line="46">      tank = <span class="hljs-number">0</span>;</span><span class="ln" data-line="47">    }</span><span class="ln" data-line="48">  }</span><span class="ln" data-line="49">  <span class="hljs-keyword">return</span> total &gt;= <span class="hljs-number">0</span> ? start : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="50">}</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"><span class="hljs-keyword">function</span> <span class="hljs-title function_">jump</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="53">  <span class="hljs-keyword">let</span> jumps = <span class="hljs-number">0</span>;</span><span class="ln" data-line="54">  <span class="hljs-keyword">let</span> levelEnd = <span class="hljs-number">0</span>;</span><span class="ln" data-line="55">  <span class="hljs-keyword">let</span> furthest = <span class="hljs-number">0</span>;</span><span class="ln" data-line="56">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; nums.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i++) {</span><span class="ln" data-line="57">    furthest = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(furthest, i + nums[i]);</span><span class="ln" data-line="58">    <span class="hljs-keyword">if</span> (i === levelEnd) {</span><span class="ln" data-line="59">      jumps++; <span class="hljs-comment">// leaving this range needs another jump</span></span><span class="ln" data-line="60">      levelEnd = furthest;</span><span class="ln" data-line="61">    }</span><span class="ln" data-line="62">  }</span><span class="ln" data-line="63">  <span class="hljs-keyword">return</span> jumps;</span><span class="ln" data-line="64">}</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66"><span class="hljs-keyword">function</span> <span class="hljs-title function_">candy</span>(<span class="hljs-params"><span class="hljs-attr">ratings</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="67">  <span class="hljs-keyword">const</span> n = ratings.<span class="hljs-property">length</span>;</span><span class="ln" data-line="68">  <span class="hljs-keyword">const</span> <span class="hljs-attr">c</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">1</span>);</span><span class="ln" data-line="69">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; n; i++) <span class="hljs-keyword">if</span> (ratings[i] &gt; ratings[i - <span class="hljs-number">1</span>]) c[i] = c[i - <span class="hljs-number">1</span>] + <span class="hljs-number">1</span>;</span><span class="ln" data-line="70">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = n - <span class="hljs-number">2</span>; i &gt;= <span class="hljs-number">0</span>; i--) <span class="hljs-keyword">if</span> (ratings[i] &gt; ratings[i + <span class="hljs-number">1</span>]) c[i] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(c[i], c[i + <span class="hljs-number">1</span>] + <span class="hljs-number">1</span>);</span><span class="ln" data-line="71">  <span class="hljs-keyword">return</span> c.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, x</span>) =&gt;</span> s + x, <span class="hljs-number">0</span>);</span><span class="ln" data-line="72">}</span><span class="ln" data-line="73"> </span><span class="ln" data-line="74"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="75">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`content children (greed 1 2 3, cookies 1 1): <span class="hljs-subst">${findContentChildren([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>])}</span>`</span>);</span><span class="ln" data-line="76">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`intervals to remove from [1,2] [2,3] [3,4] [1,3]: <span class="hljs-subst">${eraseOverlapIntervals([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>]])}</span>`</span>);</span><span class="ln" data-line="77">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`arrows for [10,16] [2,8] [1,6] [7,12]: <span class="hljs-subst">${findMinArrows([[<span class="hljs-number">10</span>, <span class="hljs-number">16</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">8</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">6</span>], [<span class="hljs-number">7</span>, <span class="hljs-number">12</span>]])}</span>`</span>);</span><span class="ln" data-line="78">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`gas station start: <span class="hljs-subst">${canCompleteCircuit([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>])}</span>, impossible case: <span class="hljs-subst">${canCompleteCircuit([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">3</span>])}</span>`</span>);</span><span class="ln" data-line="79">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`fewest jumps for 2 3 1 1 4: <span class="hljs-subst">${jump([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="80">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`candy for ratings 1 0 2: <span class="hljs-subst">${candy([<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>])}</span>, for 1 2 2: <span class="hljs-subst">${candy([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="81">}</span><span class="ln" data-line="82"> </span><span class="ln" data-line="83"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">type Interval = [number, number];
+
+function findContentChildren(greed: readonly number[], cookies: readonly number[]): number {
+  const g = [...greed].sort((a, b) =&gt; a - b);
+  const s = [...cookies].sort((a, b) =&gt; a - b);
+  let child = 0;
+  for (let i = 0; i &lt; s.length &amp;&amp; child &lt; g.length; i++) if (s[i] &gt;= g[child]) child++; // smallest cookie that works
+  return child;
+}
+
+function eraseOverlapIntervals(intervals: readonly Interval[]): number {
+  const iv = [...intervals].sort((a, b) =&gt; a[1] - b[1]); // by end
+  let kept = 0;
+  let lastEnd = -Infinity;
+  for (const [s, e] of iv) {
+    if (s &gt;= lastEnd) {
+      kept++;
+      lastEnd = e;
+    }
+  }
+  return iv.length - kept;
+}
+
+function findMinArrows(balloons: readonly Interval[]): number {
+  const b = [...balloons].sort((x, y) =&gt; x[1] - y[1]);
+  let arrows = 0;
+  let arrowAt = -Infinity;
+  for (const [s, e] of b) {
+    if (s &gt; arrowAt) {
+      arrows++; // this balloon starts after the last arrow
+      arrowAt = e;
+    }
+  }
+  return arrows;
+}
+
+function canCompleteCircuit(gas: readonly number[], cost: readonly number[]): number {
+  let total = 0;
+  let tank = 0;
+  let start = 0;
+  for (let i = 0; i &lt; gas.length; i++) {
+    total += gas[i] - cost[i];
+    tank += gas[i] - cost[i];
+    if (tank &lt; 0) {
+      start = i + 1; // nothing up to i can be the start
+      tank = 0;
+    }
+  }
+  return total &gt;= 0 ? start : -1;
+}
+
+function jump(nums: readonly number[]): number {
+  let jumps = 0;
+  let levelEnd = 0;
+  let furthest = 0;
+  for (let i = 0; i &lt; nums.length - 1; i++) {
+    furthest = Math.max(furthest, i + nums[i]);
+    if (i === levelEnd) {
+      jumps++; // leaving this range needs another jump
+      levelEnd = furthest;
+    }
+  }
+  return jumps;
+}
+
+function candy(ratings: readonly number[]): number {
+  const n = ratings.length;
+  const c: number[] = new Array(n).fill(1);
+  for (let i = 1; i &lt; n; i++) if (ratings[i] &gt; ratings[i - 1]) c[i] = c[i - 1] + 1;
+  for (let i = n - 2; i &gt;= 0; i--) if (ratings[i] &gt; ratings[i + 1]) c[i] = Math.max(c[i], c[i + 1] + 1);
+  return c.reduce((s, x) =&gt; s + x, 0);
+}
+
+function main(): void {
+  console.log(`content children (greed 1 2 3, cookies 1 1): ${findContentChildren([1, 2, 3], [1, 1])}`);
+  console.log(`intervals to remove from [1,2] [2,3] [3,4] [1,3]: ${eraseOverlapIntervals([[1, 2], [2, 3], [3, 4], [1, 3]])}`);
+  console.log(`arrows for [10,16] [2,8] [1,6] [7,12]: ${findMinArrows([[10, 16], [2, 8], [1, 6], [7, 12]])}`);
+  console.log(`gas station start: ${canCompleteCircuit([1, 2, 3, 4, 5], [3, 4, 5, 1, 2])}, impossible case: ${canCompleteCircuit([2, 3, 4], [3, 4, 3])}`);
+  console.log(`fewest jumps for 2 3 1 1 4: ${jump([2, 3, 1, 1, 4])}`);
+  console.log(`candy for ratings 1 0 2: ${candy([1, 0, 2])}, for 1 2 2: ${candy([1, 2, 2])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-greedy-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">find_content_children</span>(<span class="hljs-params">greed: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], cookies: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="5">    g, s, child = <span class="hljs-built_in">sorted</span>(greed), <span class="hljs-built_in">sorted</span>(cookies), <span class="hljs-number">0</span></span><span class="ln" data-line="6">    <span class="hljs-keyword">for</span> size <span class="hljs-keyword">in</span> s:</span><span class="ln" data-line="7">        <span class="hljs-keyword">if</span> child &lt; <span class="hljs-built_in">len</span>(g) <span class="hljs-keyword">and</span> size &gt;= g[child]:  <span class="hljs-comment"># smallest cookie that works</span></span><span class="ln" data-line="8">            child += <span class="hljs-number">1</span></span><span class="ln" data-line="9">    <span class="hljs-keyword">return</span> child</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"><span class="hljs-keyword">def</span> <span class="hljs-title function_">erase_overlap_intervals</span>(<span class="hljs-params">intervals: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="13">    kept, last_end = <span class="hljs-number">0</span>, <span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;-inf&quot;</span>)</span><span class="ln" data-line="14">    <span class="hljs-keyword">for</span> s, e <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(intervals, key=<span class="hljs-keyword">lambda</span> x: x[<span class="hljs-number">1</span>]):  <span class="hljs-comment"># by end</span></span><span class="ln" data-line="15">        <span class="hljs-keyword">if</span> s &gt;= last_end:</span><span class="ln" data-line="16">            kept, last_end = kept + <span class="hljs-number">1</span>, e</span><span class="ln" data-line="17">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(intervals) - kept</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">def</span> <span class="hljs-title function_">find_min_arrows</span>(<span class="hljs-params">balloons: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="21">    arrows, arrow_at = <span class="hljs-number">0</span>, <span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;-inf&quot;</span>)</span><span class="ln" data-line="22">    <span class="hljs-keyword">for</span> s, e <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(balloons, key=<span class="hljs-keyword">lambda</span> x: x[<span class="hljs-number">1</span>]):</span><span class="ln" data-line="23">        <span class="hljs-keyword">if</span> s &gt; arrow_at:  <span class="hljs-comment"># this balloon starts after the last arrow</span></span><span class="ln" data-line="24">            arrows, arrow_at = arrows + <span class="hljs-number">1</span>, e</span><span class="ln" data-line="25">    <span class="hljs-keyword">return</span> arrows</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"> </span><span class="ln" data-line="28"><span class="hljs-keyword">def</span> <span class="hljs-title function_">can_complete_circuit</span>(<span class="hljs-params">gas: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], cost: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="29">    total = tank = start = <span class="hljs-number">0</span></span><span class="ln" data-line="30">    <span class="hljs-keyword">for</span> i, (g, c) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(<span class="hljs-built_in">zip</span>(gas, cost)):</span><span class="ln" data-line="31">        total += g - c</span><span class="ln" data-line="32">        tank += g - c</span><span class="ln" data-line="33">        <span class="hljs-keyword">if</span> tank &lt; <span class="hljs-number">0</span>:  <span class="hljs-comment"># nothing up to i can be the start</span></span><span class="ln" data-line="34">            start, tank = i + <span class="hljs-number">1</span>, <span class="hljs-number">0</span></span><span class="ln" data-line="35">    <span class="hljs-keyword">return</span> start <span class="hljs-keyword">if</span> total &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span></span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"><span class="hljs-keyword">def</span> <span class="hljs-title function_">jump</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="39">    jumps = level_end = furthest = <span class="hljs-number">0</span></span><span class="ln" data-line="40">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(nums) - <span class="hljs-number">1</span>):</span><span class="ln" data-line="41">        furthest = <span class="hljs-built_in">max</span>(furthest, i + nums[i])</span><span class="ln" data-line="42">        <span class="hljs-keyword">if</span> i == level_end:  <span class="hljs-comment"># leaving this range needs another jump</span></span><span class="ln" data-line="43">            jumps, level_end = jumps + <span class="hljs-number">1</span>, furthest</span><span class="ln" data-line="44">    <span class="hljs-keyword">return</span> jumps</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"> </span><span class="ln" data-line="47"><span class="hljs-keyword">def</span> <span class="hljs-title function_">candy</span>(<span class="hljs-params">ratings: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="48">    n = <span class="hljs-built_in">len</span>(ratings)</span><span class="ln" data-line="49">    c = [<span class="hljs-number">1</span>] * n</span><span class="ln" data-line="50">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, n):</span><span class="ln" data-line="51">        <span class="hljs-keyword">if</span> ratings[i] &gt; ratings[i - <span class="hljs-number">1</span>]:</span><span class="ln" data-line="52">            c[i] = c[i - <span class="hljs-number">1</span>] + <span class="hljs-number">1</span></span><span class="ln" data-line="53">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n - <span class="hljs-number">2</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):</span><span class="ln" data-line="54">        <span class="hljs-keyword">if</span> ratings[i] &gt; ratings[i + <span class="hljs-number">1</span>]:</span><span class="ln" data-line="55">            c[i] = <span class="hljs-built_in">max</span>(c[i], c[i + <span class="hljs-number">1</span>] + <span class="hljs-number">1</span>)</span><span class="ln" data-line="56">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(c)</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="60">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;content children (greed 1 2 3, cookies 1 1): <span class="hljs-subst">{find_content_children([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>])}</span>&quot;</span>)</span><span class="ln" data-line="61">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;intervals to remove from [1,2] [2,3] [3,4] [1,3]: <span class="hljs-subst">{erase_overlap_intervals([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>]])}</span>&quot;</span>)</span><span class="ln" data-line="62">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;arrows for [10,16] [2,8] [1,6] [7,12]: <span class="hljs-subst">{find_min_arrows([[<span class="hljs-number">10</span>, <span class="hljs-number">16</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">8</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">6</span>], [<span class="hljs-number">7</span>, <span class="hljs-number">12</span>]])}</span>&quot;</span>)</span><span class="ln" data-line="63">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;gas station start: <span class="hljs-subst">{can_complete_circuit([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>])}</span>, impossible case: <span class="hljs-subst">{can_complete_circuit([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">3</span>])}</span>&quot;</span>)</span><span class="ln" data-line="64">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;fewest jumps for 2 3 1 1 4: <span class="hljs-subst">{jump([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">4</span>])}</span>&quot;</span>)</span><span class="ln" data-line="65">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;candy for ratings 1 0 2: <span class="hljs-subst">{candy([<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>])}</span>, for 1 2 2: <span class="hljs-subst">{candy([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>])}</span>&quot;</span>)</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="69">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List
+
+
+def find_content_children(greed: List[int], cookies: List[int]) -&gt; int:
+    g, s, child = sorted(greed), sorted(cookies), 0
+    for size in s:
+        if child &lt; len(g) and size &gt;= g[child]:  # smallest cookie that works
+            child += 1
+    return child
+
+
+def erase_overlap_intervals(intervals: List[List[int]]) -&gt; int:
+    kept, last_end = 0, float(&quot;-inf&quot;)
+    for s, e in sorted(intervals, key=lambda x: x[1]):  # by end
+        if s &gt;= last_end:
+            kept, last_end = kept + 1, e
+    return len(intervals) - kept
+
+
+def find_min_arrows(balloons: List[List[int]]) -&gt; int:
+    arrows, arrow_at = 0, float(&quot;-inf&quot;)
+    for s, e in sorted(balloons, key=lambda x: x[1]):
+        if s &gt; arrow_at:  # this balloon starts after the last arrow
+            arrows, arrow_at = arrows + 1, e
+    return arrows
+
+
+def can_complete_circuit(gas: List[int], cost: List[int]) -&gt; int:
+    total = tank = start = 0
+    for i, (g, c) in enumerate(zip(gas, cost)):
+        total += g - c
+        tank += g - c
+        if tank &lt; 0:  # nothing up to i can be the start
+            start, tank = i + 1, 0
+    return start if total &gt;= 0 else -1
+
+
+def jump(nums: List[int]) -&gt; int:
+    jumps = level_end = furthest = 0
+    for i in range(len(nums) - 1):
+        furthest = max(furthest, i + nums[i])
+        if i == level_end:  # leaving this range needs another jump
+            jumps, level_end = jumps + 1, furthest
+    return jumps
+
+
+def candy(ratings: List[int]) -&gt; int:
+    n = len(ratings)
+    c = [1] * n
+    for i in range(1, n):
+        if ratings[i] &gt; ratings[i - 1]:
+            c[i] = c[i - 1] + 1
+    for i in range(n - 2, -1, -1):
+        if ratings[i] &gt; ratings[i + 1]:
+            c[i] = max(c[i], c[i + 1] + 1)
+    return sum(c)
+
+
+def main() -&gt; None:
+    print(f&quot;content children (greed 1 2 3, cookies 1 1): {find_content_children([1, 2, 3], [1, 1])}&quot;)
+    print(f&quot;intervals to remove from [1,2] [2,3] [3,4] [1,3]: {erase_overlap_intervals([[1, 2], [2, 3], [3, 4], [1, 3]])}&quot;)
+    print(f&quot;arrows for [10,16] [2,8] [1,6] [7,12]: {find_min_arrows([[10, 16], [2, 8], [1, 6], [7, 12]])}&quot;)
+    print(f&quot;gas station start: {can_complete_circuit([1, 2, 3, 4, 5], [3, 4, 5, 1, 2])}, impossible case: {can_complete_circuit([2, 3, 4], [3, 4, 3])}&quot;)
+    print(f&quot;fewest jumps for 2 3 1 1 4: {jump([2, 3, 1, 1, 4])}&quot;)
+    print(f&quot;candy for ratings 1 0 2: {candy([1, 0, 2])}, for 1 2 2: {candy([1, 2, 2])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>content children (greed 1 2 3, cookies 1 1): 1
+intervals to remove from [1,2] [2,3] [3,4] [1,3]: 1
+arrows for [10,16] [2,8] [1,6] [7,12]: 2
+gas station start: 3, impossible case: -1
+fewest jumps for 2 3 1 1 4: 2
+candy for ratings 1 0 2: 5, for 1 2 2: 4</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Sorting intervals by start when the rule needs end order.</li><li>In jump game II, counting a jump when you reach the last index rather than when you leave a range.</li><li>In gas station, resetting the tank but forgetting to move the candidate start to the next station.</li><li>Assuming the greedy rule without testing a small counterexample.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/assign-cookies/" rel="noopener" target="_blank">Assign Cookies<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>455</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/jump-game-ii/" rel="noopener" target="_blank">Jump Game II<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>45</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/non-overlapping-intervals/" rel="noopener" target="_blank">Non-overlapping Intervals<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>435</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/" rel="noopener" target="_blank">Minimum Number of Arrows to Burst Balloons<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>452</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/gas-station/" rel="noopener" target="_blank">Gas Station<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>134</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/candy/" rel="noopener" target="_blank">Candy<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>135</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../algorithms/greedy-technique/index.html">Greedy</a>, <a href="../../algorithms/sorting/index.html">Sorting</a>, <a href="../../data-structures/heaps/index.html">Heaps</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../interval-dp/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Interval DP</span></a><a class="pn pn-next" href="../bit-manipulation/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Bit manipulation</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graph BFS and DFS · DSA Academy</title>
+<meta name="description" content="Explore reachable nodes, count components, find shortest hops.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Graph BFS and DFS</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Graph BFS and DFS</h1>
+  <p class="lede">Explore a graph (or a grid, or a space of states) from one or more starting points. BFS spreads out in rings and finds the fewest steps; DFS goes deep first and is ideal for reachability, components and flood fill.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Ink dropped on paper spreads in rings: that&#39;s BFS, reaching everything one step away before anything two steps away. A person exploring a cave follows one tunnel to its end before backing up to try the next: that&#39;s DFS.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Islands, regions, provinces, connected cells, flood fill.</li>
+<li>The <strong>fewest moves</strong> or minimum time in an unweighted setting: BFS.</li>
+<li>Spreading from several sources at once (rotting oranges, walls and gates): multi-source BFS.</li>
+<li>Transforming one state into another one small change at a time (word ladder, lock combinations): BFS over implicit states.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">BFS:
+    queue = all start nodes; mark them visited
+    steps = 0
+    while queue not empty:
+        repeat queue.size times:
+            node = dequeue
+            for each neighbour not visited: mark visited; enqueue
+        steps += 1
+
+DFS (on a grid):
+    dfs(r, c):
+        if out of bounds or not wanted or visited: return
+        mark visited
+        dfs on the 4 neighbours
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>Both visit every reachable node once, so both are O(V + E). Choose by what you
+need:</p>
+<ul>
+<li><strong>BFS</strong> when distance matters. Processing the queue one level at a time gives
+the number of steps directly. Seeding the queue with <strong>every</strong> source at once
+computes the distance to the nearest source for all cells in one pass.</li>
+<li><strong>DFS</strong> when you just need to touch everything connected: counting islands,
+colouring a region, checking whether a path exists.</li>
+</ul>
+<p>The graph is often <strong>implicit</strong>. In word ladder, the nodes are words and two
+words are neighbours if they differ in one letter. You never build the graph:
+you generate neighbours on demand and check them against a set.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>BFS or DFS over a graph</td><td class="nowrap">O(V + E)</td><td>Every node and edge is handled once.</td></tr><tr><td>Over an R × C grid</td><td class="nowrap">O(R × C)</td><td>Each cell has at most 4 neighbours.</td></tr><tr><td>Word ladder</td><td class="nowrap">O(N × L × 26)</td><td>N words, L letters each, 26 replacements per letter, with O(1) set lookups (plus O(L) to build each string).</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Flood fill uses an explicit stack so it can&#39;t overflow the call stack on large images.</p><figure class="codeblock" id="code-graph-bfs-dfs" aria-label="Flood fill (DFS), rotting oranges (multi-source BFS) and word ladder (BFS over states)">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-graph-bfs-dfs-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-graph-bfs-dfs-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-graph-bfs-dfs-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-graph-bfs-dfs-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-graph-bfs-dfs-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayDeque;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.Arrays;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.HashSet;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="5"><span class="hljs-keyword">import</span> java.util.Set;</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span>[][] <span class="hljs-variable">DIRS</span> <span class="hljs-operator">=</span> { { -<span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">0</span>, -<span class="hljs-number">1</span> }, { <span class="hljs-number">0</span>, <span class="hljs-number">1</span> } };</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[][] <span class="hljs-title function_">floodFill</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] image, <span class="hljs-type">int</span> sr, <span class="hljs-type">int</span> sc, <span class="hljs-type">int</span> color)</span> {</span><span class="ln" data-line="12">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">img</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[image.length][];</span><span class="ln" data-line="13">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; image.length; i++) img[i] = image[i].clone();</span><span class="ln" data-line="14">        <span class="hljs-type">int</span> <span class="hljs-variable">old</span> <span class="hljs-operator">=</span> img[sr][sc];</span><span class="ln" data-line="15">        <span class="hljs-keyword">if</span> (old == color) <span class="hljs-keyword">return</span> img;</span><span class="ln" data-line="16">        <span class="hljs-type">ArrayDeque</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">stack</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;();</span><span class="ln" data-line="17">        stack.push(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { sr, sc });</span><span class="ln" data-line="18">        img[sr][sc] = color; <span class="hljs-comment">// recolouring doubles as &quot;visited&quot;</span></span><span class="ln" data-line="19">        <span class="hljs-keyword">while</span> (!stack.isEmpty()) {</span><span class="ln" data-line="20">            <span class="hljs-type">int</span>[] <span class="hljs-variable">cell</span> <span class="hljs-operator">=</span> stack.pop();</span><span class="ln" data-line="21">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] d : DIRS) {</span><span class="ln" data-line="22">                <span class="hljs-type">int</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> cell[<span class="hljs-number">0</span>] + d[<span class="hljs-number">0</span>], c = cell[<span class="hljs-number">1</span>] + d[<span class="hljs-number">1</span>];</span><span class="ln" data-line="23">                <span class="hljs-keyword">if</span> (r &gt;= <span class="hljs-number">0</span> &amp;&amp; r &lt; img.length &amp;&amp; c &gt;= <span class="hljs-number">0</span> &amp;&amp; c &lt; img[<span class="hljs-number">0</span>].length &amp;&amp; img[r][c] == old) {</span><span class="ln" data-line="24">                    img[r][c] = color;</span><span class="ln" data-line="25">                    stack.push(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { r, c });</span><span class="ln" data-line="26">                }</span><span class="ln" data-line="27">            }</span><span class="ln" data-line="28">        }</span><span class="ln" data-line="29">        <span class="hljs-keyword">return</span> img;</span><span class="ln" data-line="30">    }</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32">    <span class="hljs-comment">/** Minutes until every fresh orange (1) rots, spreading from all rotten ones (2) at once; -1 if impossible. */</span></span><span class="ln" data-line="33">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">orangesRotting</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] input)</span> {</span><span class="ln" data-line="34">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">g</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[input.length][];</span><span class="ln" data-line="35">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; input.length; i++) g[i] = input[i].clone();</span><span class="ln" data-line="36">        <span class="hljs-type">ArrayDeque</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">queue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;();</span><span class="ln" data-line="37">        <span class="hljs-type">int</span> <span class="hljs-variable">fresh</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="38">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; r &lt; g.length; r++)</span><span class="ln" data-line="39">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; c &lt; g[<span class="hljs-number">0</span>].length; c++) {</span><span class="ln" data-line="40">                <span class="hljs-keyword">if</span> (g[r][c] == <span class="hljs-number">2</span>) queue.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { r, c }); <span class="hljs-comment">// every source starts in the queue</span></span><span class="ln" data-line="41">                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (g[r][c] == <span class="hljs-number">1</span>) fresh++;</span><span class="ln" data-line="42">            }</span><span class="ln" data-line="43">        <span class="hljs-type">int</span> <span class="hljs-variable">minutes</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="44">        <span class="hljs-keyword">while</span> (!queue.isEmpty() &amp;&amp; fresh &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="45">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">size</span> <span class="hljs-operator">=</span> queue.size(); size &gt; <span class="hljs-number">0</span>; size--) {</span><span class="ln" data-line="46">                <span class="hljs-type">int</span>[] <span class="hljs-variable">cell</span> <span class="hljs-operator">=</span> queue.poll();</span><span class="ln" data-line="47">                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] d : DIRS) {</span><span class="ln" data-line="48">                    <span class="hljs-type">int</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> cell[<span class="hljs-number">0</span>] + d[<span class="hljs-number">0</span>], c = cell[<span class="hljs-number">1</span>] + d[<span class="hljs-number">1</span>];</span><span class="ln" data-line="49">                    <span class="hljs-keyword">if</span> (r &gt;= <span class="hljs-number">0</span> &amp;&amp; r &lt; g.length &amp;&amp; c &gt;= <span class="hljs-number">0</span> &amp;&amp; c &lt; g[<span class="hljs-number">0</span>].length &amp;&amp; g[r][c] == <span class="hljs-number">1</span>) {</span><span class="ln" data-line="50">                        g[r][c] = <span class="hljs-number">2</span>;</span><span class="ln" data-line="51">                        fresh--;</span><span class="ln" data-line="52">                        queue.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { r, c });</span><span class="ln" data-line="53">                    }</span><span class="ln" data-line="54">                }</span><span class="ln" data-line="55">            }</span><span class="ln" data-line="56">            minutes++;</span><span class="ln" data-line="57">        }</span><span class="ln" data-line="58">        <span class="hljs-keyword">return</span> fresh == <span class="hljs-number">0</span> ? minutes : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="59">    }</span><span class="ln" data-line="60"> </span><span class="ln" data-line="61">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">ladderLength</span><span class="hljs-params">(String begin, String end, List&lt;String&gt; words)</span> {</span><span class="ln" data-line="62">        <span class="hljs-type">Set</span>&lt;String&gt; <span class="hljs-variable">dict</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>&lt;&gt;(words);</span><span class="ln" data-line="63">        <span class="hljs-keyword">if</span> (!dict.contains(end)) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="64">        <span class="hljs-type">ArrayDeque</span>&lt;String&gt; <span class="hljs-variable">queue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;();</span><span class="ln" data-line="65">        queue.add(begin);</span><span class="ln" data-line="66">        dict.remove(begin);</span><span class="ln" data-line="67">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">length</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; !queue.isEmpty(); length++) {</span><span class="ln" data-line="68">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">size</span> <span class="hljs-operator">=</span> queue.size(); size &gt; <span class="hljs-number">0</span>; size--) {</span><span class="ln" data-line="69">                <span class="hljs-type">String</span> <span class="hljs-variable">w</span> <span class="hljs-operator">=</span> queue.poll();</span><span class="ln" data-line="70">                <span class="hljs-keyword">if</span> (w.equals(end)) <span class="hljs-keyword">return</span> length;</span><span class="ln" data-line="71">                <span class="hljs-type">char</span>[] <span class="hljs-variable">cs</span> <span class="hljs-operator">=</span> w.toCharArray();</span><span class="ln" data-line="72">                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; cs.length; i++) {</span><span class="ln" data-line="73">                    <span class="hljs-type">char</span> <span class="hljs-variable">original</span> <span class="hljs-operator">=</span> cs[i];</span><span class="ln" data-line="74">                    <span class="hljs-keyword">for</span> (<span class="hljs-type">char</span> <span class="hljs-variable">ch</span> <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;a&#x27;</span>; ch &lt;= <span class="hljs-string">&#x27;z&#x27;</span>; ch++) {</span><span class="ln" data-line="75">                        cs[i] = ch;</span><span class="ln" data-line="76">                        <span class="hljs-type">String</span> <span class="hljs-variable">next</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(cs);</span><span class="ln" data-line="77">                        <span class="hljs-keyword">if</span> (dict.remove(next)) queue.add(next); <span class="hljs-comment">// remove = mark visited</span></span><span class="ln" data-line="78">                    }</span><span class="ln" data-line="79">                    cs[i] = original;</span><span class="ln" data-line="80">                }</span><span class="ln" data-line="81">            }</span><span class="ln" data-line="82">        }</span><span class="ln" data-line="83">        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="84">    }</span><span class="ln" data-line="85"> </span><span class="ln" data-line="86">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="87">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">filled</span> <span class="hljs-operator">=</span> floodFill(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> } }, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>);</span><span class="ln" data-line="88">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="89">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] row : filled) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; / &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(Arrays.toString(row).replaceAll(<span class="hljs-string">&quot;[\\[\\],]&quot;</span>, <span class="hljs-string">&quot;&quot;</span>));</span><span class="ln" data-line="90">        System.out.println(<span class="hljs-string">&quot;flood fill from (1, 1) with 2: &quot;</span> + sb);</span><span class="ln" data-line="91">        System.out.println(<span class="hljs-string">&quot;oranges [[2,1,1],[1,1,0],[0,1,1]]: &quot;</span> + orangesRotting(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span> } })</span><span class="ln" data-line="92">                + <span class="hljs-string">&quot; minutes, [[2,1,1],[0,1,1],[1,0,1]]: &quot;</span> + orangesRotting(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span> } }));</span><span class="ln" data-line="93">        <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">words</span> <span class="hljs-operator">=</span> List.of(<span class="hljs-string">&quot;hot&quot;</span>, <span class="hljs-string">&quot;dot&quot;</span>, <span class="hljs-string">&quot;dog&quot;</span>, <span class="hljs-string">&quot;lot&quot;</span>, <span class="hljs-string">&quot;log&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>);</span><span class="ln" data-line="94">        System.out.println(<span class="hljs-string">&quot;ladder hit -&gt; cog: &quot;</span> + ladderLength(<span class="hljs-string">&quot;hit&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>, words) + <span class="hljs-string">&quot; words, without cog: &quot;</span></span><span class="ln" data-line="95">                + ladderLength(<span class="hljs-string">&quot;hit&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>, List.of(<span class="hljs-string">&quot;hot&quot;</span>, <span class="hljs-string">&quot;dot&quot;</span>, <span class="hljs-string">&quot;dog&quot;</span>, <span class="hljs-string">&quot;lot&quot;</span>, <span class="hljs-string">&quot;log&quot;</span>)));</span><span class="ln" data-line="96">    }</span><span class="ln" data-line="97">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class Solution {
+
+    static final int[][] DIRS = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+
+    static int[][] floodFill(int[][] image, int sr, int sc, int color) {
+        int[][] img = new int[image.length][];
+        for (int i = 0; i &lt; image.length; i++) img[i] = image[i].clone();
+        int old = img[sr][sc];
+        if (old == color) return img;
+        ArrayDeque&lt;int[]&gt; stack = new ArrayDeque&lt;&gt;();
+        stack.push(new int[] { sr, sc });
+        img[sr][sc] = color; // recolouring doubles as &quot;visited&quot;
+        while (!stack.isEmpty()) {
+            int[] cell = stack.pop();
+            for (int[] d : DIRS) {
+                int r = cell[0] + d[0], c = cell[1] + d[1];
+                if (r &gt;= 0 &amp;&amp; r &lt; img.length &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; img[0].length &amp;&amp; img[r][c] == old) {
+                    img[r][c] = color;
+                    stack.push(new int[] { r, c });
+                }
+            }
+        }
+        return img;
+    }
+
+    /** Minutes until every fresh orange (1) rots, spreading from all rotten ones (2) at once; -1 if impossible. */
+    static int orangesRotting(int[][] input) {
+        int[][] g = new int[input.length][];
+        for (int i = 0; i &lt; input.length; i++) g[i] = input[i].clone();
+        ArrayDeque&lt;int[]&gt; queue = new ArrayDeque&lt;&gt;();
+        int fresh = 0;
+        for (int r = 0; r &lt; g.length; r++)
+            for (int c = 0; c &lt; g[0].length; c++) {
+                if (g[r][c] == 2) queue.add(new int[] { r, c }); // every source starts in the queue
+                else if (g[r][c] == 1) fresh++;
+            }
+        int minutes = 0;
+        while (!queue.isEmpty() &amp;&amp; fresh &gt; 0) {
+            for (int size = queue.size(); size &gt; 0; size--) {
+                int[] cell = queue.poll();
+                for (int[] d : DIRS) {
+                    int r = cell[0] + d[0], c = cell[1] + d[1];
+                    if (r &gt;= 0 &amp;&amp; r &lt; g.length &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; g[0].length &amp;&amp; g[r][c] == 1) {
+                        g[r][c] = 2;
+                        fresh--;
+                        queue.add(new int[] { r, c });
+                    }
+                }
+            }
+            minutes++;
+        }
+        return fresh == 0 ? minutes : -1;
+    }
+
+    static int ladderLength(String begin, String end, List&lt;String&gt; words) {
+        Set&lt;String&gt; dict = new HashSet&lt;&gt;(words);
+        if (!dict.contains(end)) return 0;
+        ArrayDeque&lt;String&gt; queue = new ArrayDeque&lt;&gt;();
+        queue.add(begin);
+        dict.remove(begin);
+        for (int length = 1; !queue.isEmpty(); length++) {
+            for (int size = queue.size(); size &gt; 0; size--) {
+                String w = queue.poll();
+                if (w.equals(end)) return length;
+                char[] cs = w.toCharArray();
+                for (int i = 0; i &lt; cs.length; i++) {
+                    char original = cs[i];
+                    for (char ch = &#39;a&#39;; ch &lt;= &#39;z&#39;; ch++) {
+                        cs[i] = ch;
+                        String next = new String(cs);
+                        if (dict.remove(next)) queue.add(next); // remove = mark visited
+                    }
+                    cs[i] = original;
+                }
+            }
+        }
+        return 0;
+    }
+
+    public static void main(String[] args) {
+        int[][] filled = floodFill(new int[][] { { 1, 1, 1 }, { 1, 1, 0 }, { 1, 0, 1 } }, 1, 1, 2);
+        StringBuilder sb = new StringBuilder();
+        for (int[] row : filled) sb.append(sb.length() &gt; 0 ? &quot; / &quot; : &quot;&quot;).append(Arrays.toString(row).replaceAll(&quot;[\\[\\],]&quot;, &quot;&quot;));
+        System.out.println(&quot;flood fill from (1, 1) with 2: &quot; + sb);
+        System.out.println(&quot;oranges [[2,1,1],[1,1,0],[0,1,1]]: &quot; + orangesRotting(new int[][] { { 2, 1, 1 }, { 1, 1, 0 }, { 0, 1, 1 } })
+                + &quot; minutes, [[2,1,1],[0,1,1],[1,0,1]]: &quot; + orangesRotting(new int[][] { { 2, 1, 1 }, { 0, 1, 1 }, { 1, 0, 1 } }));
+        List&lt;String&gt; words = List.of(&quot;hot&quot;, &quot;dot&quot;, &quot;dog&quot;, &quot;lot&quot;, &quot;log&quot;, &quot;cog&quot;);
+        System.out.println(&quot;ladder hit -&gt; cog: &quot; + ladderLength(&quot;hit&quot;, &quot;cog&quot;, words) + &quot; words, without cog: &quot;
+                + ladderLength(&quot;hit&quot;, &quot;cog&quot;, List.of(&quot;hot&quot;, &quot;dot&quot;, &quot;dog&quot;, &quot;lot&quot;, &quot;log&quot;)));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-graph-bfs-dfs-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">DIRS</span> = [[-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]];</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">function</span> <span class="hljs-title function_">floodFill</span>(<span class="hljs-params">image, sr, sc, color</span>) {</span><span class="ln" data-line="4">  <span class="hljs-keyword">const</span> img = image.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">row</span>) =&gt;</span> [...row]);</span><span class="ln" data-line="5">  <span class="hljs-keyword">const</span> old = img[sr][sc];</span><span class="ln" data-line="6">  <span class="hljs-keyword">if</span> (old === color) <span class="hljs-keyword">return</span> img;</span><span class="ln" data-line="7">  <span class="hljs-keyword">const</span> stack = [[sr, sc]];</span><span class="ln" data-line="8">  img[sr][sc] = color; <span class="hljs-comment">// recolouring doubles as &quot;visited&quot;</span></span><span class="ln" data-line="9">  <span class="hljs-keyword">while</span> (stack.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="10">    <span class="hljs-keyword">const</span> [cr, cc] = stack.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="11">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [dr, dc] <span class="hljs-keyword">of</span> <span class="hljs-variable constant_">DIRS</span>) {</span><span class="ln" data-line="12">      <span class="hljs-keyword">const</span> r = cr + dr;</span><span class="ln" data-line="13">      <span class="hljs-keyword">const</span> c = cc + dc;</span><span class="ln" data-line="14">      <span class="hljs-keyword">if</span> (r &gt;= <span class="hljs-number">0</span> &amp;&amp; r &lt; img.<span class="hljs-property">length</span> &amp;&amp; c &gt;= <span class="hljs-number">0</span> &amp;&amp; c &lt; img[<span class="hljs-number">0</span>].<span class="hljs-property">length</span> &amp;&amp; img[r][c] === old) {</span><span class="ln" data-line="15">        img[r][c] = color;</span><span class="ln" data-line="16">        stack.<span class="hljs-title function_">push</span>([r, c]);</span><span class="ln" data-line="17">      }</span><span class="ln" data-line="18">    }</span><span class="ln" data-line="19">  }</span><span class="ln" data-line="20">  <span class="hljs-keyword">return</span> img;</span><span class="ln" data-line="21">}</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-comment">/** Minutes until every fresh orange (1) rots, spreading from all rotten ones (2) at once; -1 if impossible. */</span></span><span class="ln" data-line="24"><span class="hljs-keyword">function</span> <span class="hljs-title function_">orangesRotting</span>(<span class="hljs-params">input</span>) {</span><span class="ln" data-line="25">  <span class="hljs-keyword">const</span> g = input.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">row</span>) =&gt;</span> [...row]);</span><span class="ln" data-line="26">  <span class="hljs-keyword">let</span> level = [];</span><span class="ln" data-line="27">  <span class="hljs-keyword">let</span> fresh = <span class="hljs-number">0</span>;</span><span class="ln" data-line="28">  g.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">row, r</span>) =&gt;</span></span><span class="ln" data-line="29">    row.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">v, c</span>) =&gt;</span> {</span><span class="ln" data-line="30">      <span class="hljs-keyword">if</span> (v === <span class="hljs-number">2</span>) level.<span class="hljs-title function_">push</span>([r, c]); <span class="hljs-comment">// every source starts in the queue</span></span><span class="ln" data-line="31">      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (v === <span class="hljs-number">1</span>) fresh++;</span><span class="ln" data-line="32">    })</span><span class="ln" data-line="33">  );</span><span class="ln" data-line="34">  <span class="hljs-keyword">let</span> minutes = <span class="hljs-number">0</span>;</span><span class="ln" data-line="35">  <span class="hljs-keyword">while</span> (level.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span> &amp;&amp; fresh &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="36">    <span class="hljs-keyword">const</span> next = [];</span><span class="ln" data-line="37">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [cr, cc] <span class="hljs-keyword">of</span> level) {</span><span class="ln" data-line="38">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [dr, dc] <span class="hljs-keyword">of</span> <span class="hljs-variable constant_">DIRS</span>) {</span><span class="ln" data-line="39">        <span class="hljs-keyword">const</span> r = cr + dr;</span><span class="ln" data-line="40">        <span class="hljs-keyword">const</span> c = cc + dc;</span><span class="ln" data-line="41">        <span class="hljs-keyword">if</span> (r &gt;= <span class="hljs-number">0</span> &amp;&amp; r &lt; g.<span class="hljs-property">length</span> &amp;&amp; c &gt;= <span class="hljs-number">0</span> &amp;&amp; c &lt; g[<span class="hljs-number">0</span>].<span class="hljs-property">length</span> &amp;&amp; g[r][c] === <span class="hljs-number">1</span>) {</span><span class="ln" data-line="42">          g[r][c] = <span class="hljs-number">2</span>;</span><span class="ln" data-line="43">          fresh--;</span><span class="ln" data-line="44">          next.<span class="hljs-title function_">push</span>([r, c]);</span><span class="ln" data-line="45">        }</span><span class="ln" data-line="46">      }</span><span class="ln" data-line="47">    }</span><span class="ln" data-line="48">    level = next;</span><span class="ln" data-line="49">    minutes++;</span><span class="ln" data-line="50">  }</span><span class="ln" data-line="51">  <span class="hljs-keyword">return</span> fresh === <span class="hljs-number">0</span> ? minutes : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="52">}</span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-keyword">function</span> <span class="hljs-title function_">ladderLength</span>(<span class="hljs-params">begin, end, words</span>) {</span><span class="ln" data-line="55">  <span class="hljs-keyword">const</span> dict = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>(words);</span><span class="ln" data-line="56">  <span class="hljs-keyword">if</span> (!dict.<span class="hljs-title function_">has</span>(end)) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="57">  dict.<span class="hljs-title function_">delete</span>(begin);</span><span class="ln" data-line="58">  <span class="hljs-keyword">let</span> level = [begin];</span><span class="ln" data-line="59">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> length = <span class="hljs-number">1</span>; level.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>; length++) {</span><span class="ln" data-line="60">    <span class="hljs-keyword">const</span> next = [];</span><span class="ln" data-line="61">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> w <span class="hljs-keyword">of</span> level) {</span><span class="ln" data-line="62">      <span class="hljs-keyword">if</span> (w === end) <span class="hljs-keyword">return</span> length;</span><span class="ln" data-line="63">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; w.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="64">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> code = <span class="hljs-number">97</span>; code &lt;= <span class="hljs-number">122</span>; code++) {</span><span class="ln" data-line="65">          <span class="hljs-keyword">const</span> candidate = w.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, i) + <span class="hljs-title class_">String</span>.<span class="hljs-title function_">fromCharCode</span>(code) + w.<span class="hljs-title function_">slice</span>(i + <span class="hljs-number">1</span>);</span><span class="ln" data-line="66">          <span class="hljs-keyword">if</span> (dict.<span class="hljs-title function_">delete</span>(candidate)) next.<span class="hljs-title function_">push</span>(candidate); <span class="hljs-comment">// delete = mark visited</span></span><span class="ln" data-line="67">        }</span><span class="ln" data-line="68">      }</span><span class="ln" data-line="69">    }</span><span class="ln" data-line="70">    level = next;</span><span class="ln" data-line="71">  }</span><span class="ln" data-line="72">  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="73">}</span><span class="ln" data-line="74"> </span><span class="ln" data-line="75"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="76">  <span class="hljs-keyword">const</span> filled = <span class="hljs-title function_">floodFill</span>([[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>]], <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>);</span><span class="ln" data-line="77">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`flood fill from (1, 1) with 2: <span class="hljs-subst">${filled.map((r) =&gt; r.join(<span class="hljs-string">&quot; &quot;</span>)).join(<span class="hljs-string">&quot; / &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="78">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`oranges [[2,1,1],[1,1,0],[0,1,1]]: <span class="hljs-subst">${orangesRotting([[<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>]])}</span> minutes, [[2,1,1],[0,1,1],[1,0,1]]: <span class="hljs-subst">${orangesRotting([[<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>]])}</span>`</span>);</span><span class="ln" data-line="79">  <span class="hljs-keyword">const</span> words = [<span class="hljs-string">&quot;hot&quot;</span>, <span class="hljs-string">&quot;dot&quot;</span>, <span class="hljs-string">&quot;dog&quot;</span>, <span class="hljs-string">&quot;lot&quot;</span>, <span class="hljs-string">&quot;log&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>];</span><span class="ln" data-line="80">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`ladder hit -&gt; cog: <span class="hljs-subst">${ladderLength(<span class="hljs-string">&quot;hit&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>, words)}</span> words, without cog: <span class="hljs-subst">${ladderLength(<span class="hljs-string">&quot;hit&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>, words.slice(<span class="hljs-number">0</span>, <span class="hljs-number">5</span>))}</span>`</span>);</span><span class="ln" data-line="81">}</span><span class="ln" data-line="82"> </span><span class="ln" data-line="83"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+function floodFill(image, sr, sc, color) {
+  const img = image.map((row) =&gt; [...row]);
+  const old = img[sr][sc];
+  if (old === color) return img;
+  const stack = [[sr, sc]];
+  img[sr][sc] = color; // recolouring doubles as &quot;visited&quot;
+  while (stack.length &gt; 0) {
+    const [cr, cc] = stack.pop();
+    for (const [dr, dc] of DIRS) {
+      const r = cr + dr;
+      const c = cc + dc;
+      if (r &gt;= 0 &amp;&amp; r &lt; img.length &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; img[0].length &amp;&amp; img[r][c] === old) {
+        img[r][c] = color;
+        stack.push([r, c]);
+      }
+    }
+  }
+  return img;
+}
+
+/** Minutes until every fresh orange (1) rots, spreading from all rotten ones (2) at once; -1 if impossible. */
+function orangesRotting(input) {
+  const g = input.map((row) =&gt; [...row]);
+  let level = [];
+  let fresh = 0;
+  g.forEach((row, r) =&gt;
+    row.forEach((v, c) =&gt; {
+      if (v === 2) level.push([r, c]); // every source starts in the queue
+      else if (v === 1) fresh++;
+    })
+  );
+  let minutes = 0;
+  while (level.length &gt; 0 &amp;&amp; fresh &gt; 0) {
+    const next = [];
+    for (const [cr, cc] of level) {
+      for (const [dr, dc] of DIRS) {
+        const r = cr + dr;
+        const c = cc + dc;
+        if (r &gt;= 0 &amp;&amp; r &lt; g.length &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; g[0].length &amp;&amp; g[r][c] === 1) {
+          g[r][c] = 2;
+          fresh--;
+          next.push([r, c]);
+        }
+      }
+    }
+    level = next;
+    minutes++;
+  }
+  return fresh === 0 ? minutes : -1;
+}
+
+function ladderLength(begin, end, words) {
+  const dict = new Set(words);
+  if (!dict.has(end)) return 0;
+  dict.delete(begin);
+  let level = [begin];
+  for (let length = 1; level.length &gt; 0; length++) {
+    const next = [];
+    for (const w of level) {
+      if (w === end) return length;
+      for (let i = 0; i &lt; w.length; i++) {
+        for (let code = 97; code &lt;= 122; code++) {
+          const candidate = w.slice(0, i) + String.fromCharCode(code) + w.slice(i + 1);
+          if (dict.delete(candidate)) next.push(candidate); // delete = mark visited
+        }
+      }
+    }
+    level = next;
+  }
+  return 0;
+}
+
+function main() {
+  const filled = floodFill([[1, 1, 1], [1, 1, 0], [1, 0, 1]], 1, 1, 2);
+  console.log(`flood fill from (1, 1) with 2: ${filled.map((r) =&gt; r.join(&quot; &quot;)).join(&quot; / &quot;)}`);
+  console.log(`oranges [[2,1,1],[1,1,0],[0,1,1]]: ${orangesRotting([[2, 1, 1], [1, 1, 0], [0, 1, 1]])} minutes, [[2,1,1],[0,1,1],[1,0,1]]: ${orangesRotting([[2, 1, 1], [0, 1, 1], [1, 0, 1]])}`);
+  const words = [&quot;hot&quot;, &quot;dot&quot;, &quot;dog&quot;, &quot;lot&quot;, &quot;log&quot;, &quot;cog&quot;];
+  console.log(`ladder hit -&gt; cog: ${ladderLength(&quot;hit&quot;, &quot;cog&quot;, words)} words, without cog: ${ladderLength(&quot;hit&quot;, &quot;cog&quot;, words.slice(0, 5))}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-graph-bfs-dfs-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">const</span> <span class="hljs-attr">DIRS</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [[-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]];</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">function</span> <span class="hljs-title function_">floodFill</span>(<span class="hljs-params"><span class="hljs-attr">image</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[][], <span class="hljs-attr">sr</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">sc</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">color</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span>[][] {</span><span class="ln" data-line="4">  <span class="hljs-keyword">const</span> img = image.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">row</span>) =&gt;</span> [...row]);</span><span class="ln" data-line="5">  <span class="hljs-keyword">const</span> old = img[sr][sc];</span><span class="ln" data-line="6">  <span class="hljs-keyword">if</span> (old === color) <span class="hljs-keyword">return</span> img;</span><span class="ln" data-line="7">  <span class="hljs-keyword">const</span> <span class="hljs-attr">stack</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [[sr, sc]];</span><span class="ln" data-line="8">  img[sr][sc] = color; <span class="hljs-comment">// recolouring doubles as &quot;visited&quot;</span></span><span class="ln" data-line="9">  <span class="hljs-keyword">while</span> (stack.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="10">    <span class="hljs-keyword">const</span> [cr, cc] = stack.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>];</span><span class="ln" data-line="11">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [dr, dc] <span class="hljs-keyword">of</span> <span class="hljs-variable constant_">DIRS</span>) {</span><span class="ln" data-line="12">      <span class="hljs-keyword">const</span> r = cr + dr;</span><span class="ln" data-line="13">      <span class="hljs-keyword">const</span> c = cc + dc;</span><span class="ln" data-line="14">      <span class="hljs-keyword">if</span> (r &gt;= <span class="hljs-number">0</span> &amp;&amp; r &lt; img.<span class="hljs-property">length</span> &amp;&amp; c &gt;= <span class="hljs-number">0</span> &amp;&amp; c &lt; img[<span class="hljs-number">0</span>].<span class="hljs-property">length</span> &amp;&amp; img[r][c] === old) {</span><span class="ln" data-line="15">        img[r][c] = color;</span><span class="ln" data-line="16">        stack.<span class="hljs-title function_">push</span>([r, c]);</span><span class="ln" data-line="17">      }</span><span class="ln" data-line="18">    }</span><span class="ln" data-line="19">  }</span><span class="ln" data-line="20">  <span class="hljs-keyword">return</span> img;</span><span class="ln" data-line="21">}</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-comment">/** Minutes until every fresh orange (1) rots, spreading from all rotten ones (2) at once; -1 if impossible. */</span></span><span class="ln" data-line="24"><span class="hljs-keyword">function</span> <span class="hljs-title function_">orangesRotting</span>(<span class="hljs-params"><span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[][]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="25">  <span class="hljs-keyword">const</span> g = input.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">row</span>) =&gt;</span> [...row]);</span><span class="ln" data-line="26">  <span class="hljs-keyword">let</span> <span class="hljs-attr">level</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [];</span><span class="ln" data-line="27">  <span class="hljs-keyword">let</span> fresh = <span class="hljs-number">0</span>;</span><span class="ln" data-line="28">  g.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">row, r</span>) =&gt;</span></span><span class="ln" data-line="29">    row.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">v, c</span>) =&gt;</span> {</span><span class="ln" data-line="30">      <span class="hljs-keyword">if</span> (v === <span class="hljs-number">2</span>) level.<span class="hljs-title function_">push</span>([r, c]); <span class="hljs-comment">// every source starts in the queue</span></span><span class="ln" data-line="31">      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (v === <span class="hljs-number">1</span>) fresh++;</span><span class="ln" data-line="32">    })</span><span class="ln" data-line="33">  );</span><span class="ln" data-line="34">  <span class="hljs-keyword">let</span> minutes = <span class="hljs-number">0</span>;</span><span class="ln" data-line="35">  <span class="hljs-keyword">while</span> (level.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span> &amp;&amp; fresh &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="36">    <span class="hljs-keyword">const</span> <span class="hljs-attr">next</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [];</span><span class="ln" data-line="37">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [cr, cc] <span class="hljs-keyword">of</span> level) {</span><span class="ln" data-line="38">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [dr, dc] <span class="hljs-keyword">of</span> <span class="hljs-variable constant_">DIRS</span>) {</span><span class="ln" data-line="39">        <span class="hljs-keyword">const</span> r = cr + dr;</span><span class="ln" data-line="40">        <span class="hljs-keyword">const</span> c = cc + dc;</span><span class="ln" data-line="41">        <span class="hljs-keyword">if</span> (r &gt;= <span class="hljs-number">0</span> &amp;&amp; r &lt; g.<span class="hljs-property">length</span> &amp;&amp; c &gt;= <span class="hljs-number">0</span> &amp;&amp; c &lt; g[<span class="hljs-number">0</span>].<span class="hljs-property">length</span> &amp;&amp; g[r][c] === <span class="hljs-number">1</span>) {</span><span class="ln" data-line="42">          g[r][c] = <span class="hljs-number">2</span>;</span><span class="ln" data-line="43">          fresh--;</span><span class="ln" data-line="44">          next.<span class="hljs-title function_">push</span>([r, c]);</span><span class="ln" data-line="45">        }</span><span class="ln" data-line="46">      }</span><span class="ln" data-line="47">    }</span><span class="ln" data-line="48">    level = next;</span><span class="ln" data-line="49">    minutes++;</span><span class="ln" data-line="50">  }</span><span class="ln" data-line="51">  <span class="hljs-keyword">return</span> fresh === <span class="hljs-number">0</span> ? minutes : -<span class="hljs-number">1</span>;</span><span class="ln" data-line="52">}</span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-keyword">function</span> <span class="hljs-title function_">ladderLength</span>(<span class="hljs-params"><span class="hljs-attr">begin</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">end</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">words</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="55">  <span class="hljs-keyword">const</span> dict = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>(words);</span><span class="ln" data-line="56">  <span class="hljs-keyword">if</span> (!dict.<span class="hljs-title function_">has</span>(end)) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="57">  dict.<span class="hljs-title function_">delete</span>(begin);</span><span class="ln" data-line="58">  <span class="hljs-keyword">let</span> level = [begin];</span><span class="ln" data-line="59">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> length = <span class="hljs-number">1</span>; level.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>; length++) {</span><span class="ln" data-line="60">    <span class="hljs-keyword">const</span> <span class="hljs-attr">next</span>: <span class="hljs-built_in">string</span>[] = [];</span><span class="ln" data-line="61">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> w <span class="hljs-keyword">of</span> level) {</span><span class="ln" data-line="62">      <span class="hljs-keyword">if</span> (w === end) <span class="hljs-keyword">return</span> length;</span><span class="ln" data-line="63">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; w.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="64">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> code = <span class="hljs-number">97</span>; code &lt;= <span class="hljs-number">122</span>; code++) {</span><span class="ln" data-line="65">          <span class="hljs-keyword">const</span> candidate = w.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, i) + <span class="hljs-title class_">String</span>.<span class="hljs-title function_">fromCharCode</span>(code) + w.<span class="hljs-title function_">slice</span>(i + <span class="hljs-number">1</span>);</span><span class="ln" data-line="66">          <span class="hljs-keyword">if</span> (dict.<span class="hljs-title function_">delete</span>(candidate)) next.<span class="hljs-title function_">push</span>(candidate); <span class="hljs-comment">// delete = mark visited</span></span><span class="ln" data-line="67">        }</span><span class="ln" data-line="68">      }</span><span class="ln" data-line="69">    }</span><span class="ln" data-line="70">    level = next;</span><span class="ln" data-line="71">  }</span><span class="ln" data-line="72">  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="73">}</span><span class="ln" data-line="74"> </span><span class="ln" data-line="75"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="76">  <span class="hljs-keyword">const</span> filled = <span class="hljs-title function_">floodFill</span>([[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>]], <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>);</span><span class="ln" data-line="77">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`flood fill from (1, 1) with 2: <span class="hljs-subst">${filled.map((r) =&gt; r.join(<span class="hljs-string">&quot; &quot;</span>)).join(<span class="hljs-string">&quot; / &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="78">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`oranges [[2,1,1],[1,1,0],[0,1,1]]: <span class="hljs-subst">${orangesRotting([[<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>]])}</span> minutes, [[2,1,1],[0,1,1],[1,0,1]]: <span class="hljs-subst">${orangesRotting([[<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>]])}</span>`</span>);</span><span class="ln" data-line="79">  <span class="hljs-keyword">const</span> words = [<span class="hljs-string">&quot;hot&quot;</span>, <span class="hljs-string">&quot;dot&quot;</span>, <span class="hljs-string">&quot;dog&quot;</span>, <span class="hljs-string">&quot;lot&quot;</span>, <span class="hljs-string">&quot;log&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>];</span><span class="ln" data-line="80">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`ladder hit -&gt; cog: <span class="hljs-subst">${ladderLength(<span class="hljs-string">&quot;hit&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>, words)}</span> words, without cog: <span class="hljs-subst">${ladderLength(<span class="hljs-string">&quot;hit&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>, words.slice(<span class="hljs-number">0</span>, <span class="hljs-number">5</span>))}</span>`</span>);</span><span class="ln" data-line="81">}</span><span class="ln" data-line="82"> </span><span class="ln" data-line="83"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">const DIRS: [number, number][] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+function floodFill(image: readonly number[][], sr: number, sc: number, color: number): number[][] {
+  const img = image.map((row) =&gt; [...row]);
+  const old = img[sr][sc];
+  if (old === color) return img;
+  const stack: [number, number][] = [[sr, sc]];
+  img[sr][sc] = color; // recolouring doubles as &quot;visited&quot;
+  while (stack.length &gt; 0) {
+    const [cr, cc] = stack.pop() as [number, number];
+    for (const [dr, dc] of DIRS) {
+      const r = cr + dr;
+      const c = cc + dc;
+      if (r &gt;= 0 &amp;&amp; r &lt; img.length &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; img[0].length &amp;&amp; img[r][c] === old) {
+        img[r][c] = color;
+        stack.push([r, c]);
+      }
+    }
+  }
+  return img;
+}
+
+/** Minutes until every fresh orange (1) rots, spreading from all rotten ones (2) at once; -1 if impossible. */
+function orangesRotting(input: readonly number[][]): number {
+  const g = input.map((row) =&gt; [...row]);
+  let level: [number, number][] = [];
+  let fresh = 0;
+  g.forEach((row, r) =&gt;
+    row.forEach((v, c) =&gt; {
+      if (v === 2) level.push([r, c]); // every source starts in the queue
+      else if (v === 1) fresh++;
+    })
+  );
+  let minutes = 0;
+  while (level.length &gt; 0 &amp;&amp; fresh &gt; 0) {
+    const next: [number, number][] = [];
+    for (const [cr, cc] of level) {
+      for (const [dr, dc] of DIRS) {
+        const r = cr + dr;
+        const c = cc + dc;
+        if (r &gt;= 0 &amp;&amp; r &lt; g.length &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; g[0].length &amp;&amp; g[r][c] === 1) {
+          g[r][c] = 2;
+          fresh--;
+          next.push([r, c]);
+        }
+      }
+    }
+    level = next;
+    minutes++;
+  }
+  return fresh === 0 ? minutes : -1;
+}
+
+function ladderLength(begin: string, end: string, words: readonly string[]): number {
+  const dict = new Set(words);
+  if (!dict.has(end)) return 0;
+  dict.delete(begin);
+  let level = [begin];
+  for (let length = 1; level.length &gt; 0; length++) {
+    const next: string[] = [];
+    for (const w of level) {
+      if (w === end) return length;
+      for (let i = 0; i &lt; w.length; i++) {
+        for (let code = 97; code &lt;= 122; code++) {
+          const candidate = w.slice(0, i) + String.fromCharCode(code) + w.slice(i + 1);
+          if (dict.delete(candidate)) next.push(candidate); // delete = mark visited
+        }
+      }
+    }
+    level = next;
+  }
+  return 0;
+}
+
+function main(): void {
+  const filled = floodFill([[1, 1, 1], [1, 1, 0], [1, 0, 1]], 1, 1, 2);
+  console.log(`flood fill from (1, 1) with 2: ${filled.map((r) =&gt; r.join(&quot; &quot;)).join(&quot; / &quot;)}`);
+  console.log(`oranges [[2,1,1],[1,1,0],[0,1,1]]: ${orangesRotting([[2, 1, 1], [1, 1, 0], [0, 1, 1]])} minutes, [[2,1,1],[0,1,1],[1,0,1]]: ${orangesRotting([[2, 1, 1], [0, 1, 1], [1, 0, 1]])}`);
+  const words = [&quot;hot&quot;, &quot;dot&quot;, &quot;dog&quot;, &quot;lot&quot;, &quot;log&quot;, &quot;cog&quot;];
+  console.log(`ladder hit -&gt; cog: ${ladderLength(&quot;hit&quot;, &quot;cog&quot;, words)} words, without cog: ${ladderLength(&quot;hit&quot;, &quot;cog&quot;, words.slice(0, 5))}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-graph-bfs-dfs-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4">DIRS = ((-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>), (<span class="hljs-number">0</span>, <span class="hljs-number">1</span>))</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">def</span> <span class="hljs-title function_">flood_fill</span>(<span class="hljs-params">image: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]], sr: <span class="hljs-built_in">int</span>, sc: <span class="hljs-built_in">int</span>, color: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]:</span><span class="ln" data-line="8">    img = [row[:] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> image]</span><span class="ln" data-line="9">    old = img[sr][sc]</span><span class="ln" data-line="10">    <span class="hljs-keyword">if</span> old == color:</span><span class="ln" data-line="11">        <span class="hljs-keyword">return</span> img</span><span class="ln" data-line="12">    stack = [(sr, sc)]</span><span class="ln" data-line="13">    img[sr][sc] = color  <span class="hljs-comment"># recolouring doubles as &quot;visited&quot;</span></span><span class="ln" data-line="14">    <span class="hljs-keyword">while</span> stack:</span><span class="ln" data-line="15">        cr, cc = stack.pop()</span><span class="ln" data-line="16">        <span class="hljs-keyword">for</span> dr, dc <span class="hljs-keyword">in</span> DIRS:</span><span class="ln" data-line="17">            r, c = cr + dr, cc + dc</span><span class="ln" data-line="18">            <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &lt;= r &lt; <span class="hljs-built_in">len</span>(img) <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt;= c &lt; <span class="hljs-built_in">len</span>(img[<span class="hljs-number">0</span>]) <span class="hljs-keyword">and</span> img[r][c] == old:</span><span class="ln" data-line="19">                img[r][c] = color</span><span class="ln" data-line="20">                stack.append((r, c))</span><span class="ln" data-line="21">    <span class="hljs-keyword">return</span> img</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">def</span> <span class="hljs-title function_">oranges_rotting</span>(<span class="hljs-params">grid: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="25">    <span class="hljs-string">&quot;&quot;&quot;Minutes until every fresh orange (1) rots, spreading from all rotten ones (2) at once; -1 if impossible.&quot;&quot;&quot;</span></span><span class="ln" data-line="26">    g = [row[:] <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> grid]</span><span class="ln" data-line="27">    queue = deque((r, c) <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(g)) <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(g[<span class="hljs-number">0</span>])) <span class="hljs-keyword">if</span> g[r][c] == <span class="hljs-number">2</span>)  <span class="hljs-comment"># every source</span></span><span class="ln" data-line="28">    fresh = <span class="hljs-built_in">sum</span>(v == <span class="hljs-number">1</span> <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> g <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> row)</span><span class="ln" data-line="29">    minutes = <span class="hljs-number">0</span></span><span class="ln" data-line="30">    <span class="hljs-keyword">while</span> queue <span class="hljs-keyword">and</span> fresh:</span><span class="ln" data-line="31">        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(queue)):</span><span class="ln" data-line="32">            cr, cc = queue.popleft()</span><span class="ln" data-line="33">            <span class="hljs-keyword">for</span> dr, dc <span class="hljs-keyword">in</span> DIRS:</span><span class="ln" data-line="34">                r, c = cr + dr, cc + dc</span><span class="ln" data-line="35">                <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &lt;= r &lt; <span class="hljs-built_in">len</span>(g) <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt;= c &lt; <span class="hljs-built_in">len</span>(g[<span class="hljs-number">0</span>]) <span class="hljs-keyword">and</span> g[r][c] == <span class="hljs-number">1</span>:</span><span class="ln" data-line="36">                    g[r][c] = <span class="hljs-number">2</span></span><span class="ln" data-line="37">                    fresh -= <span class="hljs-number">1</span></span><span class="ln" data-line="38">                    queue.append((r, c))</span><span class="ln" data-line="39">        minutes += <span class="hljs-number">1</span></span><span class="ln" data-line="40">    <span class="hljs-keyword">return</span> minutes <span class="hljs-keyword">if</span> fresh == <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span></span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"><span class="hljs-keyword">def</span> <span class="hljs-title function_">ladder_length</span>(<span class="hljs-params">begin: <span class="hljs-built_in">str</span>, end: <span class="hljs-built_in">str</span>, words: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="44">    words_left = <span class="hljs-built_in">set</span>(words)</span><span class="ln" data-line="45">    <span class="hljs-keyword">if</span> end <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> words_left:</span><span class="ln" data-line="46">        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span></span><span class="ln" data-line="47">    words_left.discard(begin)</span><span class="ln" data-line="48">    queue, length = deque([begin]), <span class="hljs-number">1</span></span><span class="ln" data-line="49">    <span class="hljs-keyword">while</span> queue:</span><span class="ln" data-line="50">        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(queue)):</span><span class="ln" data-line="51">            w = queue.popleft()</span><span class="ln" data-line="52">            <span class="hljs-keyword">if</span> w == end:</span><span class="ln" data-line="53">                <span class="hljs-keyword">return</span> length</span><span class="ln" data-line="54">            <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(w)):</span><span class="ln" data-line="55">                <span class="hljs-keyword">for</span> ch <span class="hljs-keyword">in</span> <span class="hljs-string">&quot;abcdefghijklmnopqrstuvwxyz&quot;</span>:</span><span class="ln" data-line="56">                    candidate = w[:i] + ch + w[i + <span class="hljs-number">1</span>:]</span><span class="ln" data-line="57">                    <span class="hljs-keyword">if</span> candidate <span class="hljs-keyword">in</span> words_left:</span><span class="ln" data-line="58">                        words_left.remove(candidate)  <span class="hljs-comment"># remove = mark visited</span></span><span class="ln" data-line="59">                        queue.append(candidate)</span><span class="ln" data-line="60">        length += <span class="hljs-number">1</span></span><span class="ln" data-line="61">    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span></span><span class="ln" data-line="62"> </span><span class="ln" data-line="63"> </span><span class="ln" data-line="64"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="65">    filled = flood_fill([[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>]], <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>)</span><span class="ln" data-line="66">    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;flood fill from (1, 1) with 2: &quot;</span> + <span class="hljs-string">&quot; / &quot;</span>.join(<span class="hljs-string">&quot; &quot;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, r)) <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> filled))</span><span class="ln" data-line="67">    a = oranges_rotting([[<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>]])</span><span class="ln" data-line="68">    b = oranges_rotting([[<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>]])</span><span class="ln" data-line="69">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;oranges [[2,1,1],[1,1,0],[0,1,1]]: <span class="hljs-subst">{a}</span> minutes, [[2,1,1],[0,1,1],[1,0,1]]: <span class="hljs-subst">{b}</span>&quot;</span>)</span><span class="ln" data-line="70">    words = [<span class="hljs-string">&quot;hot&quot;</span>, <span class="hljs-string">&quot;dot&quot;</span>, <span class="hljs-string">&quot;dog&quot;</span>, <span class="hljs-string">&quot;lot&quot;</span>, <span class="hljs-string">&quot;log&quot;</span>, <span class="hljs-string">&quot;cog&quot;</span>]</span><span class="ln" data-line="71">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;ladder hit -&gt; cog: <span class="hljs-subst">{ladder_length(<span class="hljs-string">&#x27;hit&#x27;</span>, <span class="hljs-string">&#x27;cog&#x27;</span>, words)}</span> words, without cog: <span class="hljs-subst">{ladder_length(<span class="hljs-string">&#x27;hit&#x27;</span>, <span class="hljs-string">&#x27;cog&#x27;</span>, words[:<span class="hljs-number">5</span>])}</span>&quot;</span>)</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73"> </span><span class="ln" data-line="74"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="75">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from collections import deque
+from typing import List
+
+DIRS = ((-1, 0), (1, 0), (0, -1), (0, 1))
+
+
+def flood_fill(image: List[List[int]], sr: int, sc: int, color: int) -&gt; List[List[int]]:
+    img = [row[:] for row in image]
+    old = img[sr][sc]
+    if old == color:
+        return img
+    stack = [(sr, sc)]
+    img[sr][sc] = color  # recolouring doubles as &quot;visited&quot;
+    while stack:
+        cr, cc = stack.pop()
+        for dr, dc in DIRS:
+            r, c = cr + dr, cc + dc
+            if 0 &lt;= r &lt; len(img) and 0 &lt;= c &lt; len(img[0]) and img[r][c] == old:
+                img[r][c] = color
+                stack.append((r, c))
+    return img
+
+
+def oranges_rotting(grid: List[List[int]]) -&gt; int:
+    &quot;&quot;&quot;Minutes until every fresh orange (1) rots, spreading from all rotten ones (2) at once; -1 if impossible.&quot;&quot;&quot;
+    g = [row[:] for row in grid]
+    queue = deque((r, c) for r in range(len(g)) for c in range(len(g[0])) if g[r][c] == 2)  # every source
+    fresh = sum(v == 1 for row in g for v in row)
+    minutes = 0
+    while queue and fresh:
+        for _ in range(len(queue)):
+            cr, cc = queue.popleft()
+            for dr, dc in DIRS:
+                r, c = cr + dr, cc + dc
+                if 0 &lt;= r &lt; len(g) and 0 &lt;= c &lt; len(g[0]) and g[r][c] == 1:
+                    g[r][c] = 2
+                    fresh -= 1
+                    queue.append((r, c))
+        minutes += 1
+    return minutes if fresh == 0 else -1
+
+
+def ladder_length(begin: str, end: str, words: List[str]) -&gt; int:
+    words_left = set(words)
+    if end not in words_left:
+        return 0
+    words_left.discard(begin)
+    queue, length = deque([begin]), 1
+    while queue:
+        for _ in range(len(queue)):
+            w = queue.popleft()
+            if w == end:
+                return length
+            for i in range(len(w)):
+                for ch in &quot;abcdefghijklmnopqrstuvwxyz&quot;:
+                    candidate = w[:i] + ch + w[i + 1:]
+                    if candidate in words_left:
+                        words_left.remove(candidate)  # remove = mark visited
+                        queue.append(candidate)
+        length += 1
+    return 0
+
+
+def main() -&gt; None:
+    filled = flood_fill([[1, 1, 1], [1, 1, 0], [1, 0, 1]], 1, 1, 2)
+    print(&quot;flood fill from (1, 1) with 2: &quot; + &quot; / &quot;.join(&quot; &quot;.join(map(str, r)) for r in filled))
+    a = oranges_rotting([[2, 1, 1], [1, 1, 0], [0, 1, 1]])
+    b = oranges_rotting([[2, 1, 1], [0, 1, 1], [1, 0, 1]])
+    print(f&quot;oranges [[2,1,1],[1,1,0],[0,1,1]]: {a} minutes, [[2,1,1],[0,1,1],[1,0,1]]: {b}&quot;)
+    words = [&quot;hot&quot;, &quot;dot&quot;, &quot;dog&quot;, &quot;lot&quot;, &quot;log&quot;, &quot;cog&quot;]
+    print(f&quot;ladder hit -&gt; cog: {ladder_length(&#39;hit&#39;, &#39;cog&#39;, words)} words, without cog: {ladder_length(&#39;hit&#39;, &#39;cog&#39;, words[:5])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>flood fill from (1, 1) with 2: 2 2 2 / 2 2 0 / 2 0 1
+oranges [[2,1,1],[1,1,0],[0,1,1]]: 4 minutes, [[2,1,1],[0,1,1],[1,0,1]]: -1
+ladder hit -&gt; cog: 5 words, without cog: 0</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Marking cells visited when they&#39;re dequeued rather than enqueued, so they&#39;re queued many times.</li><li>Running a separate BFS from every source instead of one multi-source BFS.</li><li>Recursion depth: a DFS over a 1000 × 1000 grid can recurse a million times. Use an explicit stack in Java and Python.</li><li>Counting steps off by one: decide whether the start counts as step 0 or 1 (word ladder counts words, so it starts at 1).</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/flood-fill/" rel="noopener" target="_blank">Flood Fill<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>733</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/number-of-islands/" rel="noopener" target="_blank">Number of Islands<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>200</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/rotting-oranges/" rel="noopener" target="_blank">Rotting Oranges<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>994</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/pacific-atlantic-water-flow/" rel="noopener" target="_blank">Pacific Atlantic Water Flow<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>417</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/word-ladder/" rel="noopener" target="_blank">Word Ladder<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>127</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/graphs/index.html">Graphs</a>, <a href="../../data-structures/queues/index.html">Queues</a>, <a href="../../data-structures/stacks/index.html">Stacks</a>, <a href="../../algorithms/graph-algorithms/index.html">Graph algorithms</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../tree-bfs/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Tree BFS</span></a><a class="pn pn-next" href="../topological-sort/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Topological sort</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

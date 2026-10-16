@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thread-safe LRU cache · DSA Academy</title>
+<meta name="description" content="Hash map plus linked list behind a lock strategy.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../index.html" aria-current="page">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Low-level design</a></li><li><span aria-current="page">Thread-safe LRU cache</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Thread-safe LRU cache</h1>
+  <p class="lede">An LRU cache keeps the most recently used entries and evicts the oldest when full. Making it thread-safe is subtle: even <code>get</code> changes the recency order, so a read lock is not enough. This page compares one lock, lock striping, and stopping a cache stampede.</p>
+  <p class="tags"><span class="pill">Low-level design</span><span class="pill">Concurrency</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A small shelf of the books people asked for most recently, by a busy library desk. Every time someone borrows from the shelf, that book moves to the front, so even &quot;just looking&quot; rearranges the shelf, and two librarians can&#39;t rearrange it at the same moment.</p></aside>
+<h2 id="requirements">Requirements</h2>
+<p><strong>Functional</strong></p>
+<ul>
+<li><code>get(key)</code> returns the value or null and marks the key as recently used.</li>
+<li><code>put(key, value)</code> inserts or updates, evicting the least recently used entry when over capacity.</li>
+<li><code>getOrLoad(key, loader)</code> loads a missing value once, even when many threads ask together.</li>
+</ul>
+<p><strong>Non-functional</strong></p>
+<ul>
+<li>O(1) per operation.</li>
+<li>Correct under concurrent access; size never exceeds capacity.</li>
+<li>Scales with cores: hot keys shouldn&#39;t serialise every request.</li>
+</ul>
+<h2 id="entities-and-relationships">Entities and relationships</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 580 163" role="img" aria-label="Class diagram: StripedLRU holds several LockedLRU segments; each LockedLRU wraps an access-ordered LinkedHashMap with a lock and tracks in-flight loads"><defs><marker id="ah7-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker></defs><path class="dg-line" d="M215.0 70.0 L277.0 73.5" marker-end="url(#ah7-dg-head)"/><rect class="dg-box" x="20.0" y="20" width="191" height="89" rx="6"/><rect class="dg-hd" x="20.0" y="20" width="191" height="28" rx="6"/><text class="dg-ch" x="115.5" y="34">StripedLRU&lt;K,V&gt;</text><text class="dg-c" x="30.0" y="66">- segments: LockedLRU[]</text><text class="dg-c" x="30.0" y="83">+ segmentFor(key)</text><text class="dg-c" x="30.0" y="100">+ get / put / size</text><rect class="dg-box" x="281.0" y="20" width="279" height="123" rx="6"/><rect class="dg-hd" x="281.0" y="20" width="279" height="28" rx="6"/><text class="dg-ch" x="420.5" y="34">LockedLRU&lt;K,V&gt;</text><text class="dg-c" x="291.0" y="66">- map: LinkedHashMap (access order)</text><text class="dg-c" x="291.0" y="83">- lock: ReentrantLock</text><text class="dg-c" x="291.0" y="100">- inFlight: ConcurrentHashMap</text><text class="dg-c" x="291.0" y="117">+ get / put</text><text class="dg-c" x="291.0" y="134">+ getOrLoad(key, loader)</text><rect class="dg-bg" x="206.0" y="61.773770491803276" width="80" height="18" rx="4"/><text class="dg-sq" x="246.0" y="75.77377049180328">N segments</text></svg><figcaption>Striping splits one cache into N independent segments, each with its own lock. A key always maps to the same segment.</figcaption></figure><ul>
+<li><strong>Data structure</strong>: hash map + doubly linked list ordered by recency (see Data
+structure design for the hand-built version). Java&#39;s <code>LinkedHashMap</code> with
+<code>accessOrder = true</code> and <code>removeEldestEntry</code> is exactly that; Python&#39;s
+<code>OrderedDict</code> with <code>move_to_end</code> is the same idea.</li>
+<li><strong>Why not a read-write lock?</strong> <code>get</code> moves the entry to the front of the list,
+which is a write. Under a read lock, two <code>get</code>s would corrupt the list.</li>
+<li><strong>Lock striping</strong>: <code>segment = hash(key) mod N</code>. Each segment is an independent
+LRU with capacity <code>total / N</code>. Eviction becomes approximately LRU (per
+segment), which is almost always acceptable.</li>
+</ul>
+<h2 id="design-patterns-used">Design patterns used</h2>
+<ul>
+<li><strong>Decorator / wrapper</strong>: <code>LockedLRU</code> wraps a non-thread-safe map and adds locking around every call.</li>
+<li><strong>Lock striping</strong>: N locks over N partitions, the trick behind early <code>ConcurrentHashMap</code>.</li>
+<li><strong>Single flight (request coalescing)</strong>: the first thread to miss a key loads it; the others wait on its future instead of all hitting the database.</li>
+</ul>
+<h2 id="how-a-request-flows">How a request flows</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 720 396" role="img" aria-label="Sequence diagram: two threads miss the same key; the first registers a future and calls the loader; the second waits on that future"><defs><marker id="ah8-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker></defs><rect class="dg-hd" x="61.8" y="20" width="86.4" height="30" rx="6"/><text class="dg-ch" x="105.0" y="35">Thread A</text><path class="dg-dash" d="M105.0 50 L105.0 386"/><rect class="dg-hd" x="231.8" y="20" width="86.4" height="30" rx="6"/><text class="dg-ch" x="275.0" y="35">Thread B</text><path class="dg-dash" d="M275.0 50 L275.0 386"/><rect class="dg-hd" x="398.15" y="20" width="93.7" height="30" rx="6"/><text class="dg-ch" x="445.0" y="35">LockedLRU</text><path class="dg-dash" d="M445.0 50 L445.0 386"/><rect class="dg-hd" x="571.8" y="20" width="86.4" height="30" rx="6"/><text class="dg-ch" x="615.0" y="35">Database</text><path class="dg-dash" d="M615.0 50 L615.0 386"/><path class="dg-line" d="M105.0 88 L441.0 88" marker-end="url(#ah8-dg-head)"/><text class="dg-sq" x="275.0" y="82">getOrLoad(k)</text><path class="dg-line" d="M445.0 112 h28 v14 h-26" marker-end="url(#ah8-dg-head)"/><text class="dg-sq" x="479.0" y="118" text-anchor="start" style="text-anchor:start">miss, register future</text><path class="dg-line" d="M275.0 156 L441.0 156" marker-end="url(#ah8-dg-head)"/><text class="dg-sq" x="360.0" y="150">getOrLoad(k)</text><path class="dg-dash" d="M445.0 190 L279.0 190" marker-end="url(#ah8-dg-head)"/><text class="dg-sq" x="360.0" y="184">wait on A&#x27;s future</text><path class="dg-line" d="M445.0 224 L611.0 224" marker-end="url(#ah8-dg-head)"/><text class="dg-sq" x="530.0" y="218">load(k)</text><path class="dg-dash" d="M615.0 258 L449.0 258" marker-end="url(#ah8-dg-head)"/><text class="dg-sq" x="530.0" y="252">value</text><path class="dg-line" d="M445.0 282 h28 v14 h-26" marker-end="url(#ah8-dg-head)"/><text class="dg-sq" x="479.0" y="288" text-anchor="start" style="text-anchor:start">put, complete future</text><path class="dg-dash" d="M445.0 326 L109.0 326" marker-end="url(#ah8-dg-head)"/><text class="dg-sq" x="275.0" y="320">value</text><path class="dg-dash" d="M445.0 360 L279.0 360" marker-end="url(#ah8-dg-head)"/><text class="dg-sq" x="360.0" y="354">same value</text></svg><figcaption>Single flight: only one database call however many threads miss the same key at once.</figcaption></figure><p>After winning the right to load, the thread <strong>checks the cache once more</strong>: a
+previous loader may have finished between this thread&#39;s miss and its claim.
+Without that second check, an unlucky thread loads the value twice.</p>
+<h2 id="concurrency">Concurrency</h2>
+<ul>
+<li>One <code>ReentrantLock</code> per cache (or per segment) guards both the map and the recency list together, since they must change as one.</li>
+<li>Never call the loader while holding the cache lock: a slow database call would block every other key.</li>
+<li>In-flight loads live in a <code>ConcurrentHashMap&lt;K, CompletableFuture&lt;V&gt;&gt;</code>; <code>putIfAbsent</code> decides atomically who loads.</li>
+<li>Remove the in-flight entry in <code>finally</code>, and complete the future exceptionally on failure so waiters don&#39;t hang.</li>
+<li>Production caches (Caffeine) avoid a global lock by recording reads in a buffer and replaying them onto the LRU list in batches.</li>
+</ul>
+<h2 id="cost-of-each-operation">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>get / put</td><td class="nowrap">O(1)</td><td>Hash lookup plus a constant number of list pointer changes.</td></tr><tr><td>Contention</td><td class="nowrap">1 lock → N locks</td><td>Striping lets up to N threads work at once on different keys.</td></tr><tr><td>getOrLoad, concurrent misses</td><td class="nowrap">1 load</td><td>Later threads wait on the first thread&#39;s future.</td></tr></tbody></table></div><h2 id="code">Code</h2>
+<p>The concurrent parts print invariants that hold on every run: the size after 16,000 random operations, and how many times the loader ran when 8 threads missed the same key together.</p><figure class="codeblock" id="code-lru-cache-concurrent" aria-label="An LRU behind one lock, a striped LRU, and a single-flight loader">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-lru-cache-concurrent-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-lru-cache-concurrent-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-lru-cache-concurrent-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.LinkedHashMap;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.Map;</span><span class="ln" data-line="5"><span class="hljs-keyword">import</span> java.util.concurrent.CompletableFuture;</span><span class="ln" data-line="6"><span class="hljs-keyword">import</span> java.util.concurrent.ConcurrentHashMap;</span><span class="ln" data-line="7"><span class="hljs-keyword">import</span> java.util.concurrent.CountDownLatch;</span><span class="ln" data-line="8"><span class="hljs-keyword">import</span> java.util.concurrent.ThreadLocalRandom;</span><span class="ln" data-line="9"><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><span class="ln" data-line="10"><span class="hljs-keyword">import</span> java.util.concurrent.locks.ReentrantLock;</span><span class="ln" data-line="11"><span class="hljs-keyword">import</span> java.util.function.Function;</span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">LockedLRU</span>&lt;K, V&gt; {</span><span class="ln" data-line="16">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> capacity;</span><span class="ln" data-line="17">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">lock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLock</span>();</span><span class="ln" data-line="18">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;K, V&gt; map;</span><span class="ln" data-line="19">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ConcurrentHashMap</span>&lt;K, CompletableFuture&lt;V&gt;&gt; <span class="hljs-variable">inFlight</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;();</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21">        LockedLRU(<span class="hljs-type">int</span> capacity) {</span><span class="ln" data-line="22">            <span class="hljs-built_in">this</span>.capacity = capacity;</span><span class="ln" data-line="23">            <span class="hljs-built_in">this</span>.map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedHashMap</span>&lt;&gt;(<span class="hljs-number">16</span>, <span class="hljs-number">0.75f</span>, <span class="hljs-literal">true</span>) { <span class="hljs-comment">// true = access order: get() moves the entry to the end</span></span><span class="ln" data-line="24">                <span class="hljs-meta">@Override</span></span><span class="ln" data-line="25">                <span class="hljs-keyword">protected</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">removeEldestEntry</span><span class="hljs-params">(Map.Entry&lt;K, V&gt; eldest)</span> { <span class="hljs-keyword">return</span> size() &gt; LockedLRU.<span class="hljs-built_in">this</span>.capacity; }</span><span class="ln" data-line="26">            };</span><span class="ln" data-line="27">        }</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29">        <span class="hljs-type">V</span> <span class="hljs-title function_">get</span><span class="hljs-params">(K key)</span> {</span><span class="ln" data-line="30">            lock.lock(); <span class="hljs-comment">// exclusive: get() reorders the list</span></span><span class="ln" data-line="31">            <span class="hljs-keyword">try</span> { <span class="hljs-keyword">return</span> map.get(key); } <span class="hljs-keyword">finally</span> { lock.unlock(); }</span><span class="ln" data-line="32">        }</span><span class="ln" data-line="33"> </span><span class="ln" data-line="34">        <span class="hljs-type">void</span> <span class="hljs-title function_">put</span><span class="hljs-params">(K key, V value)</span> {</span><span class="ln" data-line="35">            lock.lock();</span><span class="ln" data-line="36">            <span class="hljs-keyword">try</span> { map.put(key, value); } <span class="hljs-keyword">finally</span> { lock.unlock(); }</span><span class="ln" data-line="37">        }</span><span class="ln" data-line="38"> </span><span class="ln" data-line="39">        <span class="hljs-type">int</span> <span class="hljs-title function_">size</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="40">            lock.lock();</span><span class="ln" data-line="41">            <span class="hljs-keyword">try</span> { <span class="hljs-keyword">return</span> map.size(); } <span class="hljs-keyword">finally</span> { lock.unlock(); }</span><span class="ln" data-line="42">        }</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44">        <span class="hljs-type">List</span>&lt;K&gt; <span class="hljs-title function_">keysOldestFirst</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="45">            lock.lock();</span><span class="ln" data-line="46">            <span class="hljs-keyword">try</span> { <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(map.keySet()); } <span class="hljs-keyword">finally</span> { lock.unlock(); }</span><span class="ln" data-line="47">        }</span><span class="ln" data-line="48"> </span><span class="ln" data-line="49">        <span class="hljs-type">V</span> <span class="hljs-title function_">getOrLoad</span><span class="hljs-params">(K key, Function&lt;K, V&gt; loader)</span> {</span><span class="ln" data-line="50">            <span class="hljs-type">V</span> <span class="hljs-variable">v</span> <span class="hljs-operator">=</span> get(key);</span><span class="ln" data-line="51">            <span class="hljs-keyword">if</span> (v != <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> v;</span><span class="ln" data-line="52">            <span class="hljs-type">CompletableFuture</span>&lt;V&gt; <span class="hljs-variable">mine</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CompletableFuture</span>&lt;&gt;();</span><span class="ln" data-line="53">            <span class="hljs-type">CompletableFuture</span>&lt;V&gt; <span class="hljs-variable">other</span> <span class="hljs-operator">=</span> inFlight.putIfAbsent(key, mine);</span><span class="ln" data-line="54">            <span class="hljs-keyword">if</span> (other != <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> other.join(); <span class="hljs-comment">// someone else is loading it: wait for their result</span></span><span class="ln" data-line="55">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="56">                <span class="hljs-type">V</span> <span class="hljs-variable">cached</span> <span class="hljs-operator">=</span> get(key); <span class="hljs-comment">// check again: a loader may have just finished</span></span><span class="ln" data-line="57">                <span class="hljs-type">V</span> <span class="hljs-variable">value</span> <span class="hljs-operator">=</span> cached != <span class="hljs-literal">null</span> ? cached : loader.apply(key); <span class="hljs-comment">// the slow call runs without the cache lock</span></span><span class="ln" data-line="58">                <span class="hljs-keyword">if</span> (cached == <span class="hljs-literal">null</span>) put(key, value);</span><span class="ln" data-line="59">                mine.complete(value);</span><span class="ln" data-line="60">                <span class="hljs-keyword">return</span> value;</span><span class="ln" data-line="61">            } <span class="hljs-keyword">catch</span> (RuntimeException e) {</span><span class="ln" data-line="62">                mine.completeExceptionally(e); <span class="hljs-comment">// don&#x27;t leave waiters hanging</span></span><span class="ln" data-line="63">                <span class="hljs-keyword">throw</span> e;</span><span class="ln" data-line="64">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="65">                inFlight.remove(key, mine);</span><span class="ln" data-line="66">            }</span><span class="ln" data-line="67">        }</span><span class="ln" data-line="68">    }</span><span class="ln" data-line="69"> </span><span class="ln" data-line="70">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">StripedLRU</span>&lt;K, V&gt; {</span><span class="ln" data-line="71">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;LockedLRU&lt;K, V&gt;&gt; <span class="hljs-variable">segments</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73">        StripedLRU(<span class="hljs-type">int</span> capacity, <span class="hljs-type">int</span> stripes) {</span><span class="ln" data-line="74">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; stripes; i++) segments.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">LockedLRU</span>&lt;&gt;(capacity / stripes));</span><span class="ln" data-line="75">        }</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77">        <span class="hljs-keyword">private</span> <span class="hljs-type">LockedLRU</span>&lt;K, V&gt; <span class="hljs-title function_">segmentFor</span><span class="hljs-params">(K key)</span> { <span class="hljs-keyword">return</span> segments.get(Math.floorMod(key.hashCode(), segments.size())); }</span><span class="ln" data-line="78"> </span><span class="ln" data-line="79">        <span class="hljs-type">V</span> <span class="hljs-title function_">get</span><span class="hljs-params">(K key)</span> { <span class="hljs-keyword">return</span> segmentFor(key).get(key); }</span><span class="ln" data-line="80">        <span class="hljs-type">void</span> <span class="hljs-title function_">put</span><span class="hljs-params">(K key, V value)</span> { segmentFor(key).put(key, value); }</span><span class="ln" data-line="81"> </span><span class="ln" data-line="82">        <span class="hljs-type">int</span> <span class="hljs-title function_">size</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="83">            <span class="hljs-type">int</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="84">            <span class="hljs-keyword">for</span> (LockedLRU&lt;K, V&gt; seg : segments) s += seg.size();</span><span class="ln" data-line="85">            <span class="hljs-keyword">return</span> s;</span><span class="ln" data-line="86">        }</span><span class="ln" data-line="87">    }</span><span class="ln" data-line="88"> </span><span class="ln" data-line="89">    <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">runTogether</span><span class="hljs-params">(<span class="hljs-type">int</span> threads, Runnable work)</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="90">        <span class="hljs-type">CountDownLatch</span> <span class="hljs-variable">start</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CountDownLatch</span>(<span class="hljs-number">1</span>);</span><span class="ln" data-line="91">        <span class="hljs-type">List</span>&lt;Thread&gt; <span class="hljs-variable">ts</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="92">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; threads; i++) {</span><span class="ln" data-line="93">            <span class="hljs-type">Thread</span> <span class="hljs-variable">t</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; {</span><span class="ln" data-line="94">                <span class="hljs-keyword">try</span> { start.await(); } <span class="hljs-keyword">catch</span> (InterruptedException e) { <span class="hljs-keyword">return</span>; }</span><span class="ln" data-line="95">                work.run();</span><span class="ln" data-line="96">            });</span><span class="ln" data-line="97">            t.start();</span><span class="ln" data-line="98">            ts.add(t);</span><span class="ln" data-line="99">        }</span><span class="ln" data-line="100">        start.countDown();</span><span class="ln" data-line="101">        <span class="hljs-keyword">for</span> (Thread t : ts) t.join();</span><span class="ln" data-line="102">    }</span><span class="ln" data-line="103"> </span><span class="ln" data-line="104">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception {</span><span class="ln" data-line="105">        <span class="hljs-type">LockedLRU</span>&lt;String, Integer&gt; <span class="hljs-variable">small</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LockedLRU</span>&lt;&gt;(<span class="hljs-number">2</span>);</span><span class="ln" data-line="106">        small.put(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-number">1</span>);</span><span class="ln" data-line="107">        small.put(<span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-number">2</span>);</span><span class="ln" data-line="108">        small.get(<span class="hljs-string">&quot;a&quot;</span>); <span class="hljs-comment">// a is now the most recent</span></span><span class="ln" data-line="109">        small.put(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-number">3</span>); <span class="hljs-comment">// evicts b</span></span><span class="ln" data-line="110">        System.out.println(<span class="hljs-string">&quot;capacity 2: put a, put b, get a, put c -&gt; keys oldest first: &quot;</span> + String.join(<span class="hljs-string">&quot; &quot;</span>, small.keysOldestFirst()) + <span class="hljs-string">&quot;, get(b) = &quot;</span> + small.get(<span class="hljs-string">&quot;b&quot;</span>));</span><span class="ln" data-line="111"> </span><span class="ln" data-line="112">        <span class="hljs-type">LockedLRU</span>&lt;Integer, Integer&gt; <span class="hljs-variable">shared</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LockedLRU</span>&lt;&gt;(<span class="hljs-number">50</span>);</span><span class="ln" data-line="113">        runTogether(<span class="hljs-number">8</span>, () -&gt; {</span><span class="ln" data-line="114">            <span class="hljs-type">ThreadLocalRandom</span> <span class="hljs-variable">rnd</span> <span class="hljs-operator">=</span> ThreadLocalRandom.current();</span><span class="ln" data-line="115">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">2000</span>; i++) {</span><span class="ln" data-line="116">                <span class="hljs-type">int</span> <span class="hljs-variable">k</span> <span class="hljs-operator">=</span> rnd.nextInt(<span class="hljs-number">100</span>);</span><span class="ln" data-line="117">                <span class="hljs-keyword">if</span> (rnd.nextBoolean()) shared.put(k, k); <span class="hljs-keyword">else</span> shared.get(k);</span><span class="ln" data-line="118">            }</span><span class="ln" data-line="119">        });</span><span class="ln" data-line="120">        System.out.println(<span class="hljs-string">&quot;8 threads x 2000 random operations on 100 keys: size &quot;</span> + shared.size() + <span class="hljs-string">&quot; (capacity 50)&quot;</span>);</span><span class="ln" data-line="121"> </span><span class="ln" data-line="122">        <span class="hljs-type">StripedLRU</span>&lt;Integer, Integer&gt; <span class="hljs-variable">striped</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StripedLRU</span>&lt;&gt;(<span class="hljs-number">64</span>, <span class="hljs-number">4</span>);</span><span class="ln" data-line="123">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">k</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; k &lt; <span class="hljs-number">1000</span>; k++) striped.put(k, k * k);</span><span class="ln" data-line="124">        System.out.println(<span class="hljs-string">&quot;striped cache, 4 segments x 16: after 1000 puts size &quot;</span> + striped.size() + <span class="hljs-string">&quot;, get(999) = &quot;</span> + striped.get(<span class="hljs-number">999</span>) + <span class="hljs-string">&quot;, get(0) = &quot;</span> + striped.get(<span class="hljs-number">0</span>));</span><span class="ln" data-line="125"> </span><span class="ln" data-line="126">        <span class="hljs-type">LockedLRU</span>&lt;String, String&gt; <span class="hljs-variable">profiles</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LockedLRU</span>&lt;&gt;(<span class="hljs-number">10</span>);</span><span class="ln" data-line="127">        <span class="hljs-type">AtomicInteger</span> <span class="hljs-variable">loads</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>();</span><span class="ln" data-line="128">        <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">results</span> <span class="hljs-operator">=</span> java.util.Collections.synchronizedList(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;());</span><span class="ln" data-line="129">        runTogether(<span class="hljs-number">8</span>, () -&gt; results.add(profiles.getOrLoad(<span class="hljs-string">&quot;user:42&quot;</span>, key -&gt; {</span><span class="ln" data-line="130">            loads.incrementAndGet();</span><span class="ln" data-line="131">            <span class="hljs-keyword">try</span> { Thread.sleep(<span class="hljs-number">100</span>); } <span class="hljs-keyword">catch</span> (InterruptedException e) { Thread.currentThread().interrupt(); } <span class="hljs-comment">// a slow database call</span></span><span class="ln" data-line="132">            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;profile-42&quot;</span>;</span><span class="ln" data-line="133">        })));</span><span class="ln" data-line="134">        <span class="hljs-type">boolean</span> <span class="hljs-variable">allSame</span> <span class="hljs-operator">=</span> results.size() == <span class="hljs-number">8</span> &amp;&amp; results.stream().allMatch(<span class="hljs-string">&quot;profile-42&quot;</span>::equals);</span><span class="ln" data-line="135">        System.out.println(<span class="hljs-string">&quot;8 threads missed user:42 together: loader ran &quot;</span> + loads.get() + <span class="hljs-string">&quot; time, every thread got profile-42 = &quot;</span> + allSame);</span><span class="ln" data-line="136">    }</span><span class="ln" data-line="137">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
+
+public class Solution {
+
+    static final class LockedLRU&lt;K, V&gt; {
+        private final int capacity;
+        private final ReentrantLock lock = new ReentrantLock();
+        private final Map&lt;K, V&gt; map;
+        private final ConcurrentHashMap&lt;K, CompletableFuture&lt;V&gt;&gt; inFlight = new ConcurrentHashMap&lt;&gt;();
+
+        LockedLRU(int capacity) {
+            this.capacity = capacity;
+            this.map = new LinkedHashMap&lt;&gt;(16, 0.75f, true) { // true = access order: get() moves the entry to the end
+                @Override
+                protected boolean removeEldestEntry(Map.Entry&lt;K, V&gt; eldest) { return size() &gt; LockedLRU.this.capacity; }
+            };
+        }
+
+        V get(K key) {
+            lock.lock(); // exclusive: get() reorders the list
+            try { return map.get(key); } finally { lock.unlock(); }
+        }
+
+        void put(K key, V value) {
+            lock.lock();
+            try { map.put(key, value); } finally { lock.unlock(); }
+        }
+
+        int size() {
+            lock.lock();
+            try { return map.size(); } finally { lock.unlock(); }
+        }
+
+        List&lt;K&gt; keysOldestFirst() {
+            lock.lock();
+            try { return new ArrayList&lt;&gt;(map.keySet()); } finally { lock.unlock(); }
+        }
+
+        V getOrLoad(K key, Function&lt;K, V&gt; loader) {
+            V v = get(key);
+            if (v != null) return v;
+            CompletableFuture&lt;V&gt; mine = new CompletableFuture&lt;&gt;();
+            CompletableFuture&lt;V&gt; other = inFlight.putIfAbsent(key, mine);
+            if (other != null) return other.join(); // someone else is loading it: wait for their result
+            try {
+                V cached = get(key); // check again: a loader may have just finished
+                V value = cached != null ? cached : loader.apply(key); // the slow call runs without the cache lock
+                if (cached == null) put(key, value);
+                mine.complete(value);
+                return value;
+            } catch (RuntimeException e) {
+                mine.completeExceptionally(e); // don&#39;t leave waiters hanging
+                throw e;
+            } finally {
+                inFlight.remove(key, mine);
+            }
+        }
+    }
+
+    static final class StripedLRU&lt;K, V&gt; {
+        private final List&lt;LockedLRU&lt;K, V&gt;&gt; segments = new ArrayList&lt;&gt;();
+
+        StripedLRU(int capacity, int stripes) {
+            for (int i = 0; i &lt; stripes; i++) segments.add(new LockedLRU&lt;&gt;(capacity / stripes));
+        }
+
+        private LockedLRU&lt;K, V&gt; segmentFor(K key) { return segments.get(Math.floorMod(key.hashCode(), segments.size())); }
+
+        V get(K key) { return segmentFor(key).get(key); }
+        void put(K key, V value) { segmentFor(key).put(key, value); }
+
+        int size() {
+            int s = 0;
+            for (LockedLRU&lt;K, V&gt; seg : segments) s += seg.size();
+            return s;
+        }
+    }
+
+    static void runTogether(int threads, Runnable work) throws InterruptedException {
+        CountDownLatch start = new CountDownLatch(1);
+        List&lt;Thread&gt; ts = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; threads; i++) {
+            Thread t = new Thread(() -&gt; {
+                try { start.await(); } catch (InterruptedException e) { return; }
+                work.run();
+            });
+            t.start();
+            ts.add(t);
+        }
+        start.countDown();
+        for (Thread t : ts) t.join();
+    }
+
+    public static void main(String[] args) throws Exception {
+        LockedLRU&lt;String, Integer&gt; small = new LockedLRU&lt;&gt;(2);
+        small.put(&quot;a&quot;, 1);
+        small.put(&quot;b&quot;, 2);
+        small.get(&quot;a&quot;); // a is now the most recent
+        small.put(&quot;c&quot;, 3); // evicts b
+        System.out.println(&quot;capacity 2: put a, put b, get a, put c -&gt; keys oldest first: &quot; + String.join(&quot; &quot;, small.keysOldestFirst()) + &quot;, get(b) = &quot; + small.get(&quot;b&quot;));
+
+        LockedLRU&lt;Integer, Integer&gt; shared = new LockedLRU&lt;&gt;(50);
+        runTogether(8, () -&gt; {
+            ThreadLocalRandom rnd = ThreadLocalRandom.current();
+            for (int i = 0; i &lt; 2000; i++) {
+                int k = rnd.nextInt(100);
+                if (rnd.nextBoolean()) shared.put(k, k); else shared.get(k);
+            }
+        });
+        System.out.println(&quot;8 threads x 2000 random operations on 100 keys: size &quot; + shared.size() + &quot; (capacity 50)&quot;);
+
+        StripedLRU&lt;Integer, Integer&gt; striped = new StripedLRU&lt;&gt;(64, 4);
+        for (int k = 0; k &lt; 1000; k++) striped.put(k, k * k);
+        System.out.println(&quot;striped cache, 4 segments x 16: after 1000 puts size &quot; + striped.size() + &quot;, get(999) = &quot; + striped.get(999) + &quot;, get(0) = &quot; + striped.get(0));
+
+        LockedLRU&lt;String, String&gt; profiles = new LockedLRU&lt;&gt;(10);
+        AtomicInteger loads = new AtomicInteger();
+        List&lt;String&gt; results = java.util.Collections.synchronizedList(new ArrayList&lt;&gt;());
+        runTogether(8, () -&gt; results.add(profiles.getOrLoad(&quot;user:42&quot;, key -&gt; {
+            loads.incrementAndGet();
+            try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); } // a slow database call
+            return &quot;profile-42&quot;;
+        })));
+        boolean allSame = results.size() == 8 &amp;&amp; results.stream().allMatch(&quot;profile-42&quot;::equals);
+        System.out.println(&quot;8 threads missed user:42 together: loader ran &quot; + loads.get() + &quot; time, every thread got profile-42 = &quot; + allSame);
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-lru-cache-concurrent-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> random</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> threading</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> time</span><span class="ln" data-line="4"><span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> OrderedDict</span><span class="ln" data-line="5"><span class="hljs-keyword">from</span> concurrent.futures <span class="hljs-keyword">import</span> Future</span><span class="ln" data-line="6"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Callable</span>, <span class="hljs-type">Dict</span>, <span class="hljs-type">Generic</span>, Hashable, <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span>, TypeVar</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8">K = TypeVar(<span class="hljs-string">&quot;K&quot;</span>, bound=Hashable)</span><span class="ln" data-line="9">V = TypeVar(<span class="hljs-string">&quot;V&quot;</span>)</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LockedLRU</span>(<span class="hljs-type">Generic</span>[K, V]):</span><span class="ln" data-line="13">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, capacity: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="14">        <span class="hljs-variable language_">self</span>.capacity = capacity</span><span class="ln" data-line="15">        <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>: <span class="hljs-string">&quot;OrderedDict[K, V]&quot;</span> = OrderedDict()</span><span class="ln" data-line="16">        <span class="hljs-variable language_">self</span>._lock = threading.Lock()</span><span class="ln" data-line="17">        <span class="hljs-variable language_">self</span>._in_flight: <span class="hljs-type">Dict</span>[K, Future] = {}</span><span class="ln" data-line="18">        <span class="hljs-variable language_">self</span>._flight_lock = threading.Lock()</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get</span>(<span class="hljs-params">self, key: K</span>) -&gt; <span class="hljs-type">Optional</span>[V]:</span><span class="ln" data-line="21">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:  <span class="hljs-comment"># exclusive: get() reorders</span></span><span class="ln" data-line="22">            <span class="hljs-keyword">if</span> key <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>:</span><span class="ln" data-line="23">                <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span></span><span class="ln" data-line="24">            <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>.move_to_end(key)</span><span class="ln" data-line="25">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>[key]</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">put</span>(<span class="hljs-params">self, key: K, value: V</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="28">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="29">            <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>[key] = value</span><span class="ln" data-line="30">            <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>.move_to_end(key)</span><span class="ln" data-line="31">            <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>) &gt; <span class="hljs-variable language_">self</span>.capacity:</span><span class="ln" data-line="32">                <span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>.popitem(last=<span class="hljs-literal">False</span>)  <span class="hljs-comment"># evict the least recently used</span></span><span class="ln" data-line="33"> </span><span class="ln" data-line="34">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">size</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="35">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="36">            <span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>)</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">keys_oldest_first</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-type">List</span>[K]:</span><span class="ln" data-line="39">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="40">            <span class="hljs-keyword">return</span> <span class="hljs-built_in">list</span>(<span class="hljs-variable language_">self</span>._<span class="hljs-built_in">map</span>.keys())</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_or_load</span>(<span class="hljs-params">self, key: K, loader: <span class="hljs-type">Callable</span>[[K], V]</span>) -&gt; V:</span><span class="ln" data-line="43">        v = <span class="hljs-variable language_">self</span>.get(key)</span><span class="ln" data-line="44">        <span class="hljs-keyword">if</span> v <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="45">            <span class="hljs-keyword">return</span> v</span><span class="ln" data-line="46">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._flight_lock:</span><span class="ln" data-line="47">            other = <span class="hljs-variable language_">self</span>._in_flight.get(key)</span><span class="ln" data-line="48">            <span class="hljs-keyword">if</span> other <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="49">                mine: Future = Future()</span><span class="ln" data-line="50">                <span class="hljs-variable language_">self</span>._in_flight[key] = mine</span><span class="ln" data-line="51">        <span class="hljs-keyword">if</span> other <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="52">            <span class="hljs-keyword">return</span> other.result()  <span class="hljs-comment"># someone else is loading it: wait for their result</span></span><span class="ln" data-line="53">        <span class="hljs-keyword">try</span>:</span><span class="ln" data-line="54">            cached = <span class="hljs-variable language_">self</span>.get(key)  <span class="hljs-comment"># check again: a loader may have just finished</span></span><span class="ln" data-line="55">            value = cached <span class="hljs-keyword">if</span> cached <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> loader(key)  <span class="hljs-comment"># the slow call runs without the cache lock</span></span><span class="ln" data-line="56">            <span class="hljs-keyword">if</span> cached <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="57">                <span class="hljs-variable language_">self</span>.put(key, value)</span><span class="ln" data-line="58">            mine.set_result(value)</span><span class="ln" data-line="59">            <span class="hljs-keyword">return</span> value</span><span class="ln" data-line="60">        <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> e:</span><span class="ln" data-line="61">            mine.set_exception(e)  <span class="hljs-comment"># don&#x27;t leave waiters hanging</span></span><span class="ln" data-line="62">            <span class="hljs-keyword">raise</span></span><span class="ln" data-line="63">        <span class="hljs-keyword">finally</span>:</span><span class="ln" data-line="64">            <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._flight_lock:</span><span class="ln" data-line="65">                <span class="hljs-variable language_">self</span>._in_flight.pop(key, <span class="hljs-literal">None</span>)</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"><span class="hljs-keyword">class</span> <span class="hljs-title class_">StripedLRU</span>(<span class="hljs-type">Generic</span>[K, V]):</span><span class="ln" data-line="69">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, capacity: <span class="hljs-built_in">int</span>, stripes: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="70">        <span class="hljs-variable language_">self</span>.segments = [LockedLRU(capacity // stripes) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(stripes)]</span><span class="ln" data-line="71"> </span><span class="ln" data-line="72">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_segment</span>(<span class="hljs-params">self, key: K</span>) -&gt; LockedLRU:</span><span class="ln" data-line="73">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.segments[<span class="hljs-built_in">hash</span>(key) % <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.segments)]</span><span class="ln" data-line="74"> </span><span class="ln" data-line="75">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get</span>(<span class="hljs-params">self, key: K</span>) -&gt; <span class="hljs-type">Optional</span>[V]:</span><span class="ln" data-line="76">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._segment(key).get(key)</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">put</span>(<span class="hljs-params">self, key: K, value: V</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="79">        <span class="hljs-variable language_">self</span>._segment(key).put(key, value)</span><span class="ln" data-line="80"> </span><span class="ln" data-line="81">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">size</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="82">        <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(s.size() <span class="hljs-keyword">for</span> s <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.segments)</span><span class="ln" data-line="83"> </span><span class="ln" data-line="84"> </span><span class="ln" data-line="85"><span class="hljs-keyword">def</span> <span class="hljs-title function_">run_together</span>(<span class="hljs-params">threads: <span class="hljs-built_in">int</span>, work: <span class="hljs-type">Callable</span>[[], <span class="hljs-literal">None</span>]</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="86">    start = threading.Event()</span><span class="ln" data-line="87"> </span><span class="ln" data-line="88">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">runner</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="89">        start.wait()</span><span class="ln" data-line="90">        work()</span><span class="ln" data-line="91"> </span><span class="ln" data-line="92">    ts = [threading.Thread(target=runner) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(threads)]</span><span class="ln" data-line="93">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> ts:</span><span class="ln" data-line="94">        t.start()</span><span class="ln" data-line="95">    start.<span class="hljs-built_in">set</span>()</span><span class="ln" data-line="96">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> ts:</span><span class="ln" data-line="97">        t.join()</span><span class="ln" data-line="98"> </span><span class="ln" data-line="99"> </span><span class="ln" data-line="100"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="101">    small: LockedLRU[<span class="hljs-built_in">str</span>, <span class="hljs-built_in">int</span>] = LockedLRU(<span class="hljs-number">2</span>)</span><span class="ln" data-line="102">    small.put(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-number">1</span>)</span><span class="ln" data-line="103">    small.put(<span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-number">2</span>)</span><span class="ln" data-line="104">    small.get(<span class="hljs-string">&quot;a&quot;</span>)  <span class="hljs-comment"># a is now the most recent</span></span><span class="ln" data-line="105">    small.put(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-number">3</span>)  <span class="hljs-comment"># evicts b</span></span><span class="ln" data-line="106">    got = small.get(<span class="hljs-string">&quot;b&quot;</span>)</span><span class="ln" data-line="107">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;capacity 2: put a, put b, get a, put c -&gt; keys oldest first: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(small.keys_oldest_first())}</span>, get(b) = <span class="hljs-subst">{<span class="hljs-string">&#x27;null&#x27;</span> <span class="hljs-keyword">if</span> got <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> got}</span>&quot;</span>)</span><span class="ln" data-line="108"> </span><span class="ln" data-line="109">    shared: LockedLRU[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>] = LockedLRU(<span class="hljs-number">50</span>)</span><span class="ln" data-line="110"> </span><span class="ln" data-line="111">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">random_ops</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="112">        rnd = random.Random()</span><span class="ln" data-line="113">        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2000</span>):</span><span class="ln" data-line="114">            k = rnd.randrange(<span class="hljs-number">100</span>)</span><span class="ln" data-line="115">            <span class="hljs-keyword">if</span> rnd.random() &lt; <span class="hljs-number">0.5</span>:</span><span class="ln" data-line="116">                shared.put(k, k)</span><span class="ln" data-line="117">            <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="118">                shared.get(k)</span><span class="ln" data-line="119"> </span><span class="ln" data-line="120">    run_together(<span class="hljs-number">8</span>, random_ops)</span><span class="ln" data-line="121">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;8 threads x 2000 random operations on 100 keys: size <span class="hljs-subst">{shared.size()}</span> (capacity 50)&quot;</span>)</span><span class="ln" data-line="122"> </span><span class="ln" data-line="123">    striped: StripedLRU[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>] = StripedLRU(<span class="hljs-number">64</span>, <span class="hljs-number">4</span>)</span><span class="ln" data-line="124">    <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1000</span>):</span><span class="ln" data-line="125">        striped.put(k, k * k)</span><span class="ln" data-line="126">    g0 = striped.get(<span class="hljs-number">0</span>)</span><span class="ln" data-line="127">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;striped cache, 4 segments x 16: after 1000 puts size <span class="hljs-subst">{striped.size()}</span>, get(999) = <span class="hljs-subst">{striped.get(<span class="hljs-number">999</span>)}</span>, get(0) = <span class="hljs-subst">{<span class="hljs-string">&#x27;null&#x27;</span> <span class="hljs-keyword">if</span> g0 <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> g0}</span>&quot;</span>)</span><span class="ln" data-line="128"> </span><span class="ln" data-line="129">    profiles: LockedLRU[<span class="hljs-built_in">str</span>, <span class="hljs-built_in">str</span>] = LockedLRU(<span class="hljs-number">10</span>)</span><span class="ln" data-line="130">    loads, results = [<span class="hljs-number">0</span>], []</span><span class="ln" data-line="131">    lock = threading.Lock()</span><span class="ln" data-line="132"> </span><span class="ln" data-line="133">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">slow_load</span>(<span class="hljs-params">key: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="134">        <span class="hljs-keyword">with</span> lock:</span><span class="ln" data-line="135">            loads[<span class="hljs-number">0</span>] += <span class="hljs-number">1</span></span><span class="ln" data-line="136">        time.sleep(<span class="hljs-number">0.1</span>)  <span class="hljs-comment"># a slow database call</span></span><span class="ln" data-line="137">        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;profile-42&quot;</span></span><span class="ln" data-line="138"> </span><span class="ln" data-line="139">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">ask</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="140">        v = profiles.get_or_load(<span class="hljs-string">&quot;user:42&quot;</span>, slow_load)</span><span class="ln" data-line="141">        <span class="hljs-keyword">with</span> lock:</span><span class="ln" data-line="142">            results.append(v)</span><span class="ln" data-line="143"> </span><span class="ln" data-line="144">    run_together(<span class="hljs-number">8</span>, ask)</span><span class="ln" data-line="145">    all_same = <span class="hljs-built_in">len</span>(results) == <span class="hljs-number">8</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">all</span>(r == <span class="hljs-string">&quot;profile-42&quot;</span> <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> results)</span><span class="ln" data-line="146">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;8 threads missed user:42 together: loader ran <span class="hljs-subst">{loads[<span class="hljs-number">0</span>]}</span> time, every thread got profile-42 = <span class="hljs-subst">{<span class="hljs-string">&#x27;true&#x27;</span> <span class="hljs-keyword">if</span> all_same <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;false&#x27;</span>}</span>&quot;</span>)</span><span class="ln" data-line="147"> </span><span class="ln" data-line="148"> </span><span class="ln" data-line="149"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="150">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import random
+import threading
+import time
+from collections import OrderedDict
+from concurrent.futures import Future
+from typing import Callable, Dict, Generic, Hashable, List, Optional, TypeVar
+
+K = TypeVar(&quot;K&quot;, bound=Hashable)
+V = TypeVar(&quot;V&quot;)
+
+
+class LockedLRU(Generic[K, V]):
+    def __init__(self, capacity: int) -&gt; None:
+        self.capacity = capacity
+        self._map: &quot;OrderedDict[K, V]&quot; = OrderedDict()
+        self._lock = threading.Lock()
+        self._in_flight: Dict[K, Future] = {}
+        self._flight_lock = threading.Lock()
+
+    def get(self, key: K) -&gt; Optional[V]:
+        with self._lock:  # exclusive: get() reorders
+            if key not in self._map:
+                return None
+            self._map.move_to_end(key)
+            return self._map[key]
+
+    def put(self, key: K, value: V) -&gt; None:
+        with self._lock:
+            self._map[key] = value
+            self._map.move_to_end(key)
+            if len(self._map) &gt; self.capacity:
+                self._map.popitem(last=False)  # evict the least recently used
+
+    def size(self) -&gt; int:
+        with self._lock:
+            return len(self._map)
+
+    def keys_oldest_first(self) -&gt; List[K]:
+        with self._lock:
+            return list(self._map.keys())
+
+    def get_or_load(self, key: K, loader: Callable[[K], V]) -&gt; V:
+        v = self.get(key)
+        if v is not None:
+            return v
+        with self._flight_lock:
+            other = self._in_flight.get(key)
+            if other is None:
+                mine: Future = Future()
+                self._in_flight[key] = mine
+        if other is not None:
+            return other.result()  # someone else is loading it: wait for their result
+        try:
+            cached = self.get(key)  # check again: a loader may have just finished
+            value = cached if cached is not None else loader(key)  # the slow call runs without the cache lock
+            if cached is None:
+                self.put(key, value)
+            mine.set_result(value)
+            return value
+        except Exception as e:
+            mine.set_exception(e)  # don&#39;t leave waiters hanging
+            raise
+        finally:
+            with self._flight_lock:
+                self._in_flight.pop(key, None)
+
+
+class StripedLRU(Generic[K, V]):
+    def __init__(self, capacity: int, stripes: int) -&gt; None:
+        self.segments = [LockedLRU(capacity // stripes) for _ in range(stripes)]
+
+    def _segment(self, key: K) -&gt; LockedLRU:
+        return self.segments[hash(key) % len(self.segments)]
+
+    def get(self, key: K) -&gt; Optional[V]:
+        return self._segment(key).get(key)
+
+    def put(self, key: K, value: V) -&gt; None:
+        self._segment(key).put(key, value)
+
+    def size(self) -&gt; int:
+        return sum(s.size() for s in self.segments)
+
+
+def run_together(threads: int, work: Callable[[], None]) -&gt; None:
+    start = threading.Event()
+
+    def runner() -&gt; None:
+        start.wait()
+        work()
+
+    ts = [threading.Thread(target=runner) for _ in range(threads)]
+    for t in ts:
+        t.start()
+    start.set()
+    for t in ts:
+        t.join()
+
+
+def main() -&gt; None:
+    small: LockedLRU[str, int] = LockedLRU(2)
+    small.put(&quot;a&quot;, 1)
+    small.put(&quot;b&quot;, 2)
+    small.get(&quot;a&quot;)  # a is now the most recent
+    small.put(&quot;c&quot;, 3)  # evicts b
+    got = small.get(&quot;b&quot;)
+    print(f&quot;capacity 2: put a, put b, get a, put c -&gt; keys oldest first: {&#39; &#39;.join(small.keys_oldest_first())}, get(b) = {&#39;null&#39; if got is None else got}&quot;)
+
+    shared: LockedLRU[int, int] = LockedLRU(50)
+
+    def random_ops() -&gt; None:
+        rnd = random.Random()
+        for _ in range(2000):
+            k = rnd.randrange(100)
+            if rnd.random() &lt; 0.5:
+                shared.put(k, k)
+            else:
+                shared.get(k)
+
+    run_together(8, random_ops)
+    print(f&quot;8 threads x 2000 random operations on 100 keys: size {shared.size()} (capacity 50)&quot;)
+
+    striped: StripedLRU[int, int] = StripedLRU(64, 4)
+    for k in range(1000):
+        striped.put(k, k * k)
+    g0 = striped.get(0)
+    print(f&quot;striped cache, 4 segments x 16: after 1000 puts size {striped.size()}, get(999) = {striped.get(999)}, get(0) = {&#39;null&#39; if g0 is None else g0}&quot;)
+
+    profiles: LockedLRU[str, str] = LockedLRU(10)
+    loads, results = [0], []
+    lock = threading.Lock()
+
+    def slow_load(key: str) -&gt; str:
+        with lock:
+            loads[0] += 1
+        time.sleep(0.1)  # a slow database call
+        return &quot;profile-42&quot;
+
+    def ask() -&gt; None:
+        v = profiles.get_or_load(&quot;user:42&quot;, slow_load)
+        with lock:
+            results.append(v)
+
+    run_together(8, ask)
+    all_same = len(results) == 8 and all(r == &quot;profile-42&quot; for r in results)
+    print(f&quot;8 threads missed user:42 together: loader ran {loads[0]} time, every thread got profile-42 = {&#39;true&#39; if all_same else &#39;false&#39;}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>capacity 2: put a, put b, get a, put c -&gt; keys oldest first: a c, get(b) = null
+8 threads x 2000 random operations on 100 keys: size 50 (capacity 50)
+striped cache, 4 segments x 16: after 1000 puts size 64, get(999) = 998001, get(0) = null
+8 threads missed user:42 together: loader ran 1 time, every thread got profile-42 = true</samp></pre></div>
+</figure><p class="muted">Shown in Java and Python: JavaScript runs your code on one thread, so locks and conditions have no real equivalent there. Java and Python show the design with real threads.</p><h2 id="common-mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Using a read lock for <code>get</code> even though it reorders the list.</li><li>Synchronising <code>get</code> and <code>put</code> separately but doing <code>if (get(k) == null) put(k, load(k))</code> outside: a check-then-act race that loads twice.</li><li>Holding the cache lock during the slow load.</li><li>Leaving a failed load in the in-flight map, so every later request waits forever.</li><li>Using <code>ConcurrentHashMap</code> alone and believing it gives LRU order.</li></ul><h2 id="interview-follow-ups">Interview follow-ups</h2>
+<ul>
+<li>Add a time-to-live per entry; how do you expire entries nobody reads again?</li>
+<li>Switch the eviction policy to LFU without changing callers (Strategy).</li>
+<li>Report hit rate and eviction counts without adding contention (<code>LongAdder</code>).</li>
+<li>Make the cache distributed (consistent hashing across nodes).</li>
+</ul>
+
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/lru-cache/" rel="noopener" target="_blank">LRU Cache<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>146</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/lfu-cache/" rel="noopener" target="_blank">LFU Cache<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>460</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../rate-limiter/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Rate limiter</span></a><a class="pn pn-next" href="../thread-pool/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Thread pool and scheduler</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>String algorithms · DSA Academy</title>
+<meta name="description" content="KMP, Rabin-Karp and an overview of the Z-algorithm.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../index.html" aria-current="page">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Algorithms</a></li><li><span aria-current="page">String algorithms</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>String algorithms</h1>
+  <p class="lede">Pattern matching finds every place a short pattern occurs in a long text. The naive method re-reads text after every mismatch; KMP, Rabin-Karp and the Z-algorithm all avoid that and run in linear time.</p>
+  <p class="tags"><span class="pill">Technique</span> <span class="muted">15 minute read</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Proofreading for a repeated word. A careless reader who finds &quot;the th&quot; and then sees &quot;e&quot; missing starts again one letter later. A careful reader notices that the &quot;th&quot; they just read could be the start of the next match, and carries on from there. KMP is the careful reader.</p></aside>
+<h2 id="the-problem-with-naive-search">The problem with naive search</h2>
+<p>Naive search lines the pattern up at each position of the text and compares
+character by character. On text like <code>aaaaaaaab</code> with pattern <code>aaab</code>, each
+attempt matches three characters before failing, so the work is O(n × m).</p>
+<h2 id="kmp-knuthmorrispratt">KMP (Knuth–Morris–Pratt)</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 200" role="img" aria-label="KMP: after a mismatch, the prefix table lets the pattern slide forward without re-reading text characters"><defs></defs><text class="dg-m" x="20" y="30">pattern</text><rect class="dg-box" x="100" y="10" width="44" height="34" rx="6"/><text class="dg-t" x="122.0" y="27.0">a</text><text class="dg-s" x="122.0" y="60">0</text><rect class="dg-box" x="150" y="10" width="44" height="34" rx="6"/><text class="dg-t" x="172.0" y="27.0">b</text><text class="dg-s" x="172.0" y="60">1</text><rect class="dg-box" x="200" y="10" width="44" height="34" rx="6"/><text class="dg-t" x="222.0" y="27.0">a</text><text class="dg-s" x="222.0" y="60">2</text><rect class="dg-box" x="250" y="10" width="44" height="34" rx="6"/><text class="dg-t" x="272.0" y="27.0">b</text><text class="dg-s" x="272.0" y="60">3</text><rect class="dg-box" x="300" y="10" width="44" height="34" rx="6"/><text class="dg-t" x="322.0" y="27.0">d</text><text class="dg-s" x="322.0" y="60">4</text><text class="dg-m" x="20" y="104">lps</text><rect class="dg-box" x="100" y="84" width="44" height="34" rx="6"/><text class="dg-t" x="122.0" y="101.0">0</text><rect class="dg-box" x="150" y="84" width="44" height="34" rx="6"/><text class="dg-t" x="172.0" y="101.0">0</text><rect class="dg-a" x="200" y="84" width="44" height="34" rx="6"/><text class="dg-t" x="222.0" y="101.0">1</text><rect class="dg-a" x="250" y="84" width="44" height="34" rx="6"/><text class="dg-t" x="272.0" y="101.0">2</text><rect class="dg-box" x="300" y="84" width="44" height="34" rx="6"/><text class="dg-t" x="322.0" y="101.0">0</text><text class="dg-m" x="370" y="30">&quot;abab&quot;: prefix &quot;ab&quot; = suffix &quot;ab&quot; → 2</text><text class="dg-m" x="370" y="54">&quot;aba&quot;: prefix &quot;a&quot; = suffix &quot;a&quot; → 1</text><text class="dg-m" x="370" y="104">mismatch after matching &quot;abab&quot;:</text><text class="dg-m" x="370" y="128">keep the &quot;ab&quot; and compare at index 2</text><text class="dg-lbl" x="20" y="180">Each text character is read once, so searching is O(n + m) instead of O(n × m).</text></svg><figcaption>The prefix table (lps) for <code>ababd</code>: lps[i] is the length of the longest proper prefix that is also a suffix of the first i + 1 letters. On a mismatch, KMP jumps the pattern so that matched prefix lines up again instead of starting over.</figcaption></figure><p>When a mismatch happens after matching <code>k</code> characters, those <code>k</code> characters
+are known: they&#39;re the first <code>k</code> of the pattern. The prefix table says how much
+of them is also a valid start of the pattern, so KMP shifts the pattern to line
+that part up and keeps going. The text pointer never goes back.</p>
+<h2 id="rabin-karp">Rabin-Karp</h2>
+<p>Treat a string as a number in some base (say 256), modulo a large prime.
+Compare the hash of the pattern with the hash of each text window. Sliding the
+window by one is O(1): subtract the leaving character&#39;s contribution, multiply
+by the base, add the new character. Equal hashes might be a collision, so
+confirm with a direct comparison. With a good modulus collisions are rare and
+the expected time is O(n + m).</p>
+<h2 id="the-z-algorithm">The Z-algorithm</h2>
+<p><code>Z[i]</code> is the length of the longest substring starting at <code>i</code> that matches a
+prefix of the string. To search, compute Z for <code>pattern + &quot;$&quot; + text</code>: every
+position where <code>Z[i]</code> equals the pattern length is a match. A window <code>[l, r]</code>
+of the rightmost match found so far lets each Z value start from a known lower
+bound, which keeps the whole computation linear.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Naive search</td><td class="nowrap">O(n × m)</td><td>Try every start position, compare up to m characters each.</td></tr><tr><td>KMP</td><td class="nowrap">O(n + m)</td><td>O(m) to build the prefix table; the text pointer never moves backwards.</td></tr><tr><td>Rabin-Karp</td><td class="nowrap">O(n + m) expected</td><td>A rolling hash updates in O(1) per shift; equal hashes are confirmed by direct comparison.</td></tr><tr><td>Z-algorithm</td><td class="nowrap">O(n + m)</td><td>Computes, for every position, the longest substring starting there that matches a prefix.</td></tr><tr><td>Space</td><td class="nowrap">O(m)</td><td>The prefix table, or O(n + m) for Z on the joined string.</td></tr></tbody></table></div>
+<h2 id="use-when">When to use it</h2>
+<div class="two-col"><div><h3>Reach for it when</h3><ul><li>Finding all occurrences of a pattern, or checking whether one string contains another, at scale.</li><li>Problems about repeated structure: shortest period, repeated substring patterns, the longest prefix that&#39;s also a suffix.</li><li>Comparing many substrings for equality quickly (rolling hashes).</li></ul></div><div><h3>Think twice when</h3><ul><li>Inputs are small and the built-in <code>indexOf</code>/<code>contains</code>/<code>find</code> is fine; those are well optimised in practice.</li><li>You need many different patterns at once. Use a trie-based automaton (Aho-Corasick).</li></ul></div></div>
+<h2 id="lang-notes">In your language</h2>
+<div class="lang-notes"><div class="lang-note" data-lang="java"><p class="lang-note-label">Notes for Java</p><ul>
+<li><code>String.indexOf</code> uses a simple search, worst case O(n × m), but it&#39;s fast on typical text.</li>
+<li><code>s.toCharArray()</code> once, then index the array, avoids repeated <code>charAt</code> bounds checks in hot loops.</li>
+</ul>
+</div><div class="lang-note" data-lang="javascript"><p class="lang-note-label">Notes for JavaScript</p><ul>
+<li><code>str.indexOf</code>, <code>includes</code> and <code>search</code> are the built-ins. For Rabin-Karp keep hash values under 2⁵³ by taking the modulus at every step.</li>
+</ul>
+</div><div class="lang-note" data-lang="typescript"><p class="lang-note-label">Notes for TypeScript</p><ul>
+<li>Same as JavaScript. Return <code>number[]</code> of all match positions to keep the functions reusable.</li>
+</ul>
+</div><div class="lang-note" data-lang="python"><p class="lang-note-label">Notes for Python</p><ul>
+<li><code>str.find</code> and <code>in</code> are implemented in C and are fast; write KMP when the problem is about the prefix table itself.</li>
+<li>Python ints are unbounded, but take the modulus in Rabin-Karp anyway, or hashes grow and slow down.</li>
+</ul>
+</div><p class="muted lang-note-hint">Switch the language at the top of the page to see notes for another language.</p></div>
+<h2 id="code">Code</h2>
+<p>All three find the same matches. KMP prints its prefix table, Rabin-Karp uses a rolling hash with base 256, and the Z-array is printed for a short string.</p><figure class="codeblock" id="code-string-algorithms" aria-label="KMP, Rabin-Karp and the Z-algorithm">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-string-algorithms-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-string-algorithms-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-string-algorithms-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-string-algorithms-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-string-algorithms-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">    <span class="hljs-comment">/** lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix. */</span></span><span class="ln" data-line="7">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">prefixTable</span><span class="hljs-params">(String p)</span> {</span><span class="ln" data-line="8">        <span class="hljs-type">int</span>[] <span class="hljs-variable">lps</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[p.length()];</span><span class="ln" data-line="9">        <span class="hljs-type">int</span> <span class="hljs-variable">len</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="10">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; p.length(); ) {</span><span class="ln" data-line="11">            <span class="hljs-keyword">if</span> (p.charAt(i) == p.charAt(len)) lps[i++] = ++len;</span><span class="ln" data-line="12">            <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (len &gt; <span class="hljs-number">0</span>) len = lps[len - <span class="hljs-number">1</span>]; <span class="hljs-comment">// fall back to a shorter border</span></span><span class="ln" data-line="13">            <span class="hljs-keyword">else</span> lps[i++] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="14">        }</span><span class="ln" data-line="15">        <span class="hljs-keyword">return</span> lps;</span><span class="ln" data-line="16">    }</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-title function_">kmp</span><span class="hljs-params">(String text, String p)</span> {</span><span class="ln" data-line="19">        <span class="hljs-type">int</span>[] <span class="hljs-variable">lps</span> <span class="hljs-operator">=</span> prefixTable(p);</span><span class="ln" data-line="20">        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="21">        <span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; <span class="hljs-comment">// characters of p matched so far</span></span><span class="ln" data-line="22">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; text.length(); i++) {</span><span class="ln" data-line="23">            <span class="hljs-keyword">while</span> (j &gt; <span class="hljs-number">0</span> &amp;&amp; text.charAt(i) != p.charAt(j)) j = lps[j - <span class="hljs-number">1</span>];</span><span class="ln" data-line="24">            <span class="hljs-keyword">if</span> (text.charAt(i) == p.charAt(j)) j++;</span><span class="ln" data-line="25">            <span class="hljs-keyword">if</span> (j == p.length()) {</span><span class="ln" data-line="26">                out.add(i - j + <span class="hljs-number">1</span>);</span><span class="ln" data-line="27">                j = lps[j - <span class="hljs-number">1</span>]; <span class="hljs-comment">// keep going for overlapping matches</span></span><span class="ln" data-line="28">            }</span><span class="ln" data-line="29">        }</span><span class="ln" data-line="30">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="31">    }</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-title function_">rabinKarp</span><span class="hljs-params">(String text, String p)</span> {</span><span class="ln" data-line="34">        <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">MOD</span> <span class="hljs-operator">=</span> <span class="hljs-number">1_000_000_007L</span>, BASE = <span class="hljs-number">256</span>;</span><span class="ln" data-line="35">        <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> text.length(), m = p.length();</span><span class="ln" data-line="36">        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="37">        <span class="hljs-keyword">if</span> (m &gt; n) <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="38">        <span class="hljs-type">long</span> <span class="hljs-variable">ph</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, th = <span class="hljs-number">0</span>, high = <span class="hljs-number">1</span>; <span class="hljs-comment">// high = BASE^(m-1) % MOD</span></span><span class="ln" data-line="39">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; m - <span class="hljs-number">1</span>; i++) high = high * BASE % MOD;</span><span class="ln" data-line="40">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; m; i++) {</span><span class="ln" data-line="41">            ph = (ph * BASE + p.charAt(i)) % MOD;</span><span class="ln" data-line="42">            th = (th * BASE + text.charAt(i)) % MOD;</span><span class="ln" data-line="43">        }</span><span class="ln" data-line="44">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; ; i++) {</span><span class="ln" data-line="45">            <span class="hljs-keyword">if</span> (ph == th &amp;&amp; text.regionMatches(i, p, <span class="hljs-number">0</span>, m)) out.add(i); <span class="hljs-comment">// confirm: hashes can collide</span></span><span class="ln" data-line="46">            <span class="hljs-keyword">if</span> (i + m &gt;= n) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="47">            th = (th - text.charAt(i) * high % MOD + MOD) % MOD;   <span class="hljs-comment">// drop the leaving character</span></span><span class="ln" data-line="48">            th = (th * BASE + text.charAt(i + m)) % MOD;           <span class="hljs-comment">// add the new one</span></span><span class="ln" data-line="49">        }</span><span class="ln" data-line="50">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="51">    }</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">zArray</span><span class="hljs-params">(String s)</span> {</span><span class="ln" data-line="54">        <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> s.length();</span><span class="ln" data-line="55">        <span class="hljs-type">int</span>[] <span class="hljs-variable">z</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n];</span><span class="ln" data-line="56">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>, l = <span class="hljs-number">0</span>, r = <span class="hljs-number">0</span>; i &lt; n; i++) {</span><span class="ln" data-line="57">            <span class="hljs-keyword">if</span> (i &lt; r) z[i] = Math.min(r - i, z[i - l]); <span class="hljs-comment">// reuse what the window [l, r) already matched</span></span><span class="ln" data-line="58">            <span class="hljs-keyword">while</span> (i + z[i] &lt; n &amp;&amp; s.charAt(z[i]) == s.charAt(i + z[i])) z[i]++;</span><span class="ln" data-line="59">            <span class="hljs-keyword">if</span> (i + z[i] &gt; r) { l = i; r = i + z[i]; }</span><span class="ln" data-line="60">        }</span><span class="ln" data-line="61">        <span class="hljs-keyword">return</span> z;</span><span class="ln" data-line="62">    }</span><span class="ln" data-line="63"> </span><span class="ln" data-line="64">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-title function_">zSearch</span><span class="hljs-params">(String text, String p)</span> {</span><span class="ln" data-line="65">        <span class="hljs-type">String</span> <span class="hljs-variable">joined</span> <span class="hljs-operator">=</span> p + <span class="hljs-string">&quot;$&quot;</span> + text;</span><span class="ln" data-line="66">        <span class="hljs-type">int</span>[] <span class="hljs-variable">z</span> <span class="hljs-operator">=</span> zArray(joined);</span><span class="ln" data-line="67">        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="68">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> p.length() + <span class="hljs-number">1</span>; i &lt; joined.length(); i++) <span class="hljs-keyword">if</span> (z[i] == p.length()) out.add(i - p.length() - <span class="hljs-number">1</span>);</span><span class="ln" data-line="69">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="70">    }</span><span class="ln" data-line="71"> </span><span class="ln" data-line="72">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">fmt</span><span class="hljs-params">(List&lt;Integer&gt; xs)</span> {</span><span class="ln" data-line="73">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="74">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : xs) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(x);</span><span class="ln" data-line="75">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="76">    }</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">fmt</span><span class="hljs-params">(<span class="hljs-type">int</span>[] xs)</span> {</span><span class="ln" data-line="79">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="80">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : xs) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(x);</span><span class="ln" data-line="81">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="82">    }</span><span class="ln" data-line="83"> </span><span class="ln" data-line="84">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="85">        System.out.println(<span class="hljs-string">&quot;lps(ababd) = &quot;</span> + fmt(prefixTable(<span class="hljs-string">&quot;ababd&quot;</span>)));</span><span class="ln" data-line="86">        System.out.println(<span class="hljs-string">&quot;kmp ababd in ababcabcabababd: &quot;</span> + fmt(kmp(<span class="hljs-string">&quot;ababcabcabababd&quot;</span>, <span class="hljs-string">&quot;ababd&quot;</span>)));</span><span class="ln" data-line="87">        System.out.println(<span class="hljs-string">&quot;kmp aba in abababa: &quot;</span> + fmt(kmp(<span class="hljs-string">&quot;abababa&quot;</span>, <span class="hljs-string">&quot;aba&quot;</span>)));</span><span class="ln" data-line="88">        System.out.println(<span class="hljs-string">&quot;rabin-karp aba in abababa: &quot;</span> + fmt(rabinKarp(<span class="hljs-string">&quot;abababa&quot;</span>, <span class="hljs-string">&quot;aba&quot;</span>)));</span><span class="ln" data-line="89">        System.out.println(<span class="hljs-string">&quot;z(aabxaab) = &quot;</span> + fmt(zArray(<span class="hljs-string">&quot;aabxaab&quot;</span>)));</span><span class="ln" data-line="90">        System.out.println(<span class="hljs-string">&quot;z search aab in aabxaabaab: &quot;</span> + fmt(zSearch(<span class="hljs-string">&quot;aabxaabaab&quot;</span>, <span class="hljs-string">&quot;aab&quot;</span>)));</span><span class="ln" data-line="91">    }</span><span class="ln" data-line="92">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.List;
+
+public class Solution {
+
+    /** lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix. */
+    static int[] prefixTable(String p) {
+        int[] lps = new int[p.length()];
+        int len = 0;
+        for (int i = 1; i &lt; p.length(); ) {
+            if (p.charAt(i) == p.charAt(len)) lps[i++] = ++len;
+            else if (len &gt; 0) len = lps[len - 1]; // fall back to a shorter border
+            else lps[i++] = 0;
+        }
+        return lps;
+    }
+
+    static List&lt;Integer&gt; kmp(String text, String p) {
+        int[] lps = prefixTable(p);
+        List&lt;Integer&gt; out = new ArrayList&lt;&gt;();
+        int j = 0; // characters of p matched so far
+        for (int i = 0; i &lt; text.length(); i++) {
+            while (j &gt; 0 &amp;&amp; text.charAt(i) != p.charAt(j)) j = lps[j - 1];
+            if (text.charAt(i) == p.charAt(j)) j++;
+            if (j == p.length()) {
+                out.add(i - j + 1);
+                j = lps[j - 1]; // keep going for overlapping matches
+            }
+        }
+        return out;
+    }
+
+    static List&lt;Integer&gt; rabinKarp(String text, String p) {
+        final long MOD = 1_000_000_007L, BASE = 256;
+        int n = text.length(), m = p.length();
+        List&lt;Integer&gt; out = new ArrayList&lt;&gt;();
+        if (m &gt; n) return out;
+        long ph = 0, th = 0, high = 1; // high = BASE^(m-1) % MOD
+        for (int i = 0; i &lt; m - 1; i++) high = high * BASE % MOD;
+        for (int i = 0; i &lt; m; i++) {
+            ph = (ph * BASE + p.charAt(i)) % MOD;
+            th = (th * BASE + text.charAt(i)) % MOD;
+        }
+        for (int i = 0; ; i++) {
+            if (ph == th &amp;&amp; text.regionMatches(i, p, 0, m)) out.add(i); // confirm: hashes can collide
+            if (i + m &gt;= n) break;
+            th = (th - text.charAt(i) * high % MOD + MOD) % MOD;   // drop the leaving character
+            th = (th * BASE + text.charAt(i + m)) % MOD;           // add the new one
+        }
+        return out;
+    }
+
+    static int[] zArray(String s) {
+        int n = s.length();
+        int[] z = new int[n];
+        for (int i = 1, l = 0, r = 0; i &lt; n; i++) {
+            if (i &lt; r) z[i] = Math.min(r - i, z[i - l]); // reuse what the window [l, r) already matched
+            while (i + z[i] &lt; n &amp;&amp; s.charAt(z[i]) == s.charAt(i + z[i])) z[i]++;
+            if (i + z[i] &gt; r) { l = i; r = i + z[i]; }
+        }
+        return z;
+    }
+
+    static List&lt;Integer&gt; zSearch(String text, String p) {
+        String joined = p + &quot;$&quot; + text;
+        int[] z = zArray(joined);
+        List&lt;Integer&gt; out = new ArrayList&lt;&gt;();
+        for (int i = p.length() + 1; i &lt; joined.length(); i++) if (z[i] == p.length()) out.add(i - p.length() - 1);
+        return out;
+    }
+
+    static String fmt(List&lt;Integer&gt; xs) {
+        StringBuilder sb = new StringBuilder();
+        for (int x : xs) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(x);
+        return sb.toString();
+    }
+
+    static String fmt(int[] xs) {
+        StringBuilder sb = new StringBuilder();
+        for (int x : xs) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(x);
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;lps(ababd) = &quot; + fmt(prefixTable(&quot;ababd&quot;)));
+        System.out.println(&quot;kmp ababd in ababcabcabababd: &quot; + fmt(kmp(&quot;ababcabcabababd&quot;, &quot;ababd&quot;)));
+        System.out.println(&quot;kmp aba in abababa: &quot; + fmt(kmp(&quot;abababa&quot;, &quot;aba&quot;)));
+        System.out.println(&quot;rabin-karp aba in abababa: &quot; + fmt(rabinKarp(&quot;abababa&quot;, &quot;aba&quot;)));
+        System.out.println(&quot;z(aabxaab) = &quot; + fmt(zArray(&quot;aabxaab&quot;)));
+        System.out.println(&quot;z search aab in aabxaabaab: &quot; + fmt(zSearch(&quot;aabxaabaab&quot;, &quot;aab&quot;)));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-string-algorithms-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">prefixTable</span>(<span class="hljs-params">p</span>) {</span><span class="ln" data-line="3">  <span class="hljs-keyword">const</span> lps = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(p.<span class="hljs-property">length</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="4">  <span class="hljs-keyword">let</span> len = <span class="hljs-number">0</span>;</span><span class="ln" data-line="5">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; p.<span class="hljs-property">length</span>; ) {</span><span class="ln" data-line="6">    <span class="hljs-keyword">if</span> (p[i] === p[len]) lps[i++] = ++len;</span><span class="ln" data-line="7">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (len &gt; <span class="hljs-number">0</span>) len = lps[len - <span class="hljs-number">1</span>]; <span class="hljs-comment">// fall back to a shorter border</span></span><span class="ln" data-line="8">    <span class="hljs-keyword">else</span> lps[i++] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="9">  }</span><span class="ln" data-line="10">  <span class="hljs-keyword">return</span> lps;</span><span class="ln" data-line="11">}</span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kmp</span>(<span class="hljs-params">text, p</span>) {</span><span class="ln" data-line="14">  <span class="hljs-keyword">const</span> lps = <span class="hljs-title function_">prefixTable</span>(p);</span><span class="ln" data-line="15">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="16">  <span class="hljs-keyword">let</span> j = <span class="hljs-number">0</span>; <span class="hljs-comment">// characters of p matched so far</span></span><span class="ln" data-line="17">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; text.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="18">    <span class="hljs-keyword">while</span> (j &gt; <span class="hljs-number">0</span> &amp;&amp; text[i] !== p[j]) j = lps[j - <span class="hljs-number">1</span>];</span><span class="ln" data-line="19">    <span class="hljs-keyword">if</span> (text[i] === p[j]) j++;</span><span class="ln" data-line="20">    <span class="hljs-keyword">if</span> (j === p.<span class="hljs-property">length</span>) {</span><span class="ln" data-line="21">      out.<span class="hljs-title function_">push</span>(i - j + <span class="hljs-number">1</span>);</span><span class="ln" data-line="22">      j = lps[j - <span class="hljs-number">1</span>]; <span class="hljs-comment">// keep going for overlapping matches</span></span><span class="ln" data-line="23">    }</span><span class="ln" data-line="24">  }</span><span class="ln" data-line="25">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="26">}</span><span class="ln" data-line="27"> </span><span class="ln" data-line="28"><span class="hljs-keyword">function</span> <span class="hljs-title function_">rabinKarp</span>(<span class="hljs-params">text, p</span>) {</span><span class="ln" data-line="29">  <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">MOD</span> = <span class="hljs-number">1_000_000_007</span>;</span><span class="ln" data-line="30">  <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">BASE</span> = <span class="hljs-number">256</span>;</span><span class="ln" data-line="31">  <span class="hljs-keyword">const</span> n = text.<span class="hljs-property">length</span>;</span><span class="ln" data-line="32">  <span class="hljs-keyword">const</span> m = p.<span class="hljs-property">length</span>;</span><span class="ln" data-line="33">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="34">  <span class="hljs-keyword">if</span> (m &gt; n) <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="35">  <span class="hljs-keyword">let</span> ph = <span class="hljs-number">0</span>;</span><span class="ln" data-line="36">  <span class="hljs-keyword">let</span> th = <span class="hljs-number">0</span>;</span><span class="ln" data-line="37">  <span class="hljs-keyword">let</span> high = <span class="hljs-number">1</span>; <span class="hljs-comment">// BASE^(m-1) % MOD</span></span><span class="ln" data-line="38">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; m - <span class="hljs-number">1</span>; i++) high = (high * <span class="hljs-variable constant_">BASE</span>) % <span class="hljs-variable constant_">MOD</span>;</span><span class="ln" data-line="39">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; m; i++) {</span><span class="ln" data-line="40">    ph = (ph * <span class="hljs-variable constant_">BASE</span> + p.<span class="hljs-title function_">charCodeAt</span>(i)) % <span class="hljs-variable constant_">MOD</span>;</span><span class="ln" data-line="41">    th = (th * <span class="hljs-variable constant_">BASE</span> + text.<span class="hljs-title function_">charCodeAt</span>(i)) % <span class="hljs-variable constant_">MOD</span>;</span><span class="ln" data-line="42">  }</span><span class="ln" data-line="43">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; i++) {</span><span class="ln" data-line="44">    <span class="hljs-keyword">if</span> (ph === th &amp;&amp; text.<span class="hljs-title function_">startsWith</span>(p, i)) out.<span class="hljs-title function_">push</span>(i); <span class="hljs-comment">// confirm: hashes can collide</span></span><span class="ln" data-line="45">    <span class="hljs-keyword">if</span> (i + m &gt;= n) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="46">    th = (th - ((text.<span class="hljs-title function_">charCodeAt</span>(i) * high) % <span class="hljs-variable constant_">MOD</span>) + <span class="hljs-variable constant_">MOD</span>) % <span class="hljs-variable constant_">MOD</span>; <span class="hljs-comment">// drop the leaving character</span></span><span class="ln" data-line="47">    th = (th * <span class="hljs-variable constant_">BASE</span> + text.<span class="hljs-title function_">charCodeAt</span>(i + m)) % <span class="hljs-variable constant_">MOD</span>; <span class="hljs-comment">// add the new one</span></span><span class="ln" data-line="48">  }</span><span class="ln" data-line="49">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="50">}</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"><span class="hljs-keyword">function</span> <span class="hljs-title function_">zArray</span>(<span class="hljs-params">s</span>) {</span><span class="ln" data-line="53">  <span class="hljs-keyword">const</span> n = s.<span class="hljs-property">length</span>;</span><span class="ln" data-line="54">  <span class="hljs-keyword">const</span> z = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="55">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>, l = <span class="hljs-number">0</span>, r = <span class="hljs-number">0</span>; i &lt; n; i++) {</span><span class="ln" data-line="56">    <span class="hljs-keyword">if</span> (i &lt; r) z[i] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(r - i, z[i - l]); <span class="hljs-comment">// reuse what the window [l, r) already matched</span></span><span class="ln" data-line="57">    <span class="hljs-keyword">while</span> (i + z[i] &lt; n &amp;&amp; s[z[i]] === s[i + z[i]]) z[i]++;</span><span class="ln" data-line="58">    <span class="hljs-keyword">if</span> (i + z[i] &gt; r) {</span><span class="ln" data-line="59">      l = i;</span><span class="ln" data-line="60">      r = i + z[i];</span><span class="ln" data-line="61">    }</span><span class="ln" data-line="62">  }</span><span class="ln" data-line="63">  <span class="hljs-keyword">return</span> z;</span><span class="ln" data-line="64">}</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66"><span class="hljs-keyword">function</span> <span class="hljs-title function_">zSearch</span>(<span class="hljs-params">text, p</span>) {</span><span class="ln" data-line="67">  <span class="hljs-keyword">const</span> joined = <span class="hljs-string">`<span class="hljs-subst">${p}</span>$<span class="hljs-subst">${text}</span>`</span>;</span><span class="ln" data-line="68">  <span class="hljs-keyword">const</span> z = <span class="hljs-title function_">zArray</span>(joined);</span><span class="ln" data-line="69">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="70">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = p.<span class="hljs-property">length</span> + <span class="hljs-number">1</span>; i &lt; joined.<span class="hljs-property">length</span>; i++) <span class="hljs-keyword">if</span> (z[i] === p.<span class="hljs-property">length</span>) out.<span class="hljs-title function_">push</span>(i - p.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>);</span><span class="ln" data-line="71">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="72">}</span><span class="ln" data-line="73"> </span><span class="ln" data-line="74"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="75">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`lps(ababd) = <span class="hljs-subst">${prefixTable(<span class="hljs-string">&quot;ababd&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="76">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`kmp ababd in ababcabcabababd: <span class="hljs-subst">${kmp(<span class="hljs-string">&quot;ababcabcabababd&quot;</span>, <span class="hljs-string">&quot;ababd&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="77">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`kmp aba in abababa: <span class="hljs-subst">${kmp(<span class="hljs-string">&quot;abababa&quot;</span>, <span class="hljs-string">&quot;aba&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="78">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`rabin-karp aba in abababa: <span class="hljs-subst">${rabinKarp(<span class="hljs-string">&quot;abababa&quot;</span>, <span class="hljs-string">&quot;aba&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="79">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`z(aabxaab) = <span class="hljs-subst">${zArray(<span class="hljs-string">&quot;aabxaab&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="80">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`z search aab in aabxaabaab: <span class="hljs-subst">${zSearch(<span class="hljs-string">&quot;aabxaabaab&quot;</span>, <span class="hljs-string">&quot;aab&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="81">}</span><span class="ln" data-line="82"> </span><span class="ln" data-line="83"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix. */
+function prefixTable(p) {
+  const lps = new Array(p.length).fill(0);
+  let len = 0;
+  for (let i = 1; i &lt; p.length; ) {
+    if (p[i] === p[len]) lps[i++] = ++len;
+    else if (len &gt; 0) len = lps[len - 1]; // fall back to a shorter border
+    else lps[i++] = 0;
+  }
+  return lps;
+}
+
+function kmp(text, p) {
+  const lps = prefixTable(p);
+  const out = [];
+  let j = 0; // characters of p matched so far
+  for (let i = 0; i &lt; text.length; i++) {
+    while (j &gt; 0 &amp;&amp; text[i] !== p[j]) j = lps[j - 1];
+    if (text[i] === p[j]) j++;
+    if (j === p.length) {
+      out.push(i - j + 1);
+      j = lps[j - 1]; // keep going for overlapping matches
+    }
+  }
+  return out;
+}
+
+function rabinKarp(text, p) {
+  const MOD = 1_000_000_007;
+  const BASE = 256;
+  const n = text.length;
+  const m = p.length;
+  const out = [];
+  if (m &gt; n) return out;
+  let ph = 0;
+  let th = 0;
+  let high = 1; // BASE^(m-1) % MOD
+  for (let i = 0; i &lt; m - 1; i++) high = (high * BASE) % MOD;
+  for (let i = 0; i &lt; m; i++) {
+    ph = (ph * BASE + p.charCodeAt(i)) % MOD;
+    th = (th * BASE + text.charCodeAt(i)) % MOD;
+  }
+  for (let i = 0; ; i++) {
+    if (ph === th &amp;&amp; text.startsWith(p, i)) out.push(i); // confirm: hashes can collide
+    if (i + m &gt;= n) break;
+    th = (th - ((text.charCodeAt(i) * high) % MOD) + MOD) % MOD; // drop the leaving character
+    th = (th * BASE + text.charCodeAt(i + m)) % MOD; // add the new one
+  }
+  return out;
+}
+
+function zArray(s) {
+  const n = s.length;
+  const z = new Array(n).fill(0);
+  for (let i = 1, l = 0, r = 0; i &lt; n; i++) {
+    if (i &lt; r) z[i] = Math.min(r - i, z[i - l]); // reuse what the window [l, r) already matched
+    while (i + z[i] &lt; n &amp;&amp; s[z[i]] === s[i + z[i]]) z[i]++;
+    if (i + z[i] &gt; r) {
+      l = i;
+      r = i + z[i];
+    }
+  }
+  return z;
+}
+
+function zSearch(text, p) {
+  const joined = `${p}$${text}`;
+  const z = zArray(joined);
+  const out = [];
+  for (let i = p.length + 1; i &lt; joined.length; i++) if (z[i] === p.length) out.push(i - p.length - 1);
+  return out;
+}
+
+function main() {
+  console.log(`lps(ababd) = ${prefixTable(&quot;ababd&quot;).join(&quot; &quot;)}`);
+  console.log(`kmp ababd in ababcabcabababd: ${kmp(&quot;ababcabcabababd&quot;, &quot;ababd&quot;).join(&quot; &quot;)}`);
+  console.log(`kmp aba in abababa: ${kmp(&quot;abababa&quot;, &quot;aba&quot;).join(&quot; &quot;)}`);
+  console.log(`rabin-karp aba in abababa: ${rabinKarp(&quot;abababa&quot;, &quot;aba&quot;).join(&quot; &quot;)}`);
+  console.log(`z(aabxaab) = ${zArray(&quot;aabxaab&quot;).join(&quot; &quot;)}`);
+  console.log(`z search aab in aabxaabaab: ${zSearch(&quot;aabxaabaab&quot;, &quot;aab&quot;).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-string-algorithms-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">prefixTable</span>(<span class="hljs-params"><span class="hljs-attr">p</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="3">  <span class="hljs-keyword">const</span> <span class="hljs-attr">lps</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(p.<span class="hljs-property">length</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="4">  <span class="hljs-keyword">let</span> len = <span class="hljs-number">0</span>;</span><span class="ln" data-line="5">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; p.<span class="hljs-property">length</span>; ) {</span><span class="ln" data-line="6">    <span class="hljs-keyword">if</span> (p[i] === p[len]) lps[i++] = ++len;</span><span class="ln" data-line="7">    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (len &gt; <span class="hljs-number">0</span>) len = lps[len - <span class="hljs-number">1</span>]; <span class="hljs-comment">// fall back to a shorter border</span></span><span class="ln" data-line="8">    <span class="hljs-keyword">else</span> lps[i++] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="9">  }</span><span class="ln" data-line="10">  <span class="hljs-keyword">return</span> lps;</span><span class="ln" data-line="11">}</span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kmp</span>(<span class="hljs-params"><span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">p</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="14">  <span class="hljs-keyword">const</span> lps = <span class="hljs-title function_">prefixTable</span>(p);</span><span class="ln" data-line="15">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="16">  <span class="hljs-keyword">let</span> j = <span class="hljs-number">0</span>; <span class="hljs-comment">// characters of p matched so far</span></span><span class="ln" data-line="17">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; text.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="18">    <span class="hljs-keyword">while</span> (j &gt; <span class="hljs-number">0</span> &amp;&amp; text[i] !== p[j]) j = lps[j - <span class="hljs-number">1</span>];</span><span class="ln" data-line="19">    <span class="hljs-keyword">if</span> (text[i] === p[j]) j++;</span><span class="ln" data-line="20">    <span class="hljs-keyword">if</span> (j === p.<span class="hljs-property">length</span>) {</span><span class="ln" data-line="21">      out.<span class="hljs-title function_">push</span>(i - j + <span class="hljs-number">1</span>);</span><span class="ln" data-line="22">      j = lps[j - <span class="hljs-number">1</span>]; <span class="hljs-comment">// keep going for overlapping matches</span></span><span class="ln" data-line="23">    }</span><span class="ln" data-line="24">  }</span><span class="ln" data-line="25">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="26">}</span><span class="ln" data-line="27"> </span><span class="ln" data-line="28"><span class="hljs-keyword">function</span> <span class="hljs-title function_">rabinKarp</span>(<span class="hljs-params"><span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">p</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="29">  <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">MOD</span> = <span class="hljs-number">1_000_000_007</span>;</span><span class="ln" data-line="30">  <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">BASE</span> = <span class="hljs-number">256</span>;</span><span class="ln" data-line="31">  <span class="hljs-keyword">const</span> n = text.<span class="hljs-property">length</span>;</span><span class="ln" data-line="32">  <span class="hljs-keyword">const</span> m = p.<span class="hljs-property">length</span>;</span><span class="ln" data-line="33">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="34">  <span class="hljs-keyword">if</span> (m &gt; n) <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="35">  <span class="hljs-keyword">let</span> ph = <span class="hljs-number">0</span>;</span><span class="ln" data-line="36">  <span class="hljs-keyword">let</span> th = <span class="hljs-number">0</span>;</span><span class="ln" data-line="37">  <span class="hljs-keyword">let</span> high = <span class="hljs-number">1</span>; <span class="hljs-comment">// BASE^(m-1) % MOD</span></span><span class="ln" data-line="38">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; m - <span class="hljs-number">1</span>; i++) high = (high * <span class="hljs-variable constant_">BASE</span>) % <span class="hljs-variable constant_">MOD</span>;</span><span class="ln" data-line="39">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; m; i++) {</span><span class="ln" data-line="40">    ph = (ph * <span class="hljs-variable constant_">BASE</span> + p.<span class="hljs-title function_">charCodeAt</span>(i)) % <span class="hljs-variable constant_">MOD</span>;</span><span class="ln" data-line="41">    th = (th * <span class="hljs-variable constant_">BASE</span> + text.<span class="hljs-title function_">charCodeAt</span>(i)) % <span class="hljs-variable constant_">MOD</span>;</span><span class="ln" data-line="42">  }</span><span class="ln" data-line="43">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; i++) {</span><span class="ln" data-line="44">    <span class="hljs-keyword">if</span> (ph === th &amp;&amp; text.<span class="hljs-title function_">startsWith</span>(p, i)) out.<span class="hljs-title function_">push</span>(i); <span class="hljs-comment">// confirm: hashes can collide</span></span><span class="ln" data-line="45">    <span class="hljs-keyword">if</span> (i + m &gt;= n) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="46">    th = (th - ((text.<span class="hljs-title function_">charCodeAt</span>(i) * high) % <span class="hljs-variable constant_">MOD</span>) + <span class="hljs-variable constant_">MOD</span>) % <span class="hljs-variable constant_">MOD</span>; <span class="hljs-comment">// drop the leaving character</span></span><span class="ln" data-line="47">    th = (th * <span class="hljs-variable constant_">BASE</span> + text.<span class="hljs-title function_">charCodeAt</span>(i + m)) % <span class="hljs-variable constant_">MOD</span>; <span class="hljs-comment">// add the new one</span></span><span class="ln" data-line="48">  }</span><span class="ln" data-line="49">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="50">}</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"><span class="hljs-keyword">function</span> <span class="hljs-title function_">zArray</span>(<span class="hljs-params"><span class="hljs-attr">s</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="53">  <span class="hljs-keyword">const</span> n = s.<span class="hljs-property">length</span>;</span><span class="ln" data-line="54">  <span class="hljs-keyword">const</span> <span class="hljs-attr">z</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="55">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>, l = <span class="hljs-number">0</span>, r = <span class="hljs-number">0</span>; i &lt; n; i++) {</span><span class="ln" data-line="56">    <span class="hljs-keyword">if</span> (i &lt; r) z[i] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(r - i, z[i - l]); <span class="hljs-comment">// reuse what the window [l, r) already matched</span></span><span class="ln" data-line="57">    <span class="hljs-keyword">while</span> (i + z[i] &lt; n &amp;&amp; s[z[i]] === s[i + z[i]]) z[i]++;</span><span class="ln" data-line="58">    <span class="hljs-keyword">if</span> (i + z[i] &gt; r) {</span><span class="ln" data-line="59">      l = i;</span><span class="ln" data-line="60">      r = i + z[i];</span><span class="ln" data-line="61">    }</span><span class="ln" data-line="62">  }</span><span class="ln" data-line="63">  <span class="hljs-keyword">return</span> z;</span><span class="ln" data-line="64">}</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66"><span class="hljs-keyword">function</span> <span class="hljs-title function_">zSearch</span>(<span class="hljs-params"><span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">p</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="67">  <span class="hljs-keyword">const</span> joined = <span class="hljs-string">`<span class="hljs-subst">${p}</span>$<span class="hljs-subst">${text}</span>`</span>;</span><span class="ln" data-line="68">  <span class="hljs-keyword">const</span> z = <span class="hljs-title function_">zArray</span>(joined);</span><span class="ln" data-line="69">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="70">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = p.<span class="hljs-property">length</span> + <span class="hljs-number">1</span>; i &lt; joined.<span class="hljs-property">length</span>; i++) <span class="hljs-keyword">if</span> (z[i] === p.<span class="hljs-property">length</span>) out.<span class="hljs-title function_">push</span>(i - p.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>);</span><span class="ln" data-line="71">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="72">}</span><span class="ln" data-line="73"> </span><span class="ln" data-line="74"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="75">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`lps(ababd) = <span class="hljs-subst">${prefixTable(<span class="hljs-string">&quot;ababd&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="76">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`kmp ababd in ababcabcabababd: <span class="hljs-subst">${kmp(<span class="hljs-string">&quot;ababcabcabababd&quot;</span>, <span class="hljs-string">&quot;ababd&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="77">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`kmp aba in abababa: <span class="hljs-subst">${kmp(<span class="hljs-string">&quot;abababa&quot;</span>, <span class="hljs-string">&quot;aba&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="78">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`rabin-karp aba in abababa: <span class="hljs-subst">${rabinKarp(<span class="hljs-string">&quot;abababa&quot;</span>, <span class="hljs-string">&quot;aba&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="79">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`z(aabxaab) = <span class="hljs-subst">${zArray(<span class="hljs-string">&quot;aabxaab&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="80">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`z search aab in aabxaabaab: <span class="hljs-subst">${zSearch(<span class="hljs-string">&quot;aabxaabaab&quot;</span>, <span class="hljs-string">&quot;aab&quot;</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="81">}</span><span class="ln" data-line="82"> </span><span class="ln" data-line="83"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix. */
+function prefixTable(p: string): number[] {
+  const lps: number[] = new Array(p.length).fill(0);
+  let len = 0;
+  for (let i = 1; i &lt; p.length; ) {
+    if (p[i] === p[len]) lps[i++] = ++len;
+    else if (len &gt; 0) len = lps[len - 1]; // fall back to a shorter border
+    else lps[i++] = 0;
+  }
+  return lps;
+}
+
+function kmp(text: string, p: string): number[] {
+  const lps = prefixTable(p);
+  const out: number[] = [];
+  let j = 0; // characters of p matched so far
+  for (let i = 0; i &lt; text.length; i++) {
+    while (j &gt; 0 &amp;&amp; text[i] !== p[j]) j = lps[j - 1];
+    if (text[i] === p[j]) j++;
+    if (j === p.length) {
+      out.push(i - j + 1);
+      j = lps[j - 1]; // keep going for overlapping matches
+    }
+  }
+  return out;
+}
+
+function rabinKarp(text: string, p: string): number[] {
+  const MOD = 1_000_000_007;
+  const BASE = 256;
+  const n = text.length;
+  const m = p.length;
+  const out: number[] = [];
+  if (m &gt; n) return out;
+  let ph = 0;
+  let th = 0;
+  let high = 1; // BASE^(m-1) % MOD
+  for (let i = 0; i &lt; m - 1; i++) high = (high * BASE) % MOD;
+  for (let i = 0; i &lt; m; i++) {
+    ph = (ph * BASE + p.charCodeAt(i)) % MOD;
+    th = (th * BASE + text.charCodeAt(i)) % MOD;
+  }
+  for (let i = 0; ; i++) {
+    if (ph === th &amp;&amp; text.startsWith(p, i)) out.push(i); // confirm: hashes can collide
+    if (i + m &gt;= n) break;
+    th = (th - ((text.charCodeAt(i) * high) % MOD) + MOD) % MOD; // drop the leaving character
+    th = (th * BASE + text.charCodeAt(i + m)) % MOD; // add the new one
+  }
+  return out;
+}
+
+function zArray(s: string): number[] {
+  const n = s.length;
+  const z: number[] = new Array(n).fill(0);
+  for (let i = 1, l = 0, r = 0; i &lt; n; i++) {
+    if (i &lt; r) z[i] = Math.min(r - i, z[i - l]); // reuse what the window [l, r) already matched
+    while (i + z[i] &lt; n &amp;&amp; s[z[i]] === s[i + z[i]]) z[i]++;
+    if (i + z[i] &gt; r) {
+      l = i;
+      r = i + z[i];
+    }
+  }
+  return z;
+}
+
+function zSearch(text: string, p: string): number[] {
+  const joined = `${p}$${text}`;
+  const z = zArray(joined);
+  const out: number[] = [];
+  for (let i = p.length + 1; i &lt; joined.length; i++) if (z[i] === p.length) out.push(i - p.length - 1);
+  return out;
+}
+
+function main(): void {
+  console.log(`lps(ababd) = ${prefixTable(&quot;ababd&quot;).join(&quot; &quot;)}`);
+  console.log(`kmp ababd in ababcabcabababd: ${kmp(&quot;ababcabcabababd&quot;, &quot;ababd&quot;).join(&quot; &quot;)}`);
+  console.log(`kmp aba in abababa: ${kmp(&quot;abababa&quot;, &quot;aba&quot;).join(&quot; &quot;)}`);
+  console.log(`rabin-karp aba in abababa: ${rabinKarp(&quot;abababa&quot;, &quot;aba&quot;).join(&quot; &quot;)}`);
+  console.log(`z(aabxaab) = ${zArray(&quot;aabxaab&quot;).join(&quot; &quot;)}`);
+  console.log(`z search aab in aabxaabaab: ${zSearch(&quot;aabxaabaab&quot;, &quot;aab&quot;).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-string-algorithms-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">prefix_table</span>(<span class="hljs-params">p: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="5">    <span class="hljs-string">&quot;&quot;&quot;lps[i] = length of the longest proper prefix of p[:i+1] that is also a suffix.&quot;&quot;&quot;</span></span><span class="ln" data-line="6">    lps, length, i = [<span class="hljs-number">0</span>] * <span class="hljs-built_in">len</span>(p), <span class="hljs-number">0</span>, <span class="hljs-number">1</span></span><span class="ln" data-line="7">    <span class="hljs-keyword">while</span> i &lt; <span class="hljs-built_in">len</span>(p):</span><span class="ln" data-line="8">        <span class="hljs-keyword">if</span> p[i] == p[length]:</span><span class="ln" data-line="9">            length += <span class="hljs-number">1</span></span><span class="ln" data-line="10">            lps[i] = length</span><span class="ln" data-line="11">            i += <span class="hljs-number">1</span></span><span class="ln" data-line="12">        <span class="hljs-keyword">elif</span> length &gt; <span class="hljs-number">0</span>:</span><span class="ln" data-line="13">            length = lps[length - <span class="hljs-number">1</span>]  <span class="hljs-comment"># fall back to a shorter border</span></span><span class="ln" data-line="14">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="15">            i += <span class="hljs-number">1</span></span><span class="ln" data-line="16">    <span class="hljs-keyword">return</span> lps</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"><span class="hljs-keyword">def</span> <span class="hljs-title function_">kmp</span>(<span class="hljs-params">text: <span class="hljs-built_in">str</span>, p: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="20">    lps, out, j = prefix_table(p), [], <span class="hljs-number">0</span>  <span class="hljs-comment"># j = characters of p matched so far</span></span><span class="ln" data-line="21">    <span class="hljs-keyword">for</span> i, ch <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(text):</span><span class="ln" data-line="22">        <span class="hljs-keyword">while</span> j &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> ch != p[j]:</span><span class="ln" data-line="23">            j = lps[j - <span class="hljs-number">1</span>]</span><span class="ln" data-line="24">        <span class="hljs-keyword">if</span> ch == p[j]:</span><span class="ln" data-line="25">            j += <span class="hljs-number">1</span></span><span class="ln" data-line="26">        <span class="hljs-keyword">if</span> j == <span class="hljs-built_in">len</span>(p):</span><span class="ln" data-line="27">            out.append(i - j + <span class="hljs-number">1</span>)</span><span class="ln" data-line="28">            j = lps[j - <span class="hljs-number">1</span>]  <span class="hljs-comment"># keep going for overlapping matches</span></span><span class="ln" data-line="29">    <span class="hljs-keyword">return</span> out</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-keyword">def</span> <span class="hljs-title function_">rabin_karp</span>(<span class="hljs-params">text: <span class="hljs-built_in">str</span>, p: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="33">    mod, base = <span class="hljs-number">1_000_000_007</span>, <span class="hljs-number">256</span></span><span class="ln" data-line="34">    n, m = <span class="hljs-built_in">len</span>(text), <span class="hljs-built_in">len</span>(p)</span><span class="ln" data-line="35">    <span class="hljs-keyword">if</span> m &gt; n:</span><span class="ln" data-line="36">        <span class="hljs-keyword">return</span> []</span><span class="ln" data-line="37">    high = <span class="hljs-built_in">pow</span>(base, m - <span class="hljs-number">1</span>, mod)</span><span class="ln" data-line="38">    ph = th = <span class="hljs-number">0</span></span><span class="ln" data-line="39">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(m):</span><span class="ln" data-line="40">        ph = (ph * base + <span class="hljs-built_in">ord</span>(p[i])) % mod</span><span class="ln" data-line="41">        th = (th * base + <span class="hljs-built_in">ord</span>(text[i])) % mod</span><span class="ln" data-line="42">    out, i = [], <span class="hljs-number">0</span></span><span class="ln" data-line="43">    <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:</span><span class="ln" data-line="44">        <span class="hljs-keyword">if</span> ph == th <span class="hljs-keyword">and</span> text[i:i + m] == p:  <span class="hljs-comment"># confirm: hashes can collide</span></span><span class="ln" data-line="45">            out.append(i)</span><span class="ln" data-line="46">        <span class="hljs-keyword">if</span> i + m &gt;= n:</span><span class="ln" data-line="47">            <span class="hljs-keyword">break</span></span><span class="ln" data-line="48">        th = (th - <span class="hljs-built_in">ord</span>(text[i]) * high) % mod  <span class="hljs-comment"># drop the leaving character (Python % is never negative)</span></span><span class="ln" data-line="49">        th = (th * base + <span class="hljs-built_in">ord</span>(text[i + m])) % mod  <span class="hljs-comment"># add the new one</span></span><span class="ln" data-line="50">        i += <span class="hljs-number">1</span></span><span class="ln" data-line="51">    <span class="hljs-keyword">return</span> out</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-keyword">def</span> <span class="hljs-title function_">z_array</span>(<span class="hljs-params">s: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="55">    n = <span class="hljs-built_in">len</span>(s)</span><span class="ln" data-line="56">    z, l, r = [<span class="hljs-number">0</span>] * n, <span class="hljs-number">0</span>, <span class="hljs-number">0</span></span><span class="ln" data-line="57">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, n):</span><span class="ln" data-line="58">        <span class="hljs-keyword">if</span> i &lt; r:</span><span class="ln" data-line="59">            z[i] = <span class="hljs-built_in">min</span>(r - i, z[i - l])  <span class="hljs-comment"># reuse what the window [l, r) already matched</span></span><span class="ln" data-line="60">        <span class="hljs-keyword">while</span> i + z[i] &lt; n <span class="hljs-keyword">and</span> s[z[i]] == s[i + z[i]]:</span><span class="ln" data-line="61">            z[i] += <span class="hljs-number">1</span></span><span class="ln" data-line="62">        <span class="hljs-keyword">if</span> i + z[i] &gt; r:</span><span class="ln" data-line="63">            l, r = i, i + z[i]</span><span class="ln" data-line="64">    <span class="hljs-keyword">return</span> z</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"><span class="hljs-keyword">def</span> <span class="hljs-title function_">z_search</span>(<span class="hljs-params">text: <span class="hljs-built_in">str</span>, p: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="68">    joined = p + <span class="hljs-string">&quot;$&quot;</span> + text</span><span class="ln" data-line="69">    z = z_array(joined)</span><span class="ln" data-line="70">    <span class="hljs-keyword">return</span> [i - <span class="hljs-built_in">len</span>(p) - <span class="hljs-number">1</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(p) + <span class="hljs-number">1</span>, <span class="hljs-built_in">len</span>(joined)) <span class="hljs-keyword">if</span> z[i] == <span class="hljs-built_in">len</span>(p)]</span><span class="ln" data-line="71"> </span><span class="ln" data-line="72"> </span><span class="ln" data-line="73"><span class="hljs-keyword">def</span> <span class="hljs-title function_">fmt</span>(<span class="hljs-params">xs: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="74">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; &quot;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, xs))</span><span class="ln" data-line="75"> </span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="78">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;lps(ababd) = <span class="hljs-subst">{fmt(prefix_table(<span class="hljs-string">&#x27;ababd&#x27;</span>))}</span>&quot;</span>)</span><span class="ln" data-line="79">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;kmp ababd in ababcabcabababd: <span class="hljs-subst">{fmt(kmp(<span class="hljs-string">&#x27;ababcabcabababd&#x27;</span>, <span class="hljs-string">&#x27;ababd&#x27;</span>))}</span>&quot;</span>)</span><span class="ln" data-line="80">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;kmp aba in abababa: <span class="hljs-subst">{fmt(kmp(<span class="hljs-string">&#x27;abababa&#x27;</span>, <span class="hljs-string">&#x27;aba&#x27;</span>))}</span>&quot;</span>)</span><span class="ln" data-line="81">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;rabin-karp aba in abababa: <span class="hljs-subst">{fmt(rabin_karp(<span class="hljs-string">&#x27;abababa&#x27;</span>, <span class="hljs-string">&#x27;aba&#x27;</span>))}</span>&quot;</span>)</span><span class="ln" data-line="82">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;z(aabxaab) = <span class="hljs-subst">{fmt(z_array(<span class="hljs-string">&#x27;aabxaab&#x27;</span>))}</span>&quot;</span>)</span><span class="ln" data-line="83">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;z search aab in aabxaabaab: <span class="hljs-subst">{fmt(z_search(<span class="hljs-string">&#x27;aabxaabaab&#x27;</span>, <span class="hljs-string">&#x27;aab&#x27;</span>))}</span>&quot;</span>)</span><span class="ln" data-line="84"> </span><span class="ln" data-line="85"> </span><span class="ln" data-line="86"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="87">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List
+
+
+def prefix_table(p: str) -&gt; List[int]:
+    &quot;&quot;&quot;lps[i] = length of the longest proper prefix of p[:i+1] that is also a suffix.&quot;&quot;&quot;
+    lps, length, i = [0] * len(p), 0, 1
+    while i &lt; len(p):
+        if p[i] == p[length]:
+            length += 1
+            lps[i] = length
+            i += 1
+        elif length &gt; 0:
+            length = lps[length - 1]  # fall back to a shorter border
+        else:
+            i += 1
+    return lps
+
+
+def kmp(text: str, p: str) -&gt; List[int]:
+    lps, out, j = prefix_table(p), [], 0  # j = characters of p matched so far
+    for i, ch in enumerate(text):
+        while j &gt; 0 and ch != p[j]:
+            j = lps[j - 1]
+        if ch == p[j]:
+            j += 1
+        if j == len(p):
+            out.append(i - j + 1)
+            j = lps[j - 1]  # keep going for overlapping matches
+    return out
+
+
+def rabin_karp(text: str, p: str) -&gt; List[int]:
+    mod, base = 1_000_000_007, 256
+    n, m = len(text), len(p)
+    if m &gt; n:
+        return []
+    high = pow(base, m - 1, mod)
+    ph = th = 0
+    for i in range(m):
+        ph = (ph * base + ord(p[i])) % mod
+        th = (th * base + ord(text[i])) % mod
+    out, i = [], 0
+    while True:
+        if ph == th and text[i:i + m] == p:  # confirm: hashes can collide
+            out.append(i)
+        if i + m &gt;= n:
+            break
+        th = (th - ord(text[i]) * high) % mod  # drop the leaving character (Python % is never negative)
+        th = (th * base + ord(text[i + m])) % mod  # add the new one
+        i += 1
+    return out
+
+
+def z_array(s: str) -&gt; List[int]:
+    n = len(s)
+    z, l, r = [0] * n, 0, 0
+    for i in range(1, n):
+        if i &lt; r:
+            z[i] = min(r - i, z[i - l])  # reuse what the window [l, r) already matched
+        while i + z[i] &lt; n and s[z[i]] == s[i + z[i]]:
+            z[i] += 1
+        if i + z[i] &gt; r:
+            l, r = i, i + z[i]
+    return z
+
+
+def z_search(text: str, p: str) -&gt; List[int]:
+    joined = p + &quot;$&quot; + text
+    z = z_array(joined)
+    return [i - len(p) - 1 for i in range(len(p) + 1, len(joined)) if z[i] == len(p)]
+
+
+def fmt(xs: List[int]) -&gt; str:
+    return &quot; &quot;.join(map(str, xs))
+
+
+def main() -&gt; None:
+    print(f&quot;lps(ababd) = {fmt(prefix_table(&#39;ababd&#39;))}&quot;)
+    print(f&quot;kmp ababd in ababcabcabababd: {fmt(kmp(&#39;ababcabcabababd&#39;, &#39;ababd&#39;))}&quot;)
+    print(f&quot;kmp aba in abababa: {fmt(kmp(&#39;abababa&#39;, &#39;aba&#39;))}&quot;)
+    print(f&quot;rabin-karp aba in abababa: {fmt(rabin_karp(&#39;abababa&#39;, &#39;aba&#39;))}&quot;)
+    print(f&quot;z(aabxaab) = {fmt(z_array(&#39;aabxaab&#39;))}&quot;)
+    print(f&quot;z search aab in aabxaabaab: {fmt(z_search(&#39;aabxaabaab&#39;, &#39;aab&#39;))}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>lps(ababd) = 0 0 1 2 0
+kmp ababd in ababcabcabababd: 10
+kmp aba in abababa: 0 2 4
+rabin-karp aba in abababa: 0 2 4
+z(aabxaab) = 0 1 0 0 3 1 0
+z search aab in aabxaabaab: 0 4 7</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Off-by-one in the prefix table: <code>lps[i]</code> describes the substring ending at i, and the prefix must be proper (shorter than the whole).</li><li>Forgetting to confirm Rabin-Karp matches with a direct comparison, so a hash collision reports a false match.</li><li>Negative values from the rolling hash subtraction. Add the modulus before taking <code>%</code>.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/" rel="noopener" target="_blank">Find the Index of the First Occurrence in a String<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>28</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/repeated-substring-pattern/" rel="noopener" target="_blank">Repeated Substring Pattern<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>459</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/longest-happy-prefix/" rel="noopener" target="_blank">Longest Happy Prefix<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">The last value of the prefix table.</span></td><td>1392</td><td><span class="pill pill-hard">hard</span></td></tr><tr><td><a href="https://leetcode.com/problems/shortest-palindrome/" rel="noopener" target="_blank">Shortest Palindrome<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>214</td><td><span class="pill pill-hard">hard</span></td></tr><tr><td><a href="https://leetcode.com/problems/repeated-dna-sequences/" rel="noopener" target="_blank">Repeated DNA Sequences<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Rolling hash.</span></td><td>187</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../graph-algorithms/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Graph algorithms</span></a><a class="pn pn-next" href="../bit-manipulation-technique/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Bit manipulation</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bit manipulation · DSA Academy</title>
+<meta name="description" content="Masks, shifts and the tricks that turn loops into one operation.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../index.html" aria-current="page">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Algorithms</a></li><li><span aria-current="page">Bit manipulation</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Bit manipulation</h1>
+  <p class="lede">Integers are rows of bits. Bitwise operators work on every bit at once, which turns some loops into a single instruction and lets one integer stand for a whole set of yes/no choices.</p>
+  <p class="tags"><span class="pill">Technique</span> <span class="muted">12 minute read</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A row of light switches. AND keeps a light on only if both rows have it on; OR turns it on if either does; XOR turns it on if exactly one does. Shifting slides the whole row left or right, doubling or halving the number it spells.</p></aside>
+<h2 id="binary-in-one-minute">Binary in one minute</h2>
+<p>Bit <code>k</code> of a number is worth <code>2ᵏ</code>. Thirteen is <code>8 + 4 + 1</code>, so its bits from
+high to low are <code>1101</code>. Negative numbers use <strong>two&#39;s complement</strong>: <code>−x</code> is
+<code>~x + 1</code>, which is why <code>x &amp; −x</code> isolates the lowest set bit.</p>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 220" role="img" aria-label="The number 13 in binary, and how AND, OR, XOR and shifts act on individual bits"><defs></defs><text class="dg-lbl" x="20" y="30">13 =</text><rect class="dg-box" x="70" y="10" width="40" height="34" rx="6"/><text class="dg-t" x="90.0" y="27.0">0</text><text class="dg-s" x="90.0" y="60">128</text><rect class="dg-box" x="116" y="10" width="40" height="34" rx="6"/><text class="dg-t" x="136.0" y="27.0">0</text><text class="dg-s" x="136.0" y="60">64</text><rect class="dg-box" x="162" y="10" width="40" height="34" rx="6"/><text class="dg-t" x="182.0" y="27.0">0</text><text class="dg-s" x="182.0" y="60">32</text><rect class="dg-box" x="208" y="10" width="40" height="34" rx="6"/><text class="dg-t" x="228.0" y="27.0">0</text><text class="dg-s" x="228.0" y="60">16</text><rect class="dg-ok" x="254" y="10" width="40" height="34" rx="6"/><text class="dg-t" x="274.0" y="27.0">1</text><text class="dg-s" x="274.0" y="60">8</text><rect class="dg-ok" x="300" y="10" width="40" height="34" rx="6"/><text class="dg-t" x="320.0" y="27.0">1</text><text class="dg-s" x="320.0" y="60">4</text><rect class="dg-box" x="346" y="10" width="40" height="34" rx="6"/><text class="dg-t" x="366.0" y="27.0">0</text><text class="dg-s" x="366.0" y="60">2</text><rect class="dg-ok" x="392" y="10" width="40" height="34" rx="6"/><text class="dg-t" x="412.0" y="27.0">1</text><text class="dg-s" x="412.0" y="60">1</text><text class="dg-lbl" x="20" y="92">x &amp; (x − 1)</text><text class="dg-m" x="180" y="92">1100</text><text class="dg-m" x="240" y="92">clears the lowest set bit → 12</text><text class="dg-lbl" x="20" y="116">x &amp; −x</text><text class="dg-m" x="180" y="116">0001</text><text class="dg-m" x="240" y="116">keeps only the lowest set bit → 1</text><text class="dg-lbl" x="20" y="140">x | (1 &lt;&lt; 1)</text><text class="dg-m" x="180" y="140">1111</text><text class="dg-m" x="240" y="140">sets bit 1 → 15</text><text class="dg-lbl" x="20" y="164">x ^ (1 &lt;&lt; 2)</text><text class="dg-m" x="180" y="164">1001</text><text class="dg-m" x="240" y="164">toggles bit 2 → 9</text><text class="dg-lbl" x="20" y="188">x &gt;&gt; 1</text><text class="dg-m" x="180" y="188">0110</text><text class="dg-m" x="240" y="188">halves, rounding down → 6</text></svg><figcaption>13 is <code>1101</code>: 8 + 4 + 1. Bitwise operators act on every bit position at once, so many loops collapse into one instruction.</figcaption></figure><h2 id="the-operators">The operators</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Reads as</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>a &amp; b</code></td>
+<td>AND: 1 where both are 1</td>
+<td>test or clear bits with a mask</td>
+</tr>
+<tr>
+<td><code>a | b</code></td>
+<td>OR: 1 where either is 1</td>
+<td>set bits</td>
+</tr>
+<tr>
+<td><code>a ^ b</code></td>
+<td>XOR: 1 where they differ</td>
+<td>toggle bits, cancel pairs</td>
+</tr>
+<tr>
+<td><code>~a</code></td>
+<td>NOT: flip every bit</td>
+<td>build an inverse mask</td>
+</tr>
+<tr>
+<td><code>a &lt;&lt; k</code></td>
+<td>shift left</td>
+<td>multiply by 2ᵏ, build masks <code>1 &lt;&lt; k</code></td>
+</tr>
+<tr>
+<td><code>a &gt;&gt; k</code></td>
+<td>shift right</td>
+<td>divide by 2ᵏ (rounding down)</td>
+</tr>
+</tbody></table></div>
+<h2 id="tricks-worth-knowing-by-heart">Tricks worth knowing by heart</h2>
+<ul>
+<li><strong>Test bit k</strong>: <code>(x &gt;&gt; k) &amp; 1</code>.</li>
+<li><strong>Set, clear, toggle bit k</strong>: <code>x | (1 &lt;&lt; k)</code>, <code>x &amp; ~(1 &lt;&lt; k)</code>, <code>x ^ (1 &lt;&lt; k)</code>.</li>
+<li><strong>Clear the lowest set bit</strong>: <code>x &amp; (x − 1)</code>. Repeating it counts set bits.</li>
+<li><strong>Power of two</strong>: <code>x &gt; 0 &amp;&amp; (x &amp; (x − 1)) == 0</code>.</li>
+<li><strong>XOR cancels pairs</strong>: <code>a ^ a = 0</code> and <code>a ^ 0 = a</code>, so XOR-ing a list where
+everything appears twice except one value leaves that value.</li>
+<li><strong>Subsets as masks</strong>: for n items, the integers <code>0</code> to <code>2ⁿ − 1</code> are all the
+subsets. Bit i of the mask says whether item i is in.</li>
+</ul>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>AND, OR, XOR, NOT, shifts</td><td class="nowrap">O(1)</td><td>One machine instruction on a fixed-width integer.</td></tr><tr><td>Count set bits (popcount)</td><td class="nowrap">O(number of set bits)</td><td><code>x &amp;= x - 1</code> clears one set bit per step. Hardware does it in O(1).</td></tr><tr><td>Enumerate all subsets of n items as masks</td><td class="nowrap">O(2ⁿ × n)</td><td>2ⁿ masks, n bits to read each.</td></tr><tr><td>Bitmask DP over subsets</td><td class="nowrap">O(2ⁿ × n) states × transitions</td><td>Feasible up to about n = 20.</td></tr></tbody></table></div>
+<h2 id="use-when">When to use it</h2>
+<div class="two-col"><div><h3>Reach for it when</h3><ul><li>The problem mentions XOR, powers of two, binary representation or bit counts.</li><li>Finding the element that appears an odd number of times (XOR cancels pairs).</li><li>Representing a small set (up to 32 or 64 items) as one integer: visited states, subsets, permissions.</li></ul></div><div><h3>Think twice when</h3><ul><li>Readability matters more than a constant-factor gain. <code>x * 2</code> is clearer than <code>x &lt;&lt; 1</code>, and compilers optimise it anyway.</li></ul></div></div>
+<h2 id="lang-notes">In your language</h2>
+<div class="lang-notes"><div class="lang-note" data-lang="java"><p class="lang-note-label">Notes for Java</p><ul>
+<li><code>int</code> is 32-bit and <code>long</code> 64-bit, both signed two&#39;s complement. <code>&gt;&gt;</code> keeps the sign; <code>&gt;&gt;&gt;</code> fills with zeros.</li>
+<li><code>Integer.bitCount</code>, <code>Integer.highestOneBit</code>, <code>Integer.numberOfTrailingZeros</code> and <code>Long.bitCount</code> are built in.</li>
+<li>Write <code>1L &lt;&lt; 40</code>, not <code>1 &lt;&lt; 40</code>, for shifts past bit 31.</li>
+</ul>
+</div><div class="lang-note" data-lang="javascript"><p class="lang-note-label">Notes for JavaScript</p><ul>
+<li>Bitwise operators convert numbers to 32-bit signed integers, so <code>2 ** 32 | 0</code> is <code>0</code>. Use <code>BigInt</code> (<code>1n &lt;&lt; 40n</code>) for wider masks.</li>
+<li><code>&gt;&gt;&gt;</code> is the unsigned right shift. <code>x &gt;&gt;&gt; 0</code> reinterprets a negative 32-bit value as unsigned.</li>
+</ul>
+</div><div class="lang-note" data-lang="typescript"><p class="lang-note-label">Notes for TypeScript</p><ul>
+<li>Same 32-bit rules as JavaScript. A <code>number</code> used as a mask works up to 31 items safely.</li>
+</ul>
+</div><div class="lang-note" data-lang="python"><p class="lang-note-label">Notes for Python</p><ul>
+<li>Integers are unbounded, so there&#39;s no overflow and <code>~x</code> is <code>-x - 1</code>. Mask to 32 bits with <code>x &amp; 0xFFFFFFFF</code> when emulating fixed-width arithmetic.</li>
+<li><code>bin(x)</code>, <code>x.bit_count()</code> (3.10+) and <code>x.bit_length()</code> are built in.</li>
+</ul>
+</div><p class="muted lang-note-hint">Switch the language at the top of the page to see notes for another language.</p></div>
+<h2 id="code">Code</h2>
+<p>Popcount, power-of-two checks, the lowest set bit, reading and writing single bits, XOR to find the odd one out, subsets as masks and counting bits with a recurrence.</p><figure class="codeblock" id="code-bit-manipulation-technique" aria-label="The bit tricks interviews use most">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-bit-manipulation-technique-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-bit-manipulation-technique-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-bit-manipulation-technique-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-bit-manipulation-technique-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-bit-manipulation-technique-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">popcount</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> {</span><span class="ln" data-line="4">        <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="5">        <span class="hljs-keyword">while</span> (x != <span class="hljs-number">0</span>) {</span><span class="ln" data-line="6">            x &amp;= x - <span class="hljs-number">1</span>; <span class="hljs-comment">// clear the lowest set bit</span></span><span class="ln" data-line="7">            count++;</span><span class="ln" data-line="8">        }</span><span class="ln" data-line="9">        <span class="hljs-keyword">return</span> count;</span><span class="ln" data-line="10">    }</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12">    <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isPowerOfTwo</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> { <span class="hljs-keyword">return</span> x &gt; <span class="hljs-number">0</span> &amp;&amp; (x &amp; (x - <span class="hljs-number">1</span>)) == <span class="hljs-number">0</span>; }</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">lowestSetBit</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> { <span class="hljs-keyword">return</span> x &amp; -x; }</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getBit</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> k)</span> { <span class="hljs-keyword">return</span> (x &gt;&gt; k) &amp; <span class="hljs-number">1</span>; }</span><span class="ln" data-line="17">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">setBit</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> k)</span> { <span class="hljs-keyword">return</span> x | (<span class="hljs-number">1</span> &lt;&lt; k); }</span><span class="ln" data-line="18">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">clearBit</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> k)</span> { <span class="hljs-keyword">return</span> x &amp; ~(<span class="hljs-number">1</span> &lt;&lt; k); }</span><span class="ln" data-line="19">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">toggleBit</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> k)</span> { <span class="hljs-keyword">return</span> x ^ (<span class="hljs-number">1</span> &lt;&lt; k); }</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">singleNumber</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="22">        <span class="hljs-type">int</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="23">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> n : nums) x ^= n; <span class="hljs-comment">// pairs cancel out</span></span><span class="ln" data-line="24">        <span class="hljs-keyword">return</span> x;</span><span class="ln" data-line="25">    }</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">subsetsByMask</span><span class="hljs-params">(<span class="hljs-type">char</span>[] items)</span> {</span><span class="ln" data-line="28">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="29">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">mask</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; mask &lt; (<span class="hljs-number">1</span> &lt;&lt; items.length); mask++) {</span><span class="ln" data-line="30">            <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">set</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>(<span class="hljs-string">&quot;{&quot;</span>);</span><span class="ln" data-line="31">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; items.length; i++) {</span><span class="ln" data-line="32">                <span class="hljs-keyword">if</span> ((mask &amp; (<span class="hljs-number">1</span> &lt;&lt; i)) != <span class="hljs-number">0</span>) set.append(set.length() &gt; <span class="hljs-number">1</span> ? <span class="hljs-string">&quot;,&quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(items[i]);</span><span class="ln" data-line="33">            }</span><span class="ln" data-line="34">            sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(set).append(<span class="hljs-string">&quot;}&quot;</span>);</span><span class="ln" data-line="35">        }</span><span class="ln" data-line="36">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="37">    }</span><span class="ln" data-line="38"> </span><span class="ln" data-line="39">    <span class="hljs-comment">/** bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1): i has the bits of i / 2, plus its last bit. */</span></span><span class="ln" data-line="40">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">countBits</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="41">        <span class="hljs-type">int</span>[] <span class="hljs-variable">bits</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n + <span class="hljs-number">1</span>];</span><span class="ln" data-line="42">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt;= n; i++) bits[i] = bits[i &gt;&gt; <span class="hljs-number">1</span>] + (i &amp; <span class="hljs-number">1</span>);</span><span class="ln" data-line="43">        <span class="hljs-keyword">return</span> bits;</span><span class="ln" data-line="44">    }</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="47">        System.out.println(<span class="hljs-string">&quot;13 in binary: &quot;</span> + Integer.toBinaryString(<span class="hljs-number">13</span>) + <span class="hljs-string">&quot;, popcount(29) = &quot;</span> + popcount(<span class="hljs-number">29</span>));</span><span class="ln" data-line="48">        System.out.println(<span class="hljs-string">&quot;isPowerOfTwo(64) = &quot;</span> + isPowerOfTwo(<span class="hljs-number">64</span>) + <span class="hljs-string">&quot;, isPowerOfTwo(96) = &quot;</span> + isPowerOfTwo(<span class="hljs-number">96</span>) + <span class="hljs-string">&quot;, isPowerOfTwo(0) = &quot;</span> + isPowerOfTwo(<span class="hljs-number">0</span>));</span><span class="ln" data-line="49">        System.out.println(<span class="hljs-string">&quot;lowest set bit of 40: &quot;</span> + lowestSetBit(<span class="hljs-number">40</span>));</span><span class="ln" data-line="50">        System.out.println(<span class="hljs-string">&quot;bit 2 of 9: &quot;</span> + getBit(<span class="hljs-number">9</span>, <span class="hljs-number">2</span>) + <span class="hljs-string">&quot;; set it: &quot;</span> + setBit(<span class="hljs-number">9</span>, <span class="hljs-number">2</span>) + <span class="hljs-string">&quot;; clear bit 3: &quot;</span> + clearBit(<span class="hljs-number">9</span>, <span class="hljs-number">3</span>) + <span class="hljs-string">&quot;; toggle bit 0: &quot;</span> + toggleBit(<span class="hljs-number">9</span>, <span class="hljs-number">0</span>));</span><span class="ln" data-line="51">        System.out.println(<span class="hljs-string">&quot;single number in 4 1 2 1 2: &quot;</span> + singleNumber(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span> }));</span><span class="ln" data-line="52">        System.out.println(<span class="hljs-string">&quot;subsets of abc by mask: &quot;</span> + subsetsByMask(<span class="hljs-keyword">new</span> <span class="hljs-title class_">char</span>[] { <span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;b&#x27;</span>, <span class="hljs-string">&#x27;c&#x27;</span> }));</span><span class="ln" data-line="53">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">cb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="54">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> b : countBits(<span class="hljs-number">8</span>)) cb.append(cb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(b);</span><span class="ln" data-line="55">        System.out.println(<span class="hljs-string">&quot;set bits in 0..8: &quot;</span> + cb);</span><span class="ln" data-line="56">        <span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> <span class="hljs-number">5</span>, b = <span class="hljs-number">9</span>;</span><span class="ln" data-line="57">        a ^= b; b ^= a; a ^= b;</span><span class="ln" data-line="58">        System.out.println(<span class="hljs-string">&quot;swap 5 and 9 with XOR: &quot;</span> + a + <span class="hljs-string">&quot; &quot;</span> + b);</span><span class="ln" data-line="59">    }</span><span class="ln" data-line="60">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">public class Solution {
+
+    static int popcount(int x) {
+        int count = 0;
+        while (x != 0) {
+            x &amp;= x - 1; // clear the lowest set bit
+            count++;
+        }
+        return count;
+    }
+
+    static boolean isPowerOfTwo(int x) { return x &gt; 0 &amp;&amp; (x &amp; (x - 1)) == 0; }
+
+    static int lowestSetBit(int x) { return x &amp; -x; }
+
+    static int getBit(int x, int k) { return (x &gt;&gt; k) &amp; 1; }
+    static int setBit(int x, int k) { return x | (1 &lt;&lt; k); }
+    static int clearBit(int x, int k) { return x &amp; ~(1 &lt;&lt; k); }
+    static int toggleBit(int x, int k) { return x ^ (1 &lt;&lt; k); }
+
+    static int singleNumber(int[] nums) {
+        int x = 0;
+        for (int n : nums) x ^= n; // pairs cancel out
+        return x;
+    }
+
+    static String subsetsByMask(char[] items) {
+        StringBuilder sb = new StringBuilder();
+        for (int mask = 0; mask &lt; (1 &lt;&lt; items.length); mask++) {
+            StringBuilder set = new StringBuilder(&quot;{&quot;);
+            for (int i = 0; i &lt; items.length; i++) {
+                if ((mask &amp; (1 &lt;&lt; i)) != 0) set.append(set.length() &gt; 1 ? &quot;,&quot; : &quot;&quot;).append(items[i]);
+            }
+            sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(set).append(&quot;}&quot;);
+        }
+        return sb.toString();
+    }
+
+    /** bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1): i has the bits of i / 2, plus its last bit. */
+    static int[] countBits(int n) {
+        int[] bits = new int[n + 1];
+        for (int i = 1; i &lt;= n; i++) bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1);
+        return bits;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;13 in binary: &quot; + Integer.toBinaryString(13) + &quot;, popcount(29) = &quot; + popcount(29));
+        System.out.println(&quot;isPowerOfTwo(64) = &quot; + isPowerOfTwo(64) + &quot;, isPowerOfTwo(96) = &quot; + isPowerOfTwo(96) + &quot;, isPowerOfTwo(0) = &quot; + isPowerOfTwo(0));
+        System.out.println(&quot;lowest set bit of 40: &quot; + lowestSetBit(40));
+        System.out.println(&quot;bit 2 of 9: &quot; + getBit(9, 2) + &quot;; set it: &quot; + setBit(9, 2) + &quot;; clear bit 3: &quot; + clearBit(9, 3) + &quot;; toggle bit 0: &quot; + toggleBit(9, 0));
+        System.out.println(&quot;single number in 4 1 2 1 2: &quot; + singleNumber(new int[] { 4, 1, 2, 1, 2 }));
+        System.out.println(&quot;subsets of abc by mask: &quot; + subsetsByMask(new char[] { &#39;a&#39;, &#39;b&#39;, &#39;c&#39; }));
+        StringBuilder cb = new StringBuilder();
+        for (int b : countBits(8)) cb.append(cb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(b);
+        System.out.println(&quot;set bits in 0..8: &quot; + cb);
+        int a = 5, b = 9;
+        a ^= b; b ^= a; a ^= b;
+        System.out.println(&quot;swap 5 and 9 with XOR: &quot; + a + &quot; &quot; + b);
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-bit-manipulation-technique-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">popcount</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="2">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="3">  <span class="hljs-keyword">while</span> (x !== <span class="hljs-number">0</span>) {</span><span class="ln" data-line="4">    x &amp;= x - <span class="hljs-number">1</span>; <span class="hljs-comment">// clear the lowest set bit</span></span><span class="ln" data-line="5">    count++;</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">return</span> count;</span><span class="ln" data-line="8">}</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-keyword">const</span> <span class="hljs-title function_">isPowerOfTwo</span> = (<span class="hljs-params">x</span>) =&gt; x &gt; <span class="hljs-number">0</span> &amp;&amp; (x &amp; (x - <span class="hljs-number">1</span>)) === <span class="hljs-number">0</span>;</span><span class="ln" data-line="11"><span class="hljs-keyword">const</span> <span class="hljs-title function_">lowestSetBit</span> = (<span class="hljs-params">x</span>) =&gt; x &amp; -x;</span><span class="ln" data-line="12"><span class="hljs-keyword">const</span> <span class="hljs-title function_">getBit</span> = (<span class="hljs-params">x, k</span>) =&gt; (x &gt;&gt; k) &amp; <span class="hljs-number">1</span>;</span><span class="ln" data-line="13"><span class="hljs-keyword">const</span> <span class="hljs-title function_">setBit</span> = (<span class="hljs-params">x, k</span>) =&gt; x | (<span class="hljs-number">1</span> &lt;&lt; k);</span><span class="ln" data-line="14"><span class="hljs-keyword">const</span> <span class="hljs-title function_">clearBit</span> = (<span class="hljs-params">x, k</span>) =&gt; x &amp; ~(<span class="hljs-number">1</span> &lt;&lt; k);</span><span class="ln" data-line="15"><span class="hljs-keyword">const</span> <span class="hljs-title function_">toggleBit</span> = (<span class="hljs-params">x, k</span>) =&gt; x ^ (<span class="hljs-number">1</span> &lt;&lt; k);</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">function</span> <span class="hljs-title function_">singleNumber</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="18">  <span class="hljs-keyword">let</span> x = <span class="hljs-number">0</span>;</span><span class="ln" data-line="19">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> nums) x ^= n; <span class="hljs-comment">// pairs cancel out</span></span><span class="ln" data-line="20">  <span class="hljs-keyword">return</span> x;</span><span class="ln" data-line="21">}</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-keyword">function</span> <span class="hljs-title function_">subsetsByMask</span>(<span class="hljs-params">items</span>) {</span><span class="ln" data-line="24">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="25">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> mask = <span class="hljs-number">0</span>; mask &lt; <span class="hljs-number">1</span> &lt;&lt; items.<span class="hljs-property">length</span>; mask++) {</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> set = items.<span class="hljs-title function_">filter</span>(<span class="hljs-function">(<span class="hljs-params">_, i</span>) =&gt;</span> (mask &amp; (<span class="hljs-number">1</span> &lt;&lt; i)) !== <span class="hljs-number">0</span>);</span><span class="ln" data-line="27">    out.<span class="hljs-title function_">push</span>(<span class="hljs-string">`{<span class="hljs-subst">${set.join(<span class="hljs-string">&quot;,&quot;</span>)}</span>}`</span>);</span><span class="ln" data-line="28">  }</span><span class="ln" data-line="29">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="30">}</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-comment">/** bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1): i has the bits of i / 2, plus its last bit. */</span></span><span class="ln" data-line="33"><span class="hljs-keyword">function</span> <span class="hljs-title function_">countBits</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="34">  <span class="hljs-keyword">const</span> bits = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="35">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt;= n; i++) bits[i] = bits[i &gt;&gt; <span class="hljs-number">1</span>] + (i &amp; <span class="hljs-number">1</span>);</span><span class="ln" data-line="36">  <span class="hljs-keyword">return</span> bits;</span><span class="ln" data-line="37">}</span><span class="ln" data-line="38"> </span><span class="ln" data-line="39"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="40">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`13 in binary: <span class="hljs-subst">${(<span class="hljs-number">13</span>).toString(<span class="hljs-number">2</span>)}</span>, popcount(29) = <span class="hljs-subst">${popcount(<span class="hljs-number">29</span>)}</span>`</span>);</span><span class="ln" data-line="41">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`isPowerOfTwo(64) = <span class="hljs-subst">${isPowerOfTwo(<span class="hljs-number">64</span>)}</span>, isPowerOfTwo(96) = <span class="hljs-subst">${isPowerOfTwo(<span class="hljs-number">96</span>)}</span>, isPowerOfTwo(0) = <span class="hljs-subst">${isPowerOfTwo(<span class="hljs-number">0</span>)}</span>`</span>);</span><span class="ln" data-line="42">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`lowest set bit of 40: <span class="hljs-subst">${lowestSetBit(<span class="hljs-number">40</span>)}</span>`</span>);</span><span class="ln" data-line="43">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`bit 2 of 9: <span class="hljs-subst">${getBit(<span class="hljs-number">9</span>, <span class="hljs-number">2</span>)}</span>; set it: <span class="hljs-subst">${setBit(<span class="hljs-number">9</span>, <span class="hljs-number">2</span>)}</span>; clear bit 3: <span class="hljs-subst">${clearBit(<span class="hljs-number">9</span>, <span class="hljs-number">3</span>)}</span>; toggle bit 0: <span class="hljs-subst">${toggleBit(<span class="hljs-number">9</span>, <span class="hljs-number">0</span>)}</span>`</span>);</span><span class="ln" data-line="44">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`single number in 4 1 2 1 2: <span class="hljs-subst">${singleNumber([<span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="45">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`subsets of abc by mask: <span class="hljs-subst">${subsetsByMask([<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-string">&quot;c&quot;</span>])}</span>`</span>);</span><span class="ln" data-line="46">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`set bits in 0..8: <span class="hljs-subst">${countBits(<span class="hljs-number">8</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="47">  <span class="hljs-keyword">let</span> a = <span class="hljs-number">5</span>;</span><span class="ln" data-line="48">  <span class="hljs-keyword">let</span> b = <span class="hljs-number">9</span>;</span><span class="ln" data-line="49">  a ^= b;</span><span class="ln" data-line="50">  b ^= a;</span><span class="ln" data-line="51">  a ^= b;</span><span class="ln" data-line="52">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`swap 5 and 9 with XOR: <span class="hljs-subst">${a}</span> <span class="hljs-subst">${b}</span>`</span>);</span><span class="ln" data-line="53">}</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function popcount(x) {
+  let count = 0;
+  while (x !== 0) {
+    x &amp;= x - 1; // clear the lowest set bit
+    count++;
+  }
+  return count;
+}
+
+const isPowerOfTwo = (x) =&gt; x &gt; 0 &amp;&amp; (x &amp; (x - 1)) === 0;
+const lowestSetBit = (x) =&gt; x &amp; -x;
+const getBit = (x, k) =&gt; (x &gt;&gt; k) &amp; 1;
+const setBit = (x, k) =&gt; x | (1 &lt;&lt; k);
+const clearBit = (x, k) =&gt; x &amp; ~(1 &lt;&lt; k);
+const toggleBit = (x, k) =&gt; x ^ (1 &lt;&lt; k);
+
+function singleNumber(nums) {
+  let x = 0;
+  for (const n of nums) x ^= n; // pairs cancel out
+  return x;
+}
+
+function subsetsByMask(items) {
+  const out = [];
+  for (let mask = 0; mask &lt; 1 &lt;&lt; items.length; mask++) {
+    const set = items.filter((_, i) =&gt; (mask &amp; (1 &lt;&lt; i)) !== 0);
+    out.push(`{${set.join(&quot;,&quot;)}}`);
+  }
+  return out.join(&quot; &quot;);
+}
+
+/** bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1): i has the bits of i / 2, plus its last bit. */
+function countBits(n) {
+  const bits = new Array(n + 1).fill(0);
+  for (let i = 1; i &lt;= n; i++) bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1);
+  return bits;
+}
+
+function main() {
+  console.log(`13 in binary: ${(13).toString(2)}, popcount(29) = ${popcount(29)}`);
+  console.log(`isPowerOfTwo(64) = ${isPowerOfTwo(64)}, isPowerOfTwo(96) = ${isPowerOfTwo(96)}, isPowerOfTwo(0) = ${isPowerOfTwo(0)}`);
+  console.log(`lowest set bit of 40: ${lowestSetBit(40)}`);
+  console.log(`bit 2 of 9: ${getBit(9, 2)}; set it: ${setBit(9, 2)}; clear bit 3: ${clearBit(9, 3)}; toggle bit 0: ${toggleBit(9, 0)}`);
+  console.log(`single number in 4 1 2 1 2: ${singleNumber([4, 1, 2, 1, 2])}`);
+  console.log(`subsets of abc by mask: ${subsetsByMask([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])}`);
+  console.log(`set bits in 0..8: ${countBits(8).join(&quot; &quot;)}`);
+  let a = 5;
+  let b = 9;
+  a ^= b;
+  b ^= a;
+  a ^= b;
+  console.log(`swap 5 and 9 with XOR: ${a} ${b}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-bit-manipulation-technique-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">popcount</span>(<span class="hljs-params"><span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="2">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="3">  <span class="hljs-keyword">while</span> (x !== <span class="hljs-number">0</span>) {</span><span class="ln" data-line="4">    x &amp;= x - <span class="hljs-number">1</span>; <span class="hljs-comment">// clear the lowest set bit</span></span><span class="ln" data-line="5">    count++;</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">return</span> count;</span><span class="ln" data-line="8">}</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-keyword">const</span> isPowerOfTwo = (<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">boolean</span> =&gt;</span> x &gt; <span class="hljs-number">0</span> &amp;&amp; (x &amp; (x - <span class="hljs-number">1</span>)) === <span class="hljs-number">0</span>;</span><span class="ln" data-line="11"><span class="hljs-keyword">const</span> lowestSetBit = (<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">number</span> =&gt;</span> x &amp; -x;</span><span class="ln" data-line="12"><span class="hljs-keyword">const</span> getBit = (<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">number</span> =&gt;</span> (x &gt;&gt; k) &amp; <span class="hljs-number">1</span>;</span><span class="ln" data-line="13"><span class="hljs-keyword">const</span> setBit = (<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">number</span> =&gt;</span> x | (<span class="hljs-number">1</span> &lt;&lt; k);</span><span class="ln" data-line="14"><span class="hljs-keyword">const</span> clearBit = (<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">number</span> =&gt;</span> x &amp; ~(<span class="hljs-number">1</span> &lt;&lt; k);</span><span class="ln" data-line="15"><span class="hljs-keyword">const</span> toggleBit = (<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">number</span> =&gt;</span> x ^ (<span class="hljs-number">1</span> &lt;&lt; k);</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">function</span> <span class="hljs-title function_">singleNumber</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="18">  <span class="hljs-keyword">let</span> x = <span class="hljs-number">0</span>;</span><span class="ln" data-line="19">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> nums) x ^= n; <span class="hljs-comment">// pairs cancel out</span></span><span class="ln" data-line="20">  <span class="hljs-keyword">return</span> x;</span><span class="ln" data-line="21">}</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-keyword">function</span> <span class="hljs-title function_">subsetsByMask</span>(<span class="hljs-params"><span class="hljs-attr">items</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[]</span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="24">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">string</span>[] = [];</span><span class="ln" data-line="25">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> mask = <span class="hljs-number">0</span>; mask &lt; <span class="hljs-number">1</span> &lt;&lt; items.<span class="hljs-property">length</span>; mask++) {</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> set = items.<span class="hljs-title function_">filter</span>(<span class="hljs-function">(<span class="hljs-params">_, i</span>) =&gt;</span> (mask &amp; (<span class="hljs-number">1</span> &lt;&lt; i)) !== <span class="hljs-number">0</span>);</span><span class="ln" data-line="27">    out.<span class="hljs-title function_">push</span>(<span class="hljs-string">`{<span class="hljs-subst">${set.join(<span class="hljs-string">&quot;,&quot;</span>)}</span>}`</span>);</span><span class="ln" data-line="28">  }</span><span class="ln" data-line="29">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="30">}</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-comment">/** bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1): i has the bits of i / 2, plus its last bit. */</span></span><span class="ln" data-line="33"><span class="hljs-keyword">function</span> <span class="hljs-title function_">countBits</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="34">  <span class="hljs-keyword">const</span> <span class="hljs-attr">bits</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="35">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt;= n; i++) bits[i] = bits[i &gt;&gt; <span class="hljs-number">1</span>] + (i &amp; <span class="hljs-number">1</span>);</span><span class="ln" data-line="36">  <span class="hljs-keyword">return</span> bits;</span><span class="ln" data-line="37">}</span><span class="ln" data-line="38"> </span><span class="ln" data-line="39"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="40">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`13 in binary: <span class="hljs-subst">${(<span class="hljs-number">13</span>).toString(<span class="hljs-number">2</span>)}</span>, popcount(29) = <span class="hljs-subst">${popcount(<span class="hljs-number">29</span>)}</span>`</span>);</span><span class="ln" data-line="41">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`isPowerOfTwo(64) = <span class="hljs-subst">${isPowerOfTwo(<span class="hljs-number">64</span>)}</span>, isPowerOfTwo(96) = <span class="hljs-subst">${isPowerOfTwo(<span class="hljs-number">96</span>)}</span>, isPowerOfTwo(0) = <span class="hljs-subst">${isPowerOfTwo(<span class="hljs-number">0</span>)}</span>`</span>);</span><span class="ln" data-line="42">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`lowest set bit of 40: <span class="hljs-subst">${lowestSetBit(<span class="hljs-number">40</span>)}</span>`</span>);</span><span class="ln" data-line="43">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`bit 2 of 9: <span class="hljs-subst">${getBit(<span class="hljs-number">9</span>, <span class="hljs-number">2</span>)}</span>; set it: <span class="hljs-subst">${setBit(<span class="hljs-number">9</span>, <span class="hljs-number">2</span>)}</span>; clear bit 3: <span class="hljs-subst">${clearBit(<span class="hljs-number">9</span>, <span class="hljs-number">3</span>)}</span>; toggle bit 0: <span class="hljs-subst">${toggleBit(<span class="hljs-number">9</span>, <span class="hljs-number">0</span>)}</span>`</span>);</span><span class="ln" data-line="44">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`single number in 4 1 2 1 2: <span class="hljs-subst">${singleNumber([<span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="45">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`subsets of abc by mask: <span class="hljs-subst">${subsetsByMask([<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-string">&quot;c&quot;</span>])}</span>`</span>);</span><span class="ln" data-line="46">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`set bits in 0..8: <span class="hljs-subst">${countBits(<span class="hljs-number">8</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="47">  <span class="hljs-keyword">let</span> a = <span class="hljs-number">5</span>;</span><span class="ln" data-line="48">  <span class="hljs-keyword">let</span> b = <span class="hljs-number">9</span>;</span><span class="ln" data-line="49">  a ^= b;</span><span class="ln" data-line="50">  b ^= a;</span><span class="ln" data-line="51">  a ^= b;</span><span class="ln" data-line="52">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`swap 5 and 9 with XOR: <span class="hljs-subst">${a}</span> <span class="hljs-subst">${b}</span>`</span>);</span><span class="ln" data-line="53">}</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function popcount(x: number): number {
+  let count = 0;
+  while (x !== 0) {
+    x &amp;= x - 1; // clear the lowest set bit
+    count++;
+  }
+  return count;
+}
+
+const isPowerOfTwo = (x: number): boolean =&gt; x &gt; 0 &amp;&amp; (x &amp; (x - 1)) === 0;
+const lowestSetBit = (x: number): number =&gt; x &amp; -x;
+const getBit = (x: number, k: number): number =&gt; (x &gt;&gt; k) &amp; 1;
+const setBit = (x: number, k: number): number =&gt; x | (1 &lt;&lt; k);
+const clearBit = (x: number, k: number): number =&gt; x &amp; ~(1 &lt;&lt; k);
+const toggleBit = (x: number, k: number): number =&gt; x ^ (1 &lt;&lt; k);
+
+function singleNumber(nums: readonly number[]): number {
+  let x = 0;
+  for (const n of nums) x ^= n; // pairs cancel out
+  return x;
+}
+
+function subsetsByMask(items: readonly string[]): string {
+  const out: string[] = [];
+  for (let mask = 0; mask &lt; 1 &lt;&lt; items.length; mask++) {
+    const set = items.filter((_, i) =&gt; (mask &amp; (1 &lt;&lt; i)) !== 0);
+    out.push(`{${set.join(&quot;,&quot;)}}`);
+  }
+  return out.join(&quot; &quot;);
+}
+
+/** bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1): i has the bits of i / 2, plus its last bit. */
+function countBits(n: number): number[] {
+  const bits: number[] = new Array(n + 1).fill(0);
+  for (let i = 1; i &lt;= n; i++) bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1);
+  return bits;
+}
+
+function main(): void {
+  console.log(`13 in binary: ${(13).toString(2)}, popcount(29) = ${popcount(29)}`);
+  console.log(`isPowerOfTwo(64) = ${isPowerOfTwo(64)}, isPowerOfTwo(96) = ${isPowerOfTwo(96)}, isPowerOfTwo(0) = ${isPowerOfTwo(0)}`);
+  console.log(`lowest set bit of 40: ${lowestSetBit(40)}`);
+  console.log(`bit 2 of 9: ${getBit(9, 2)}; set it: ${setBit(9, 2)}; clear bit 3: ${clearBit(9, 3)}; toggle bit 0: ${toggleBit(9, 0)}`);
+  console.log(`single number in 4 1 2 1 2: ${singleNumber([4, 1, 2, 1, 2])}`);
+  console.log(`subsets of abc by mask: ${subsetsByMask([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])}`);
+  console.log(`set bits in 0..8: ${countBits(8).join(&quot; &quot;)}`);
+  let a = 5;
+  let b = 9;
+  a ^= b;
+  b ^= a;
+  a ^= b;
+  console.log(`swap 5 and 9 with XOR: ${a} ${b}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-bit-manipulation-technique-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">popcount</span>(<span class="hljs-params">x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="5">    count = <span class="hljs-number">0</span></span><span class="ln" data-line="6">    <span class="hljs-keyword">while</span> x:</span><span class="ln" data-line="7">        x &amp;= x - <span class="hljs-number">1</span>  <span class="hljs-comment"># clear the lowest set bit</span></span><span class="ln" data-line="8">        count += <span class="hljs-number">1</span></span><span class="ln" data-line="9">    <span class="hljs-keyword">return</span> count</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"><span class="hljs-keyword">def</span> <span class="hljs-title function_">is_power_of_two</span>(<span class="hljs-params">x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="13">    <span class="hljs-keyword">return</span> x &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> (x &amp; (x - <span class="hljs-number">1</span>)) == <span class="hljs-number">0</span></span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"> </span><span class="ln" data-line="16"><span class="hljs-keyword">def</span> <span class="hljs-title function_">lowest_set_bit</span>(<span class="hljs-params">x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="17">    <span class="hljs-keyword">return</span> x &amp; -x</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">def</span> <span class="hljs-title function_">get_bit</span>(<span class="hljs-params">x: <span class="hljs-built_in">int</span>, k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="21">    <span class="hljs-keyword">return</span> (x &gt;&gt; k) &amp; <span class="hljs-number">1</span></span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">def</span> <span class="hljs-title function_">set_bit</span>(<span class="hljs-params">x: <span class="hljs-built_in">int</span>, k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="25">    <span class="hljs-keyword">return</span> x | (<span class="hljs-number">1</span> &lt;&lt; k)</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"> </span><span class="ln" data-line="28"><span class="hljs-keyword">def</span> <span class="hljs-title function_">clear_bit</span>(<span class="hljs-params">x: <span class="hljs-built_in">int</span>, k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="29">    <span class="hljs-keyword">return</span> x &amp; ~(<span class="hljs-number">1</span> &lt;&lt; k)</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-keyword">def</span> <span class="hljs-title function_">toggle_bit</span>(<span class="hljs-params">x: <span class="hljs-built_in">int</span>, k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="33">    <span class="hljs-keyword">return</span> x ^ (<span class="hljs-number">1</span> &lt;&lt; k)</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"><span class="hljs-keyword">def</span> <span class="hljs-title function_">single_number</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="37">    x = <span class="hljs-number">0</span></span><span class="ln" data-line="38">    <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> nums:</span><span class="ln" data-line="39">        x ^= n  <span class="hljs-comment"># pairs cancel out</span></span><span class="ln" data-line="40">    <span class="hljs-keyword">return</span> x</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"><span class="hljs-keyword">def</span> <span class="hljs-title function_">subsets_by_mask</span>(<span class="hljs-params">items: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="44">    out = []</span><span class="ln" data-line="45">    <span class="hljs-keyword">for</span> mask <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-built_in">len</span>(items)):</span><span class="ln" data-line="46">        chosen = [items[i] <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(items)) <span class="hljs-keyword">if</span> mask &amp; (<span class="hljs-number">1</span> &lt;&lt; i)]</span><span class="ln" data-line="47">        out.append(<span class="hljs-string">&quot;{&quot;</span> + <span class="hljs-string">&quot;,&quot;</span>.join(chosen) + <span class="hljs-string">&quot;}&quot;</span>)</span><span class="ln" data-line="48">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; &quot;</span>.join(out)</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"><span class="hljs-keyword">def</span> <span class="hljs-title function_">count_bits</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="52">    <span class="hljs-string">&quot;&quot;&quot;bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1): i has the bits of i // 2, plus its last bit.&quot;&quot;&quot;</span></span><span class="ln" data-line="53">    bits = [<span class="hljs-number">0</span>] * (n + <span class="hljs-number">1</span>)</span><span class="ln" data-line="54">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, n + <span class="hljs-number">1</span>):</span><span class="ln" data-line="55">        bits[i] = bits[i &gt;&gt; <span class="hljs-number">1</span>] + (i &amp; <span class="hljs-number">1</span>)</span><span class="ln" data-line="56">    <span class="hljs-keyword">return</span> bits</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"><span class="hljs-keyword">def</span> <span class="hljs-title function_">b</span>(<span class="hljs-params">x: <span class="hljs-built_in">bool</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="60">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;true&quot;</span> <span class="hljs-keyword">if</span> x <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;false&quot;</span></span><span class="ln" data-line="61"> </span><span class="ln" data-line="62"> </span><span class="ln" data-line="63"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="64">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;13 in binary: <span class="hljs-subst">{<span class="hljs-built_in">bin</span>(<span class="hljs-number">13</span>)[<span class="hljs-number">2</span>:]}</span>, popcount(29) = <span class="hljs-subst">{popcount(<span class="hljs-number">29</span>)}</span>&quot;</span>)</span><span class="ln" data-line="65">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;isPowerOfTwo(64) = <span class="hljs-subst">{b(is_power_of_two(<span class="hljs-number">64</span>))}</span>, isPowerOfTwo(96) = <span class="hljs-subst">{b(is_power_of_two(<span class="hljs-number">96</span>))}</span>, isPowerOfTwo(0) = <span class="hljs-subst">{b(is_power_of_two(<span class="hljs-number">0</span>))}</span>&quot;</span>)</span><span class="ln" data-line="66">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;lowest set bit of 40: <span class="hljs-subst">{lowest_set_bit(<span class="hljs-number">40</span>)}</span>&quot;</span>)</span><span class="ln" data-line="67">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;bit 2 of 9: <span class="hljs-subst">{get_bit(<span class="hljs-number">9</span>, <span class="hljs-number">2</span>)}</span>; set it: <span class="hljs-subst">{set_bit(<span class="hljs-number">9</span>, <span class="hljs-number">2</span>)}</span>; clear bit 3: <span class="hljs-subst">{clear_bit(<span class="hljs-number">9</span>, <span class="hljs-number">3</span>)}</span>; toggle bit 0: <span class="hljs-subst">{toggle_bit(<span class="hljs-number">9</span>, <span class="hljs-number">0</span>)}</span>&quot;</span>)</span><span class="ln" data-line="68">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;single number in 4 1 2 1 2: <span class="hljs-subst">{single_number([<span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>])}</span>&quot;</span>)</span><span class="ln" data-line="69">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;subsets of abc by mask: <span class="hljs-subst">{subsets_by_mask([<span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;b&#x27;</span>, <span class="hljs-string">&#x27;c&#x27;</span>])}</span>&quot;</span>)</span><span class="ln" data-line="70">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;set bits in 0..8: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, count_bits(<span class="hljs-number">8</span>)))}</span>&quot;</span>)</span><span class="ln" data-line="71">    a, c = <span class="hljs-number">5</span>, <span class="hljs-number">9</span></span><span class="ln" data-line="72">    a ^= c</span><span class="ln" data-line="73">    c ^= a</span><span class="ln" data-line="74">    a ^= c</span><span class="ln" data-line="75">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;swap 5 and 9 with XOR: <span class="hljs-subst">{a}</span> <span class="hljs-subst">{c}</span>&quot;</span>)</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"> </span><span class="ln" data-line="78"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="79">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List
+
+
+def popcount(x: int) -&gt; int:
+    count = 0
+    while x:
+        x &amp;= x - 1  # clear the lowest set bit
+        count += 1
+    return count
+
+
+def is_power_of_two(x: int) -&gt; bool:
+    return x &gt; 0 and (x &amp; (x - 1)) == 0
+
+
+def lowest_set_bit(x: int) -&gt; int:
+    return x &amp; -x
+
+
+def get_bit(x: int, k: int) -&gt; int:
+    return (x &gt;&gt; k) &amp; 1
+
+
+def set_bit(x: int, k: int) -&gt; int:
+    return x | (1 &lt;&lt; k)
+
+
+def clear_bit(x: int, k: int) -&gt; int:
+    return x &amp; ~(1 &lt;&lt; k)
+
+
+def toggle_bit(x: int, k: int) -&gt; int:
+    return x ^ (1 &lt;&lt; k)
+
+
+def single_number(nums: List[int]) -&gt; int:
+    x = 0
+    for n in nums:
+        x ^= n  # pairs cancel out
+    return x
+
+
+def subsets_by_mask(items: List[str]) -&gt; str:
+    out = []
+    for mask in range(1 &lt;&lt; len(items)):
+        chosen = [items[i] for i in range(len(items)) if mask &amp; (1 &lt;&lt; i)]
+        out.append(&quot;{&quot; + &quot;,&quot;.join(chosen) + &quot;}&quot;)
+    return &quot; &quot;.join(out)
+
+
+def count_bits(n: int) -&gt; List[int]:
+    &quot;&quot;&quot;bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1): i has the bits of i // 2, plus its last bit.&quot;&quot;&quot;
+    bits = [0] * (n + 1)
+    for i in range(1, n + 1):
+        bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1)
+    return bits
+
+
+def b(x: bool) -&gt; str:
+    return &quot;true&quot; if x else &quot;false&quot;
+
+
+def main() -&gt; None:
+    print(f&quot;13 in binary: {bin(13)[2:]}, popcount(29) = {popcount(29)}&quot;)
+    print(f&quot;isPowerOfTwo(64) = {b(is_power_of_two(64))}, isPowerOfTwo(96) = {b(is_power_of_two(96))}, isPowerOfTwo(0) = {b(is_power_of_two(0))}&quot;)
+    print(f&quot;lowest set bit of 40: {lowest_set_bit(40)}&quot;)
+    print(f&quot;bit 2 of 9: {get_bit(9, 2)}; set it: {set_bit(9, 2)}; clear bit 3: {clear_bit(9, 3)}; toggle bit 0: {toggle_bit(9, 0)}&quot;)
+    print(f&quot;single number in 4 1 2 1 2: {single_number([4, 1, 2, 1, 2])}&quot;)
+    print(f&quot;subsets of abc by mask: {subsets_by_mask([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;])}&quot;)
+    print(f&quot;set bits in 0..8: {&#39; &#39;.join(map(str, count_bits(8)))}&quot;)
+    a, c = 5, 9
+    a ^= c
+    c ^= a
+    a ^= c
+    print(f&quot;swap 5 and 9 with XOR: {a} {c}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>13 in binary: 1101, popcount(29) = 4
+isPowerOfTwo(64) = true, isPowerOfTwo(96) = false, isPowerOfTwo(0) = false
+lowest set bit of 40: 8
+bit 2 of 9: 0; set it: 13; clear bit 3: 1; toggle bit 0: 8
+single number in 4 1 2 1 2: 4
+subsets of abc by mask: {} {a} {b} {a,b} {c} {a,c} {b,c} {a,b,c}
+set bits in 0..8: 0 1 1 2 1 2 2 3 1
+swap 5 and 9 with XOR: 9 5</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Operator precedence: in Java, JavaScript and C, <code>x &amp; 1 == 0</code> parses as <code>x &amp; (1 == 0)</code>. Parenthesise: <code>(x &amp; 1) == 0</code>.</li><li>Shifting past the width of the type, such as <code>1 &lt;&lt; 32</code> for a 32-bit int.</li><li>Forgetting that right-shifting a negative number keeps the sign bit (<code>&gt;&gt;</code>).</li><li>Treating 0 as a power of two: <code>x &amp; (x - 1) == 0</code> is true for 0, so also check <code>x &gt; 0</code>.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/single-number/" rel="noopener" target="_blank">Single Number<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>136</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/number-of-1-bits/" rel="noopener" target="_blank">Number of 1 Bits<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>191</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/power-of-two/" rel="noopener" target="_blank">Power of Two<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>231</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/counting-bits/" rel="noopener" target="_blank">Counting Bits<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>338</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/missing-number/" rel="noopener" target="_blank">Missing Number<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>268</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/sum-of-two-integers/" rel="noopener" target="_blank">Sum of Two Integers<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>371</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Used by <a href="../../patterns/bit-manipulation/index.html">Bit manipulation</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../string-algorithms/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">String algorithms</span></a><a class="pn pn-next" href="../math-basics/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Math basics</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

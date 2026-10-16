@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heaps · DSA Academy</title>
+<meta name="description" content="A tree stored in an array. Sift up, sift down and O(n) heapify.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../index.html" aria-current="page">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Data structures</a></li><li><span aria-current="page">Heaps</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Heaps</h1>
+  <p class="lede">A heap keeps the smallest (or largest) item at the top and gives it to you in O(1), while insert and remove take only O(log n). It&#39;s a complete binary tree stored in a plain array.</p>
+  <p class="tags"><span class="pill">Data structure</span> <span class="muted">13 minute read</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A tournament bracket where the best player always ends up on top. When a new player arrives they play upward until they lose; when the champion leaves, the last player in is placed on top and plays downward until they find their level.</p></aside>
+<h2 id="what-a-heap-is">What a heap is</h2>
+<p>A <strong>binary heap</strong> is a binary tree with two rules:</p>
+<ol>
+<li><strong>Shape</strong>: it&#39;s <em>complete</em>. Every level is full except possibly the last,
+which fills from left to right.</li>
+<li><strong>Order</strong>: in a <strong>min-heap</strong> every parent is less than or equal to its
+children, so the minimum is at the root. A <strong>max-heap</strong> flips it.</li>
+</ol>
+<p>The order rule is weak on purpose. Siblings aren&#39;t ordered and the array isn&#39;t
+sorted; only the root is guaranteed. That&#39;s enough to find the minimum
+instantly, and cheap enough to keep up to date in O(log n).</p>
+<h2 id="how-it-sits-in-memory">How it sits in memory</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 680 260" role="img" aria-label="A min-heap drawn as a tree and as the array that stores it, with arrows from index i to its children at 2i plus 1 and 2i plus 2"><defs><marker id="ah5-dg-head-l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head-l" d="M0 0L10 5L0 10z"/></marker></defs><path class="dg-line" d="M170 30 L90 95"/><path class="dg-line" d="M170 30 L250 95"/><path class="dg-line" d="M90 95 L45 160"/><path class="dg-line" d="M90 95 L135 160"/><path class="dg-line" d="M250 95 L205 160"/><circle class="dg-a" cx="170" cy="30" r="20"/><text class="dg-t" x="170" y="30">1</text><circle class="dg-box" cx="90" cy="95" r="20"/><text class="dg-t" x="90" y="95">3</text><circle class="dg-box" cx="250" cy="95" r="20"/><text class="dg-t" x="250" y="95">2</text><circle class="dg-box" cx="45" cy="160" r="20"/><text class="dg-t" x="45" y="160">5</text><circle class="dg-box" cx="135" cy="160" r="20"/><text class="dg-t" x="135" y="160">9</text><circle class="dg-box" cx="205" cy="160" r="20"/><text class="dg-t" x="205" y="160">8</text><text class="dg-s" x="170" y="64">[0]</text><text class="dg-s" x="90" y="129">[1]</text><text class="dg-s" x="250" y="129">[2]</text><text class="dg-s" x="45" y="194">[3]</text><text class="dg-s" x="135" y="194">[4]</text><text class="dg-s" x="205" y="194">[5]</text><text class="dg-lbl" x="330" y="30">Array:</text><rect class="dg-a" x="330" y="44" width="50" height="40" rx="6"/><text class="dg-t" x="355.0" y="64.0">1</text><text class="dg-s" x="355.0" y="100">0</text><rect class="dg-box" x="386" y="44" width="50" height="40" rx="6"/><text class="dg-t" x="411.0" y="64.0">3</text><text class="dg-s" x="411.0" y="100">1</text><rect class="dg-box" x="442" y="44" width="50" height="40" rx="6"/><text class="dg-t" x="467.0" y="64.0">2</text><text class="dg-s" x="467.0" y="100">2</text><rect class="dg-box" x="498" y="44" width="50" height="40" rx="6"/><text class="dg-t" x="523.0" y="64.0">5</text><text class="dg-s" x="523.0" y="100">3</text><rect class="dg-box" x="554" y="44" width="50" height="40" rx="6"/><text class="dg-t" x="579.0" y="64.0">9</text><text class="dg-s" x="579.0" y="100">4</text><rect class="dg-box" x="610" y="44" width="50" height="40" rx="6"/><text class="dg-t" x="635.0" y="64.0">8</text><text class="dg-s" x="635.0" y="100">5</text><path class="dg-line-l" d="M411 86 C 411 130, 523 130, 523 88" marker-end="url(#ah5-dg-head-l)"/><path class="dg-line-l" d="M411 86 C 411 156, 579 156, 579 88" marker-end="url(#ah5-dg-head-l)"/><text class="dg-m" x="330" y="180">children of index 1: 2·1 + 1 = 3 and 2·1 + 2 = 4</text><text class="dg-m" x="330" y="200">parent of index 5: (5 − 1) / 2 = 2</text><text class="dg-lbl" x="330" y="236">Heap rule: every parent ≤ its children.</text></svg><figcaption>The same heap two ways. No pointers are stored: the children of index <code>i</code> are at <code>2i + 1</code> and <code>2i + 2</code>, and the parent is at <code>(i − 1) / 2</code>.</figcaption></figure><p>Because the tree is complete, it packs into an array with no gaps and no
+pointers. For index <code>i</code> (counting from 0):</p>
+<ul>
+<li>left child: <code>2i + 1</code></li>
+<li>right child: <code>2i + 2</code></li>
+<li>parent: <code>(i − 1) / 2</code>, rounded down</li>
+</ul>
+<h2 id="sift-up-and-sift-down">Sift up and sift down</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 180" role="img" aria-label="Sift up after inserting 0: the new leaf swaps with its parent until the parent is smaller"><defs></defs><rect class="dg-box" x="20" y="14" width="44" height="36" rx="6"/><text class="dg-t" x="42.0" y="32.0">1</text><rect class="dg-box" x="70" y="14" width="44" height="36" rx="6"/><text class="dg-t" x="92.0" y="32.0">3</text><rect class="dg-box" x="120" y="14" width="44" height="36" rx="6"/><text class="dg-t" x="142.0" y="32.0">2</text><rect class="dg-box" x="170" y="14" width="44" height="36" rx="6"/><text class="dg-t" x="192.0" y="32.0">5</text><rect class="dg-box" x="220" y="14" width="44" height="36" rx="6"/><text class="dg-t" x="242.0" y="32.0">9</text><rect class="dg-box" x="270" y="14" width="44" height="36" rx="6"/><text class="dg-t" x="292.0" y="32.0">8</text><rect class="dg-ok" x="320" y="14" width="44" height="36" rx="6"/><text class="dg-t" x="342.0" y="32.0">0</text><text class="dg-m" x="380" y="38">append 0 at index 6</text><rect class="dg-box" x="20" y="68" width="44" height="36" rx="6"/><text class="dg-t" x="42.0" y="86.0">1</text><rect class="dg-box" x="70" y="68" width="44" height="36" rx="6"/><text class="dg-t" x="92.0" y="86.0">3</text><rect class="dg-ok" x="120" y="68" width="44" height="36" rx="6"/><text class="dg-t" x="142.0" y="86.0">0</text><rect class="dg-box" x="170" y="68" width="44" height="36" rx="6"/><text class="dg-t" x="192.0" y="86.0">5</text><rect class="dg-box" x="220" y="68" width="44" height="36" rx="6"/><text class="dg-t" x="242.0" y="86.0">9</text><rect class="dg-box" x="270" y="68" width="44" height="36" rx="6"/><text class="dg-t" x="292.0" y="86.0">8</text><rect class="dg-a" x="320" y="68" width="44" height="36" rx="6"/><text class="dg-t" x="342.0" y="86.0">2</text><text class="dg-m" x="380" y="92">parent [2] = 2 &gt; 0: swap</text><rect class="dg-ok" x="20" y="122" width="44" height="36" rx="6"/><text class="dg-t" x="42.0" y="140.0">0</text><rect class="dg-box" x="70" y="122" width="44" height="36" rx="6"/><text class="dg-t" x="92.0" y="140.0">3</text><rect class="dg-a" x="120" y="122" width="44" height="36" rx="6"/><text class="dg-t" x="142.0" y="140.0">1</text><rect class="dg-box" x="170" y="122" width="44" height="36" rx="6"/><text class="dg-t" x="192.0" y="140.0">5</text><rect class="dg-box" x="220" y="122" width="44" height="36" rx="6"/><text class="dg-t" x="242.0" y="140.0">9</text><rect class="dg-box" x="270" y="122" width="44" height="36" rx="6"/><text class="dg-t" x="292.0" y="140.0">8</text><rect class="dg-box" x="320" y="122" width="44" height="36" rx="6"/><text class="dg-t" x="342.0" y="140.0">2</text><text class="dg-m" x="380" y="146">parent [0] = 1 &gt; 0: swap; done</text></svg><figcaption>Insert puts the new value at the end, then <em>sifts up</em>, swapping with its parent while it's smaller. Pop moves the last value to the root and <em>sifts down</em>.</figcaption></figure><ul>
+<li><strong>Insert</strong>: append at the end (keeping the shape), then <strong>sift up</strong>: while
+the value is smaller than its parent, swap them.</li>
+<li><strong>Pop</strong>: take the root, move the last element to the root, then <strong>sift
+down</strong>: while it&#39;s larger than its smaller child, swap with that child.</li>
+</ul>
+<p>Each sift follows one path between the root and a leaf, and a complete tree
+with n nodes has height ⌊log₂ n⌋, so both are O(log n).</p>
+<h2 id="heapify-in-on">Heapify in O(n)</h2>
+<p>To build a heap from an unsorted array, you could insert items one at a time
+for O(n log n). Bottom-up <strong>heapify</strong> is faster: sift down every non-leaf,
+starting from the last one (index <code>n/2 − 1</code>) and working back to the root.</p>
+<p>Why O(n)? Half the nodes are leaves and do no work. A quarter sit one level up
+and sift down at most 1 level, an eighth at most 2, and so on. The total is
+<code>n/4 × 1 + n/8 × 2 + n/16 × 3 + …</code>, which adds up to less than n.</p>
+<h2 id="priority-queues">Priority queues</h2>
+<p>A priority queue is the abstract idea (&quot;always serve the most important item
+next&quot;) and a heap is the usual way to build one. Each language&#39;s built-in
+priority queue is a binary heap; the language notes below show which way round
+each one is.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Peek at the min (or max)</td><td class="nowrap">O(1)</td><td>It&#39;s always at index 0.</td></tr><tr><td>Insert</td><td class="nowrap">O(log n)</td><td>Sift up along one leaf-to-root path; a complete tree has about log₂ n levels.</td></tr><tr><td>Remove the min (pop)</td><td class="nowrap">O(log n)</td><td>Move the last item to the root and sift down one path.</td></tr><tr><td>Build a heap from n items (heapify)</td><td class="nowrap">O(n)</td><td>Most nodes are near the bottom and sift down only a little; the sum of heights is under 2n.</td></tr><tr><td>Search for an arbitrary value</td><td class="nowrap">O(n)</td><td>A heap is only partly ordered.</td></tr><tr><td>Heap sort</td><td class="nowrap">O(n log n)</td><td>Heapify, then pop n times. In place, but not stable.</td></tr><tr><td>Space</td><td class="nowrap">O(n)</td><td>Just the array.</td></tr></tbody></table></div>
+<h2 id="use-when">When to use it</h2>
+<div class="two-col"><div><h3>Reach for it when</h3><ul><li>You repeatedly need the smallest or largest item: schedulers, event simulations, Dijkstra&#39;s algorithm.</li><li>You want the top K items from a stream without sorting everything (a size-K heap is O(n log k)).</li><li>You merge K sorted lists or files.</li><li>You track a running median (two heaps).</li></ul></div><div><h3>Think twice when</h3><ul><li>You need everything in sorted order once. Just sort.</li><li>You need to search for or delete arbitrary items often. Use a balanced BST.</li></ul></div></div>
+<h2 id="lang-notes">In your language</h2>
+<div class="lang-notes"><div class="lang-note" data-lang="java"><p class="lang-note-label">Notes for Java</p><ul>
+<li><code>PriorityQueue&lt;Integer&gt;</code> is a min-heap: <code>offer</code>, <code>poll</code>, <code>peek</code>. For a max-heap: <code>new PriorityQueue&lt;&gt;(Comparator.reverseOrder())</code>.</li>
+<li>Order objects with a comparator: <code>new PriorityQueue&lt;&gt;((a, b) -&gt; a[1] - b[1])</code>. Prefer <code>Integer.compare(a[1], b[1])</code>, since subtraction can overflow.</li>
+<li><code>remove(Object)</code> is O(n). <code>new PriorityQueue&lt;&gt;(collection)</code> heapifies in O(n).</li>
+</ul>
+</div><div class="lang-note" data-lang="javascript"><p class="lang-note-label">Notes for JavaScript</p><ul>
+<li>No built-in heap. Write a small class (like the one on this page) with <code>push</code>, <code>pop</code> and <code>peek</code>, and pass a comparator for custom ordering.</li>
+<li>Sorting an array after every insert is O(n log n) per operation, so don&#39;t use that as a priority queue.</li>
+</ul>
+</div><div class="lang-note" data-lang="typescript"><p class="lang-note-label">Notes for TypeScript</p><ul>
+<li>Make the heap generic with a comparator field, <code>less: (a: T, b: T) =&gt; boolean</code>, so one class serves numbers, tuples and objects.</li>
+<li>The files on this site assign fields in the constructor body instead of using parameter properties (<code>constructor(private less: ...)</code>), because Node runs TypeScript by stripping types and doesn&#39;t support that shorthand.</li>
+</ul>
+</div><div class="lang-note" data-lang="python"><p class="lang-note-label">Notes for Python</p><ul>
+<li><code>heapq</code> works on a plain list: <code>heappush(h, x)</code>, <code>heappop(h)</code>, <code>h[0]</code> to peek, <code>heapify(h)</code> in O(n).</li>
+<li>It&#39;s a min-heap only. For a max-heap push <code>-x</code>. For objects push tuples <code>(priority, counter, item)</code>, where the counter breaks ties so items never get compared.</li>
+<li><code>heapq.nlargest(k, xs)</code> and <code>nsmallest</code> solve top-K directly.</li>
+</ul>
+</div><p class="muted lang-note-hint">Switch the language at the top of the page to see notes for another language.</p></div>
+<h2 id="code">Code</h2>
+<p>Insert six values and print the array, pop everything to see sorted order come out, then build a heap from an unsorted array in one bottom-up pass.</p><figure class="codeblock" id="code-heaps" aria-label="A min-heap on an array, with sift up, sift down and O(n) heapify">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-heaps-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-heaps-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-heaps-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-heaps-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-heaps-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">    <span class="hljs-comment">/** A min-heap of ints stored in an array list. */</span></span><span class="ln" data-line="7">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MinHeap</span> {</span><span class="ln" data-line="8">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10">        MinHeap() {}</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12">        <span class="hljs-comment">/** Bottom-up heapify: O(n). */</span></span><span class="ln" data-line="13">        MinHeap(<span class="hljs-type">int</span>[] values) {</span><span class="ln" data-line="14">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : values) a.add(v);</span><span class="ln" data-line="15">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> a.size() / <span class="hljs-number">2</span> - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) siftDown(i);</span><span class="ln" data-line="16">        }</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18">        <span class="hljs-type">void</span> <span class="hljs-title function_">push</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> {</span><span class="ln" data-line="19">            a.add(x);</span><span class="ln" data-line="20">            siftUp(a.size() - <span class="hljs-number">1</span>);</span><span class="ln" data-line="21">        }</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23">        <span class="hljs-type">int</span> <span class="hljs-title function_">peek</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="24">            <span class="hljs-keyword">if</span> (a.isEmpty()) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;empty heap&quot;</span>);</span><span class="ln" data-line="25">            <span class="hljs-keyword">return</span> a.get(<span class="hljs-number">0</span>);</span><span class="ln" data-line="26">        }</span><span class="ln" data-line="27"> </span><span class="ln" data-line="28">        <span class="hljs-type">int</span> <span class="hljs-title function_">pop</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="29">            <span class="hljs-type">int</span> <span class="hljs-variable">top</span> <span class="hljs-operator">=</span> peek();</span><span class="ln" data-line="30">            <span class="hljs-type">int</span> <span class="hljs-variable">last</span> <span class="hljs-operator">=</span> a.remove(a.size() - <span class="hljs-number">1</span>);</span><span class="ln" data-line="31">            <span class="hljs-keyword">if</span> (!a.isEmpty()) {</span><span class="ln" data-line="32">                a.set(<span class="hljs-number">0</span>, last);</span><span class="ln" data-line="33">                siftDown(<span class="hljs-number">0</span>);</span><span class="ln" data-line="34">            }</span><span class="ln" data-line="35">            <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="36">        }</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38">        <span class="hljs-type">int</span> <span class="hljs-title function_">size</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> a.size(); }</span><span class="ln" data-line="39"> </span><span class="ln" data-line="40">        <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">siftUp</span><span class="hljs-params">(<span class="hljs-type">int</span> i)</span> {</span><span class="ln" data-line="41">            <span class="hljs-keyword">while</span> (i &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="42">                <span class="hljs-type">int</span> <span class="hljs-variable">parent</span> <span class="hljs-operator">=</span> (i - <span class="hljs-number">1</span>) / <span class="hljs-number">2</span>;</span><span class="ln" data-line="43">                <span class="hljs-keyword">if</span> (a.get(parent) &lt;= a.get(i)) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="44">                swap(i, parent);</span><span class="ln" data-line="45">                i = parent;</span><span class="ln" data-line="46">            }</span><span class="ln" data-line="47">        }</span><span class="ln" data-line="48"> </span><span class="ln" data-line="49">        <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">siftDown</span><span class="hljs-params">(<span class="hljs-type">int</span> i)</span> {</span><span class="ln" data-line="50">            <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> a.size();</span><span class="ln" data-line="51">            <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="52">                <span class="hljs-type">int</span> <span class="hljs-variable">left</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>, right = <span class="hljs-number">2</span> * i + <span class="hljs-number">2</span>, smallest = i;</span><span class="ln" data-line="53">                <span class="hljs-keyword">if</span> (left &lt; n &amp;&amp; a.get(left) &lt; a.get(smallest)) smallest = left;</span><span class="ln" data-line="54">                <span class="hljs-keyword">if</span> (right &lt; n &amp;&amp; a.get(right) &lt; a.get(smallest)) smallest = right;</span><span class="ln" data-line="55">                <span class="hljs-keyword">if</span> (smallest == i) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="56">                swap(i, smallest);</span><span class="ln" data-line="57">                i = smallest;</span><span class="ln" data-line="58">            }</span><span class="ln" data-line="59">        }</span><span class="ln" data-line="60"> </span><span class="ln" data-line="61">        <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">swap</span><span class="hljs-params">(<span class="hljs-type">int</span> i, <span class="hljs-type">int</span> j)</span> {</span><span class="ln" data-line="62">            <span class="hljs-type">int</span> <span class="hljs-variable">t</span> <span class="hljs-operator">=</span> a.get(i);</span><span class="ln" data-line="63">            a.set(i, a.get(j));</span><span class="ln" data-line="64">            a.set(j, t);</span><span class="ln" data-line="65">        }</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67">        <span class="hljs-meta">@Override</span></span><span class="ln" data-line="68">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">toString</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> a.toString(); }</span><span class="ln" data-line="69">    }</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="72">        <span class="hljs-type">MinHeap</span> <span class="hljs-variable">heap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MinHeap</span>();</span><span class="ln" data-line="73">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">8</span>, <span class="hljs-number">1</span>, <span class="hljs-number">9</span>, <span class="hljs-number">2</span> }) heap.push(x);</span><span class="ln" data-line="74">        System.out.println(<span class="hljs-string">&quot;after pushing 5 3 8 1 9 2: &quot;</span> + heap + <span class="hljs-string">&quot;, peek &quot;</span> + heap.peek());</span><span class="ln" data-line="75">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">popped</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="76">        <span class="hljs-keyword">while</span> (heap.size() &gt; <span class="hljs-number">0</span>) popped.append(popped.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(heap.pop());</span><span class="ln" data-line="77">        System.out.println(<span class="hljs-string">&quot;popped in order: &quot;</span> + popped);</span><span class="ln" data-line="78">        <span class="hljs-type">MinHeap</span> <span class="hljs-variable">built</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MinHeap</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">9</span>, <span class="hljs-number">4</span>, <span class="hljs-number">7</span>, <span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">2</span> });</span><span class="ln" data-line="79">        System.out.println(<span class="hljs-string">&quot;heapify 9 4 7 1 8 2: &quot;</span> + built);</span><span class="ln" data-line="80">    }</span><span class="ln" data-line="81">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.List;
+
+public class Solution {
+
+    /** A min-heap of ints stored in an array list. */
+    static class MinHeap {
+        private final List&lt;Integer&gt; a = new ArrayList&lt;&gt;();
+
+        MinHeap() {}
+
+        /** Bottom-up heapify: O(n). */
+        MinHeap(int[] values) {
+            for (int v : values) a.add(v);
+            for (int i = a.size() / 2 - 1; i &gt;= 0; i--) siftDown(i);
+        }
+
+        void push(int x) {
+            a.add(x);
+            siftUp(a.size() - 1);
+        }
+
+        int peek() {
+            if (a.isEmpty()) throw new IllegalStateException(&quot;empty heap&quot;);
+            return a.get(0);
+        }
+
+        int pop() {
+            int top = peek();
+            int last = a.remove(a.size() - 1);
+            if (!a.isEmpty()) {
+                a.set(0, last);
+                siftDown(0);
+            }
+            return top;
+        }
+
+        int size() { return a.size(); }
+
+        private void siftUp(int i) {
+            while (i &gt; 0) {
+                int parent = (i - 1) / 2;
+                if (a.get(parent) &lt;= a.get(i)) break;
+                swap(i, parent);
+                i = parent;
+            }
+        }
+
+        private void siftDown(int i) {
+            int n = a.size();
+            while (true) {
+                int left = 2 * i + 1, right = 2 * i + 2, smallest = i;
+                if (left &lt; n &amp;&amp; a.get(left) &lt; a.get(smallest)) smallest = left;
+                if (right &lt; n &amp;&amp; a.get(right) &lt; a.get(smallest)) smallest = right;
+                if (smallest == i) return;
+                swap(i, smallest);
+                i = smallest;
+            }
+        }
+
+        private void swap(int i, int j) {
+            int t = a.get(i);
+            a.set(i, a.get(j));
+            a.set(j, t);
+        }
+
+        @Override
+        public String toString() { return a.toString(); }
+    }
+
+    public static void main(String[] args) {
+        MinHeap heap = new MinHeap();
+        for (int x : new int[] { 5, 3, 8, 1, 9, 2 }) heap.push(x);
+        System.out.println(&quot;after pushing 5 3 8 1 9 2: &quot; + heap + &quot;, peek &quot; + heap.peek());
+        StringBuilder popped = new StringBuilder();
+        while (heap.size() &gt; 0) popped.append(popped.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(heap.pop());
+        System.out.println(&quot;popped in order: &quot; + popped);
+        MinHeap built = new MinHeap(new int[] { 9, 4, 7, 1, 8, 2 });
+        System.out.println(&quot;heapify 9 4 7 1 8 2: &quot; + built);
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-heaps-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** A min-heap. Pass a comparator for other orderings: (a, b) =&gt; a &lt; b means a comes first. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MinHeap</span> {</span><span class="ln" data-line="3">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">values = [], less = (a, b) =&gt; a &lt; b</span>) {</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span> = [...values];</span><span class="ln" data-line="5">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="6">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span> / <span class="hljs-number">2</span>) - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">siftDown</span>(i); <span class="hljs-comment">// O(n) heapify</span></span><span class="ln" data-line="7">  }</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>() {</span><span class="ln" data-line="10">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="11">  }</span><span class="ln" data-line="12"> </span><span class="ln" data-line="13">  <span class="hljs-title function_">push</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="14">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="15">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">siftUp</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>);</span><span class="ln" data-line="16">  }</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18">  <span class="hljs-title function_">peek</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="19">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&quot;empty heap&quot;</span>);</span><span class="ln" data-line="20">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="21">  }</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23">  <span class="hljs-title function_">pop</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="24">    <span class="hljs-keyword">const</span> top = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">peek</span>();</span><span class="ln" data-line="25">    <span class="hljs-keyword">const</span> last = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="26">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="27">      <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="28">      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">siftDown</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="29">    }</span><span class="ln" data-line="30">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="31">  }</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33">  <span class="hljs-title function_">siftUp</span>(<span class="hljs-params">i</span>) {</span><span class="ln" data-line="34">    <span class="hljs-keyword">while</span> (i &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="35">      <span class="hljs-keyword">const</span> parent = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>((i - <span class="hljs-number">1</span>) / <span class="hljs-number">2</span>);</span><span class="ln" data-line="36">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[parent])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="37">      [<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[parent]] = [<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[parent], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i]];</span><span class="ln" data-line="38">      i = parent;</span><span class="ln" data-line="39">    }</span><span class="ln" data-line="40">  }</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42">  <span class="hljs-title function_">siftDown</span>(<span class="hljs-params">i</span>) {</span><span class="ln" data-line="43">    <span class="hljs-keyword">const</span> n = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="44">    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="45">      <span class="hljs-keyword">const</span> left = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="46">      <span class="hljs-keyword">const</span> right = <span class="hljs-number">2</span> * i + <span class="hljs-number">2</span>;</span><span class="ln" data-line="47">      <span class="hljs-keyword">let</span> smallest = i;</span><span class="ln" data-line="48">      <span class="hljs-keyword">if</span> (left &lt; n &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[left], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[smallest])) smallest = left;</span><span class="ln" data-line="49">      <span class="hljs-keyword">if</span> (right &lt; n &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[right], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[smallest])) smallest = right;</span><span class="ln" data-line="50">      <span class="hljs-keyword">if</span> (smallest === i) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="51">      [<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[smallest]] = [<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[smallest], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i]];</span><span class="ln" data-line="52">      i = smallest;</span><span class="ln" data-line="53">    }</span><span class="ln" data-line="54">  }</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56">  <span class="hljs-title function_">toString</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="57">    <span class="hljs-keyword">return</span> <span class="hljs-string">`[<span class="hljs-subst">${<span class="hljs-variable language_">this</span>.a.join(<span class="hljs-string">&quot;, &quot;</span>)}</span>]`</span>;</span><span class="ln" data-line="58">  }</span><span class="ln" data-line="59">}</span><span class="ln" data-line="60"> </span><span class="ln" data-line="61"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="62">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MinHeap</span>();</span><span class="ln" data-line="63">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> [<span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">8</span>, <span class="hljs-number">1</span>, <span class="hljs-number">9</span>, <span class="hljs-number">2</span>]) heap.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="64">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`after pushing 5 3 8 1 9 2: <span class="hljs-subst">${heap}</span>, peek <span class="hljs-subst">${heap.peek()}</span>`</span>);</span><span class="ln" data-line="65">  <span class="hljs-keyword">const</span> popped = [];</span><span class="ln" data-line="66">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) popped.<span class="hljs-title function_">push</span>(heap.<span class="hljs-title function_">pop</span>());</span><span class="ln" data-line="67">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`popped in order: <span class="hljs-subst">${popped.join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="68">  <span class="hljs-keyword">const</span> built = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MinHeap</span>([<span class="hljs-number">9</span>, <span class="hljs-number">4</span>, <span class="hljs-number">7</span>, <span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">2</span>]);</span><span class="ln" data-line="69">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`heapify 9 4 7 1 8 2: <span class="hljs-subst">${built}</span>`</span>);</span><span class="ln" data-line="70">}</span><span class="ln" data-line="71"> </span><span class="ln" data-line="72"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** A min-heap. Pass a comparator for other orderings: (a, b) =&gt; a &lt; b means a comes first. */
+class MinHeap {
+  constructor(values = [], less = (a, b) =&gt; a &lt; b) {
+    this.a = [...values];
+    this.less = less;
+    for (let i = Math.floor(this.a.length / 2) - 1; i &gt;= 0; i--) this.siftDown(i); // O(n) heapify
+  }
+
+  get size() {
+    return this.a.length;
+  }
+
+  push(x) {
+    this.a.push(x);
+    this.siftUp(this.a.length - 1);
+  }
+
+  peek() {
+    if (this.a.length === 0) throw new Error(&quot;empty heap&quot;);
+    return this.a[0];
+  }
+
+  pop() {
+    const top = this.peek();
+    const last = this.a.pop();
+    if (this.a.length &gt; 0) {
+      this.a[0] = last;
+      this.siftDown(0);
+    }
+    return top;
+  }
+
+  siftUp(i) {
+    while (i &gt; 0) {
+      const parent = Math.floor((i - 1) / 2);
+      if (!this.less(this.a[i], this.a[parent])) break;
+      [this.a[i], this.a[parent]] = [this.a[parent], this.a[i]];
+      i = parent;
+    }
+  }
+
+  siftDown(i) {
+    const n = this.a.length;
+    while (true) {
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+      let smallest = i;
+      if (left &lt; n &amp;&amp; this.less(this.a[left], this.a[smallest])) smallest = left;
+      if (right &lt; n &amp;&amp; this.less(this.a[right], this.a[smallest])) smallest = right;
+      if (smallest === i) return;
+      [this.a[i], this.a[smallest]] = [this.a[smallest], this.a[i]];
+      i = smallest;
+    }
+  }
+
+  toString() {
+    return `[${this.a.join(&quot;, &quot;)}]`;
+  }
+}
+
+function main() {
+  const heap = new MinHeap();
+  for (const x of [5, 3, 8, 1, 9, 2]) heap.push(x);
+  console.log(`after pushing 5 3 8 1 9 2: ${heap}, peek ${heap.peek()}`);
+  const popped = [];
+  while (heap.size &gt; 0) popped.push(heap.pop());
+  console.log(`popped in order: ${popped.join(&quot; &quot;)}`);
+  const built = new MinHeap([9, 4, 7, 1, 8, 2]);
+  console.log(`heapify 9 4 7 1 8 2: ${built}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-heaps-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** A min-heap. Pass a comparator for other orderings: less(a, b) means a comes first. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MinHeap</span>&lt;T&gt; {</span><span class="ln" data-line="3">  <span class="hljs-keyword">private</span> <span class="hljs-attr">a</span>: T[];</span><span class="ln" data-line="4">  <span class="hljs-keyword">private</span> <span class="hljs-attr">less</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">x</span>: T, <span class="hljs-attr">y</span>: T</span>) =&gt;</span> <span class="hljs-built_in">boolean</span>;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">values</span>: T[] = [], <span class="hljs-attr">less</span>: (x: T, y: T) =&gt; <span class="hljs-built_in">boolean</span> = (x, y) =&gt; x &lt; y</span>) {</span><span class="ln" data-line="7">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span> = [...values];</span><span class="ln" data-line="8">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="9">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span> / <span class="hljs-number">2</span>) - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">siftDown</span>(i); <span class="hljs-comment">// O(n) heapify</span></span><span class="ln" data-line="10">  }</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="13">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="14">  }</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">  <span class="hljs-title function_">push</span>(<span class="hljs-attr">x</span>: T): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="17">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="18">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">siftUp</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>);</span><span class="ln" data-line="19">  }</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21">  <span class="hljs-title function_">peek</span>(): T {</span><span class="ln" data-line="22">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&quot;empty heap&quot;</span>);</span><span class="ln" data-line="23">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="24">  }</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26">  <span class="hljs-title function_">pop</span>(): T {</span><span class="ln" data-line="27">    <span class="hljs-keyword">const</span> top = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">peek</span>();</span><span class="ln" data-line="28">    <span class="hljs-keyword">const</span> last = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> T;</span><span class="ln" data-line="29">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="30">      <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="31">      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">siftDown</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="32">    }</span><span class="ln" data-line="33">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="34">  }</span><span class="ln" data-line="35"> </span><span class="ln" data-line="36">  <span class="hljs-keyword">private</span> <span class="hljs-title function_">siftUp</span>(<span class="hljs-attr">i</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="37">    <span class="hljs-keyword">while</span> (i &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="38">      <span class="hljs-keyword">const</span> parent = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>((i - <span class="hljs-number">1</span>) / <span class="hljs-number">2</span>);</span><span class="ln" data-line="39">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[parent])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="40">      [<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[parent]] = [<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[parent], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i]];</span><span class="ln" data-line="41">      i = parent;</span><span class="ln" data-line="42">    }</span><span class="ln" data-line="43">  }</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45">  <span class="hljs-keyword">private</span> <span class="hljs-title function_">siftDown</span>(<span class="hljs-attr">i</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="46">    <span class="hljs-keyword">const</span> n = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="47">    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="48">      <span class="hljs-keyword">const</span> left = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="49">      <span class="hljs-keyword">const</span> right = <span class="hljs-number">2</span> * i + <span class="hljs-number">2</span>;</span><span class="ln" data-line="50">      <span class="hljs-keyword">let</span> smallest = i;</span><span class="ln" data-line="51">      <span class="hljs-keyword">if</span> (left &lt; n &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[left], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[smallest])) smallest = left;</span><span class="ln" data-line="52">      <span class="hljs-keyword">if</span> (right &lt; n &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[right], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[smallest])) smallest = right;</span><span class="ln" data-line="53">      <span class="hljs-keyword">if</span> (smallest === i) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="54">      [<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[smallest]] = [<span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[smallest], <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[i]];</span><span class="ln" data-line="55">      i = smallest;</span><span class="ln" data-line="56">    }</span><span class="ln" data-line="57">  }</span><span class="ln" data-line="58"> </span><span class="ln" data-line="59">  <span class="hljs-title function_">toString</span>(): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="60">    <span class="hljs-keyword">return</span> <span class="hljs-string">`[<span class="hljs-subst">${<span class="hljs-variable language_">this</span>.a.join(<span class="hljs-string">&quot;, &quot;</span>)}</span>]`</span>;</span><span class="ln" data-line="61">  }</span><span class="ln" data-line="62">}</span><span class="ln" data-line="63"> </span><span class="ln" data-line="64"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="65">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MinHeap</span>&lt;<span class="hljs-built_in">number</span>&gt;();</span><span class="ln" data-line="66">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> [<span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">8</span>, <span class="hljs-number">1</span>, <span class="hljs-number">9</span>, <span class="hljs-number">2</span>]) heap.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="67">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`after pushing 5 3 8 1 9 2: <span class="hljs-subst">${heap}</span>, peek <span class="hljs-subst">${heap.peek()}</span>`</span>);</span><span class="ln" data-line="68">  <span class="hljs-keyword">const</span> <span class="hljs-attr">popped</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="69">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) popped.<span class="hljs-title function_">push</span>(heap.<span class="hljs-title function_">pop</span>());</span><span class="ln" data-line="70">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`popped in order: <span class="hljs-subst">${popped.join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="71">  <span class="hljs-keyword">const</span> built = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MinHeap</span>&lt;<span class="hljs-built_in">number</span>&gt;([<span class="hljs-number">9</span>, <span class="hljs-number">4</span>, <span class="hljs-number">7</span>, <span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">2</span>]);</span><span class="ln" data-line="72">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`heapify 9 4 7 1 8 2: <span class="hljs-subst">${built}</span>`</span>);</span><span class="ln" data-line="73">}</span><span class="ln" data-line="74"> </span><span class="ln" data-line="75"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** A min-heap. Pass a comparator for other orderings: less(a, b) means a comes first. */
+class MinHeap&lt;T&gt; {
+  private a: T[];
+  private less: (x: T, y: T) =&gt; boolean;
+
+  constructor(values: T[] = [], less: (x: T, y: T) =&gt; boolean = (x, y) =&gt; x &lt; y) {
+    this.a = [...values];
+    this.less = less;
+    for (let i = Math.floor(this.a.length / 2) - 1; i &gt;= 0; i--) this.siftDown(i); // O(n) heapify
+  }
+
+  get size(): number {
+    return this.a.length;
+  }
+
+  push(x: T): void {
+    this.a.push(x);
+    this.siftUp(this.a.length - 1);
+  }
+
+  peek(): T {
+    if (this.a.length === 0) throw new Error(&quot;empty heap&quot;);
+    return this.a[0];
+  }
+
+  pop(): T {
+    const top = this.peek();
+    const last = this.a.pop() as T;
+    if (this.a.length &gt; 0) {
+      this.a[0] = last;
+      this.siftDown(0);
+    }
+    return top;
+  }
+
+  private siftUp(i: number): void {
+    while (i &gt; 0) {
+      const parent = Math.floor((i - 1) / 2);
+      if (!this.less(this.a[i], this.a[parent])) break;
+      [this.a[i], this.a[parent]] = [this.a[parent], this.a[i]];
+      i = parent;
+    }
+  }
+
+  private siftDown(i: number): void {
+    const n = this.a.length;
+    while (true) {
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+      let smallest = i;
+      if (left &lt; n &amp;&amp; this.less(this.a[left], this.a[smallest])) smallest = left;
+      if (right &lt; n &amp;&amp; this.less(this.a[right], this.a[smallest])) smallest = right;
+      if (smallest === i) return;
+      [this.a[i], this.a[smallest]] = [this.a[smallest], this.a[i]];
+      i = smallest;
+    }
+  }
+
+  toString(): string {
+    return `[${this.a.join(&quot;, &quot;)}]`;
+  }
+}
+
+function main(): void {
+  const heap = new MinHeap&lt;number&gt;();
+  for (const x of [5, 3, 8, 1, 9, 2]) heap.push(x);
+  console.log(`after pushing 5 3 8 1 9 2: ${heap}, peek ${heap.peek()}`);
+  const popped: number[] = [];
+  while (heap.size &gt; 0) popped.push(heap.pop());
+  console.log(`popped in order: ${popped.join(&quot; &quot;)}`);
+  const built = new MinHeap&lt;number&gt;([9, 4, 7, 1, 8, 2]);
+  console.log(`heapify 9 4 7 1 8 2: ${built}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-heaps-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MinHeap</span>:</span><span class="ln" data-line="5">    <span class="hljs-string">&quot;&quot;&quot;A min-heap stored in a list.&quot;&quot;&quot;</span></span><span class="ln" data-line="6"> </span><span class="ln" data-line="7">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, values: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>] = (<span class="hljs-params"></span>)</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="8">        <span class="hljs-variable language_">self</span>.a = <span class="hljs-built_in">list</span>(values)</span><span class="ln" data-line="9">        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.a) // <span class="hljs-number">2</span> - <span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):  <span class="hljs-comment"># bottom-up heapify: O(n)</span></span><span class="ln" data-line="10">            <span class="hljs-variable language_">self</span>._sift_down(i)</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__len__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="13">        <span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.a)</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">push</span>(<span class="hljs-params">self, x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="16">        <span class="hljs-variable language_">self</span>.a.append(x)</span><span class="ln" data-line="17">        <span class="hljs-variable language_">self</span>._sift_up(<span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.a) - <span class="hljs-number">1</span>)</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">peek</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="20">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.a:</span><span class="ln" data-line="21">            <span class="hljs-keyword">raise</span> IndexError(<span class="hljs-string">&quot;empty heap&quot;</span>)</span><span class="ln" data-line="22">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.a[<span class="hljs-number">0</span>]</span><span class="ln" data-line="23"> </span><span class="ln" data-line="24">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pop</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="25">        top = <span class="hljs-variable language_">self</span>.peek()</span><span class="ln" data-line="26">        last = <span class="hljs-variable language_">self</span>.a.pop()</span><span class="ln" data-line="27">        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.a:</span><span class="ln" data-line="28">            <span class="hljs-variable language_">self</span>.a[<span class="hljs-number">0</span>] = last</span><span class="ln" data-line="29">            <span class="hljs-variable language_">self</span>._sift_down(<span class="hljs-number">0</span>)</span><span class="ln" data-line="30">        <span class="hljs-keyword">return</span> top</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_sift_up</span>(<span class="hljs-params">self, i: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="33">        <span class="hljs-keyword">while</span> i &gt; <span class="hljs-number">0</span>:</span><span class="ln" data-line="34">            parent = (i - <span class="hljs-number">1</span>) // <span class="hljs-number">2</span></span><span class="ln" data-line="35">            <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.a[parent] &lt;= <span class="hljs-variable language_">self</span>.a[i]:</span><span class="ln" data-line="36">                <span class="hljs-keyword">break</span></span><span class="ln" data-line="37">            <span class="hljs-variable language_">self</span>.a[i], <span class="hljs-variable language_">self</span>.a[parent] = <span class="hljs-variable language_">self</span>.a[parent], <span class="hljs-variable language_">self</span>.a[i]</span><span class="ln" data-line="38">            i = parent</span><span class="ln" data-line="39"> </span><span class="ln" data-line="40">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_sift_down</span>(<span class="hljs-params">self, i: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="41">        n = <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.a)</span><span class="ln" data-line="42">        <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:</span><span class="ln" data-line="43">            left, right, smallest = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>, <span class="hljs-number">2</span> * i + <span class="hljs-number">2</span>, i</span><span class="ln" data-line="44">            <span class="hljs-keyword">if</span> left &lt; n <span class="hljs-keyword">and</span> <span class="hljs-variable language_">self</span>.a[left] &lt; <span class="hljs-variable language_">self</span>.a[smallest]:</span><span class="ln" data-line="45">                smallest = left</span><span class="ln" data-line="46">            <span class="hljs-keyword">if</span> right &lt; n <span class="hljs-keyword">and</span> <span class="hljs-variable language_">self</span>.a[right] &lt; <span class="hljs-variable language_">self</span>.a[smallest]:</span><span class="ln" data-line="47">                smallest = right</span><span class="ln" data-line="48">            <span class="hljs-keyword">if</span> smallest == i:</span><span class="ln" data-line="49">                <span class="hljs-keyword">return</span></span><span class="ln" data-line="50">            <span class="hljs-variable language_">self</span>.a[i], <span class="hljs-variable language_">self</span>.a[smallest] = <span class="hljs-variable language_">self</span>.a[smallest], <span class="hljs-variable language_">self</span>.a[i]</span><span class="ln" data-line="51">            i = smallest</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__str__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="54">        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;[&quot;</span> + <span class="hljs-string">&quot;, &quot;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, <span class="hljs-variable language_">self</span>.a)) + <span class="hljs-string">&quot;]&quot;</span></span><span class="ln" data-line="55"> </span><span class="ln" data-line="56"> </span><span class="ln" data-line="57"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="58">    heap = MinHeap()</span><span class="ln" data-line="59">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> [<span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">8</span>, <span class="hljs-number">1</span>, <span class="hljs-number">9</span>, <span class="hljs-number">2</span>]:</span><span class="ln" data-line="60">        heap.push(x)</span><span class="ln" data-line="61">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;after pushing 5 3 8 1 9 2: <span class="hljs-subst">{heap}</span>, peek <span class="hljs-subst">{heap.peek()}</span>&quot;</span>)</span><span class="ln" data-line="62">    popped = []</span><span class="ln" data-line="63">    <span class="hljs-keyword">while</span> <span class="hljs-built_in">len</span>(heap) &gt; <span class="hljs-number">0</span>:</span><span class="ln" data-line="64">        popped.append(<span class="hljs-built_in">str</span>(heap.pop()))</span><span class="ln" data-line="65">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;popped in order: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(popped)}</span>&quot;</span>)</span><span class="ln" data-line="66">    built = MinHeap([<span class="hljs-number">9</span>, <span class="hljs-number">4</span>, <span class="hljs-number">7</span>, <span class="hljs-number">1</span>, <span class="hljs-number">8</span>, <span class="hljs-number">2</span>])</span><span class="ln" data-line="67">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;heapify 9 4 7 1 8 2: <span class="hljs-subst">{built}</span>&quot;</span>)</span><span class="ln" data-line="68"> </span><span class="ln" data-line="69"> </span><span class="ln" data-line="70"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="71">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List
+
+
+class MinHeap:
+    &quot;&quot;&quot;A min-heap stored in a list.&quot;&quot;&quot;
+
+    def __init__(self, values: List[int] = ()) -&gt; None:
+        self.a = list(values)
+        for i in range(len(self.a) // 2 - 1, -1, -1):  # bottom-up heapify: O(n)
+            self._sift_down(i)
+
+    def __len__(self) -&gt; int:
+        return len(self.a)
+
+    def push(self, x: int) -&gt; None:
+        self.a.append(x)
+        self._sift_up(len(self.a) - 1)
+
+    def peek(self) -&gt; int:
+        if not self.a:
+            raise IndexError(&quot;empty heap&quot;)
+        return self.a[0]
+
+    def pop(self) -&gt; int:
+        top = self.peek()
+        last = self.a.pop()
+        if self.a:
+            self.a[0] = last
+            self._sift_down(0)
+        return top
+
+    def _sift_up(self, i: int) -&gt; None:
+        while i &gt; 0:
+            parent = (i - 1) // 2
+            if self.a[parent] &lt;= self.a[i]:
+                break
+            self.a[i], self.a[parent] = self.a[parent], self.a[i]
+            i = parent
+
+    def _sift_down(self, i: int) -&gt; None:
+        n = len(self.a)
+        while True:
+            left, right, smallest = 2 * i + 1, 2 * i + 2, i
+            if left &lt; n and self.a[left] &lt; self.a[smallest]:
+                smallest = left
+            if right &lt; n and self.a[right] &lt; self.a[smallest]:
+                smallest = right
+            if smallest == i:
+                return
+            self.a[i], self.a[smallest] = self.a[smallest], self.a[i]
+            i = smallest
+
+    def __str__(self) -&gt; str:
+        return &quot;[&quot; + &quot;, &quot;.join(map(str, self.a)) + &quot;]&quot;
+
+
+def main() -&gt; None:
+    heap = MinHeap()
+    for x in [5, 3, 8, 1, 9, 2]:
+        heap.push(x)
+    print(f&quot;after pushing 5 3 8 1 9 2: {heap}, peek {heap.peek()}&quot;)
+    popped = []
+    while len(heap) &gt; 0:
+        popped.append(str(heap.pop()))
+    print(f&quot;popped in order: {&#39; &#39;.join(popped)}&quot;)
+    built = MinHeap([9, 4, 7, 1, 8, 2])
+    print(f&quot;heapify 9 4 7 1 8 2: {built}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>after pushing 5 3 8 1 9 2: [1, 3, 2, 5, 9, 8], peek 1
+popped in order: 1 2 3 5 8 9
+heapify 9 4 7 1 8 2: [1, 4, 2, 9, 8, 7]</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Using a min-heap when you need a max-heap, or the other way round. Write down which one before coding.</li><li>Overflowing a subtraction comparator in Java with large or negative values.</li><li>Thinking the heap array is sorted. Only the root is guaranteed; <code>[1, 3, 2]</code> is a valid heap.</li><li>Building a heap by inserting one at a time (O(n log n)) when heapify (O(n)) would do.</li><li>In Python, pushing tuples whose second element isn&#39;t comparable, so ties raise a <code>TypeError</code>.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/last-stone-weight/" rel="noopener" target="_blank">Last Stone Weight<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>1046</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/kth-largest-element-in-a-stream/" rel="noopener" target="_blank">Kth Largest Element in a Stream<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>703</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" rel="noopener" target="_blank">Kth Largest Element in an Array<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>215</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/top-k-frequent-elements/" rel="noopener" target="_blank">Top K Frequent Elements<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>347</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/merge-k-sorted-lists/" rel="noopener" target="_blank">Merge k Sorted Lists<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>23</td><td><span class="pill pill-hard">hard</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-median-from-data-stream/" rel="noopener" target="_blank">Find Median from Data Stream<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Two heaps.</span></td><td>295</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Used by <a href="../../patterns/top-k/index.html">Top K elements</a>, <a href="../../patterns/two-heaps/index.html">Two heaps</a>, <a href="../../patterns/k-way-merge/index.html">K-way merge</a>, <a href="../../patterns/shortest-path/index.html">Shortest path</a>, <a href="../../patterns/greedy/index.html">Greedy</a>, <a href="../../patterns/data-structure-design/index.html">Data structure design</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../trees/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Trees</span></a><a class="pn pn-next" href="../graphs/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Graphs</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

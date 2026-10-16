@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bounded blocking queue · DSA Academy</title>
+<meta name="description" content="Producer–consumer with locks and conditions.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../index.html" aria-current="page">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Low-level design</a></li><li><span aria-current="page">Bounded blocking queue</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Bounded blocking queue</h1>
+  <p class="lede">A queue with a fixed capacity where <code>put</code> waits while it&#39;s full and <code>take</code> waits while it&#39;s empty. It is the heart of every producer–consumer system, thread pool and log pipeline, and the classic test of whether you can use a lock with conditions correctly.</p>
+  <p class="tags"><span class="pill">Low-level design</span><span class="pill">Concurrency</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A conveyor belt between a bakery and the packing team that holds three trays. If the belt is full the bakers stop and wait; if it&#39;s empty the packers wait. Nobody busy-waits and no tray falls off the end.</p></aside>
+<h2 id="requirements">Requirements</h2>
+<p><strong>Functional</strong></p>
+<ul>
+<li><code>put(x)</code> adds to the tail, blocking while the queue is full.</li>
+<li><code>take()</code> removes from the head, blocking while it&#39;s empty.</li>
+<li><code>offer(x, timeout)</code> and <code>poll(timeout)</code> give up after a time limit.</li>
+<li><code>size()</code> reports how many items are waiting.</li>
+</ul>
+<p><strong>Non-functional</strong></p>
+<ul>
+<li>Safe with any number of producers and consumers.</li>
+<li>No busy-waiting: blocked threads use no CPU.</li>
+<li>FIFO order, and never more items than the capacity.</li>
+</ul>
+<h2 id="entities-and-relationships">Entities and relationships</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 587 180" role="img" aria-label="Class diagram: BoundedBlockingQueue holds a circular array, a lock and two conditions; producers and consumers use it"><defs><marker id="ah3-dg-head-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head-a" d="M0 0L10 5L0 10z"/></marker></defs><path class="dg-line-a" d="M106.0 55.7 L168.0 67.1" marker-end="url(#ah3-dg-head-a)"/><path class="dg-line-a" d="M481.0 55.7 L419.0 67.1" marker-end="url(#ah3-dg-head-a)"/><rect class="dg-box" x="20.0" y="20" width="82" height="55" rx="6"/><rect class="dg-hd" x="20.0" y="20" width="82" height="28" rx="6"/><text class="dg-ch" x="61.0" y="34">Producer</text><text class="dg-c" x="30.0" y="66">+ run()</text><rect class="dg-box" x="172.0" y="20" width="243" height="140" rx="6"/><rect class="dg-hd" x="172.0" y="20" width="243" height="28" rx="6"/><text class="dg-ch" x="293.5" y="34">BoundedBlockingQueue&lt;T&gt;</text><text class="dg-c" x="182.0" y="66">- items: T[]  (circular)</text><text class="dg-c" x="182.0" y="83">- head, tail, count</text><text class="dg-c" x="182.0" y="100">- lock: ReentrantLock</text><text class="dg-c" x="182.0" y="117">- notFull, notEmpty: Condition</text><text class="dg-c" x="182.0" y="134">+ put(x) / take()</text><text class="dg-c" x="182.0" y="151">+ offer(x, t) / poll(t)</text><rect class="dg-box" x="485.0" y="20" width="82" height="55" rx="6"/><rect class="dg-hd" x="485.0" y="20" width="82" height="28" rx="6"/><text class="dg-ch" x="526.0" y="34">Consumer</text><text class="dg-c" x="495.0" y="66">+ run()</text><rect class="dg-bg" x="121.5" y="51.39247311827957" width="31" height="18" rx="4"/><text class="dg-sq" x="137.0" y="65.39247311827957">put</text><rect class="dg-bg" x="431.0" y="51.39247311827957" width="38" height="18" rx="4"/><text class="dg-sq" x="450.0" y="65.39247311827957">take</text></svg><figcaption>One lock guards the array; two conditions let producers and consumers sleep on different events.</figcaption></figure><ul>
+<li><strong>Circular array</strong>: <code>head</code> is the next item to take, <code>tail</code> the next free slot,
+and both wrap with <code>% capacity</code>. No shifting, so both ends are O(1).</li>
+<li><strong>One lock, two conditions</strong>: producers wait on <code>notFull</code>, consumers on
+<code>notEmpty</code>. A <code>put</code> signals <code>notEmpty</code>, a <code>take</code> signals <code>notFull</code>, so each
+wake-up goes to a thread that can now make progress.</li>
+<li><strong>Shutdown</strong>: blocking queues have no &quot;close&quot; by default. The usual trick is
+a <em>poison pill</em>: one sentinel item per consumer that tells it to stop.</li>
+</ul>
+<h2 id="design-patterns-used">Design patterns used</h2>
+<ul>
+<li><strong>Producer–consumer</strong>: decouples the speed of the producers from the speed of the consumers; the queue absorbs bursts and applies back-pressure when full.</li>
+<li><strong>Monitor</strong>: the lock plus its conditions form a monitor: all state changes happen while holding the lock.</li>
+</ul>
+<h2 id="how-a-request-flows">How a request flows</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 550 328" role="img" aria-label="Sequence diagram: a producer blocks on a full queue until a consumer takes an item and signals notFull"><defs><marker id="ah4-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker></defs><rect class="dg-hd" x="61.8" y="20" width="86.4" height="30" rx="6"/><text class="dg-ch" x="105.0" y="35">Producer</text><path class="dg-dash" d="M105.0 50 L105.0 318"/><rect class="dg-hd" x="217.2" y="20" width="115.6" height="30" rx="6"/><text class="dg-ch" x="275.0" y="35">Queue (lock)</text><path class="dg-dash" d="M275.0 50 L275.0 318"/><rect class="dg-hd" x="401.8" y="20" width="86.4" height="30" rx="6"/><text class="dg-ch" x="445.0" y="35">Consumer</text><path class="dg-dash" d="M445.0 50 L445.0 318"/><rect class="dg-a" x="30" y="69" width="490" height="22" rx="4"/><text class="dg-sq" x="275.0" y="84">queue is full</text><path class="dg-line" d="M105.0 122 L271.0 122" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="190.0" y="116">put(x)</text><path class="dg-line" d="M275.0 146 h28 v14 h-26" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="309.0" y="152" text-anchor="start" style="text-anchor:start">notFull.await()  (lock released)</text><path class="dg-line" d="M445.0 190 L279.0 190" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="360.0" y="184">take()</text><path class="dg-line" d="M275.0 214 h28 v14 h-26" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="309.0" y="220" text-anchor="start" style="text-anchor:start">notFull.signal()</text><path class="dg-dash" d="M275.0 258 L441.0 258" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="360.0" y="252">item</text><path class="dg-dash" d="M275.0 292 L109.0 292" marker-end="url(#ah4-dg-head)"/><text class="dg-sq" x="190.0" y="286">wakes, re-checks, stores x</text></svg><figcaption>A blocked <code>put</code> sleeps on <code>notFull</code> and releases the lock while it waits, so the consumer can get in.</figcaption></figure><p>After a wake-up the producer <strong>re-checks</strong> <code>count == capacity</code> in a <code>while</code>
+loop. Another producer may have filled the freed slot first, and conditions can
+also wake spuriously.</p>
+<h2 id="concurrency">Concurrency</h2>
+<ul>
+<li>Every read and write of <code>head</code>, <code>tail</code> and <code>count</code> happens under the lock, so updates are atomic and visible to other threads.</li>
+<li><code>await()</code> releases the lock atomically while sleeping and re-acquires it before returning.</li>
+<li>Use <code>signal()</code> (one waiter) when any waiter can make progress, and <code>signalAll()</code> when waiters wait for different things on one condition. With two separate conditions, <code>signal()</code> is enough.</li>
+<li>Timed waits use <code>awaitNanos</code>, which returns the time left; loop until it reaches zero.</li>
+<li>Throughput upgrade: <code>LinkedBlockingQueue</code> uses two locks (one for each end), so a producer and a consumer never block each other.</li>
+</ul>
+<h2 id="cost-of-each-operation">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>put / take</td><td class="nowrap">O(1)</td><td>One slot written or cleared in the circular array, plus a signal.</td></tr><tr><td>offer / poll with timeout</td><td class="nowrap">O(1) + waiting</td><td>The same, but the wait is bounded.</td></tr><tr><td>Memory</td><td class="nowrap">O(capacity)</td><td>The array is allocated once.</td></tr></tbody></table></div><h2 id="code">Code</h2>
+<p>Two producers push 1 to 100 through a queue of capacity 3 while three consumers drain it. The totals and the capacity check come out the same on every run.</p><figure class="codeblock" id="code-bounded-blocking-queue" aria-label="A bounded blocking queue with a lock, two conditions, timeouts and a poison-pill shutdown">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-bounded-blocking-queue-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-bounded-blocking-queue-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-bounded-blocking-queue-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.concurrent.TimeUnit;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicLong;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.concurrent.locks.Condition;</span><span class="ln" data-line="5"><span class="hljs-keyword">import</span> java.util.concurrent.locks.ReentrantLock;</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BoundedBlockingQueue</span>&lt;T&gt; {</span><span class="ln" data-line="10">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Object[] items;</span><span class="ln" data-line="11">        <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> head, tail, count, maxSeen;</span><span class="ln" data-line="12">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">lock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLock</span>();</span><span class="ln" data-line="13">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Condition</span> <span class="hljs-variable">notFull</span> <span class="hljs-operator">=</span> lock.newCondition();</span><span class="ln" data-line="14">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Condition</span> <span class="hljs-variable">notEmpty</span> <span class="hljs-operator">=</span> lock.newCondition();</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">        BoundedBlockingQueue(<span class="hljs-type">int</span> capacity) { items = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[capacity]; }</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18">        <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">enqueue</span><span class="hljs-params">(T x)</span> {</span><span class="ln" data-line="19">            items[tail] = x;</span><span class="ln" data-line="20">            tail = (tail + <span class="hljs-number">1</span>) % items.length;</span><span class="ln" data-line="21">            count++;</span><span class="ln" data-line="22">            maxSeen = Math.max(maxSeen, count);</span><span class="ln" data-line="23">            notEmpty.signal(); <span class="hljs-comment">// a consumer can make progress now</span></span><span class="ln" data-line="24">        }</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26">        <span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><span class="ln" data-line="27">        <span class="hljs-keyword">private</span> <span class="hljs-type">T</span> <span class="hljs-title function_">dequeue</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="28">            <span class="hljs-type">T</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> (T) items[head];</span><span class="ln" data-line="29">            items[head] = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="30">            head = (head + <span class="hljs-number">1</span>) % items.length;</span><span class="ln" data-line="31">            count--;</span><span class="ln" data-line="32">            notFull.signal(); <span class="hljs-comment">// a producer can make progress now</span></span><span class="ln" data-line="33">            <span class="hljs-keyword">return</span> x;</span><span class="ln" data-line="34">        }</span><span class="ln" data-line="35"> </span><span class="ln" data-line="36">        <span class="hljs-type">void</span> <span class="hljs-title function_">put</span><span class="hljs-params">(T x)</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="37">            lock.lock();</span><span class="ln" data-line="38">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="39">                <span class="hljs-keyword">while</span> (count == items.length) notFull.await(); <span class="hljs-comment">// while, not if</span></span><span class="ln" data-line="40">                enqueue(x);</span><span class="ln" data-line="41">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="42">                lock.unlock();</span><span class="ln" data-line="43">            }</span><span class="ln" data-line="44">        }</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46">        <span class="hljs-type">T</span> <span class="hljs-title function_">take</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="47">            lock.lock();</span><span class="ln" data-line="48">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="49">                <span class="hljs-keyword">while</span> (count == <span class="hljs-number">0</span>) notEmpty.await();</span><span class="ln" data-line="50">                <span class="hljs-keyword">return</span> dequeue();</span><span class="ln" data-line="51">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="52">                lock.unlock();</span><span class="ln" data-line="53">            }</span><span class="ln" data-line="54">        }</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56">        <span class="hljs-type">boolean</span> <span class="hljs-title function_">offer</span><span class="hljs-params">(T x, <span class="hljs-type">long</span> timeout, TimeUnit unit)</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="57">            <span class="hljs-type">long</span> <span class="hljs-variable">nanos</span> <span class="hljs-operator">=</span> unit.toNanos(timeout);</span><span class="ln" data-line="58">            lock.lock();</span><span class="ln" data-line="59">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="60">                <span class="hljs-keyword">while</span> (count == items.length) {</span><span class="ln" data-line="61">                    <span class="hljs-keyword">if</span> (nanos &lt;= <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="62">                    nanos = notFull.awaitNanos(nanos); <span class="hljs-comment">// returns the time left</span></span><span class="ln" data-line="63">                }</span><span class="ln" data-line="64">                enqueue(x);</span><span class="ln" data-line="65">                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="66">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="67">                lock.unlock();</span><span class="ln" data-line="68">            }</span><span class="ln" data-line="69">        }</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71">        <span class="hljs-type">T</span> <span class="hljs-title function_">poll</span><span class="hljs-params">(<span class="hljs-type">long</span> timeout, TimeUnit unit)</span> <span class="hljs-keyword">throws</span> InterruptedException {</span><span class="ln" data-line="72">            <span class="hljs-type">long</span> <span class="hljs-variable">nanos</span> <span class="hljs-operator">=</span> unit.toNanos(timeout);</span><span class="ln" data-line="73">            lock.lock();</span><span class="ln" data-line="74">            <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="75">                <span class="hljs-keyword">while</span> (count == <span class="hljs-number">0</span>) {</span><span class="ln" data-line="76">                    <span class="hljs-keyword">if</span> (nanos &lt;= <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;</span><span class="ln" data-line="77">                    nanos = notEmpty.awaitNanos(nanos);</span><span class="ln" data-line="78">                }</span><span class="ln" data-line="79">                <span class="hljs-keyword">return</span> dequeue();</span><span class="ln" data-line="80">            } <span class="hljs-keyword">finally</span> {</span><span class="ln" data-line="81">                lock.unlock();</span><span class="ln" data-line="82">            }</span><span class="ln" data-line="83">        }</span><span class="ln" data-line="84"> </span><span class="ln" data-line="85">        <span class="hljs-type">int</span> <span class="hljs-title function_">size</span><span class="hljs-params">()</span> { lock.lock(); <span class="hljs-keyword">try</span> { <span class="hljs-keyword">return</span> count; } <span class="hljs-keyword">finally</span> { lock.unlock(); } }</span><span class="ln" data-line="86">        <span class="hljs-type">int</span> <span class="hljs-title function_">capacity</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> items.length; }</span><span class="ln" data-line="87">        <span class="hljs-type">int</span> <span class="hljs-title function_">maxSeen</span><span class="hljs-params">()</span> { lock.lock(); <span class="hljs-keyword">try</span> { <span class="hljs-keyword">return</span> maxSeen; } <span class="hljs-keyword">finally</span> { lock.unlock(); } }</span><span class="ln" data-line="88">    }</span><span class="ln" data-line="89"> </span><span class="ln" data-line="90">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">POISON</span> <span class="hljs-operator">=</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="91"> </span><span class="ln" data-line="92">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception {</span><span class="ln" data-line="93">        <span class="hljs-type">BoundedBlockingQueue</span>&lt;String&gt; <span class="hljs-variable">q</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BoundedBlockingQueue</span>&lt;&gt;(<span class="hljs-number">2</span>);</span><span class="ln" data-line="94">        q.put(<span class="hljs-string">&quot;a&quot;</span>);</span><span class="ln" data-line="95">        q.put(<span class="hljs-string">&quot;b&quot;</span>);</span><span class="ln" data-line="96">        System.out.println(<span class="hljs-string">&quot;offer to a full queue waits 50 ms then gives up: &quot;</span> + q.offer(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-number">50</span>, TimeUnit.MILLISECONDS));</span><span class="ln" data-line="97">        <span class="hljs-type">String</span> <span class="hljs-variable">first</span> <span class="hljs-operator">=</span> q.take();</span><span class="ln" data-line="98">        <span class="hljs-type">boolean</span> <span class="hljs-variable">offered</span> <span class="hljs-operator">=</span> q.offer(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-number">50</span>, TimeUnit.MILLISECONDS);</span><span class="ln" data-line="99">        System.out.println(<span class="hljs-string">&quot;after one take, offer succeeds: &quot;</span> + offered + <span class="hljs-string">&quot;; FIFO order: &quot;</span> + first + <span class="hljs-string">&quot; &quot;</span> + q.take() + <span class="hljs-string">&quot; &quot;</span> + q.take());</span><span class="ln" data-line="100">        System.out.println(<span class="hljs-string">&quot;poll on an empty queue returns: &quot;</span> + q.poll(<span class="hljs-number">20</span>, TimeUnit.MILLISECONDS));</span><span class="ln" data-line="101"> </span><span class="ln" data-line="102">        <span class="hljs-type">BoundedBlockingQueue</span>&lt;Integer&gt; <span class="hljs-variable">belt</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BoundedBlockingQueue</span>&lt;&gt;(<span class="hljs-number">3</span>);</span><span class="ln" data-line="103">        <span class="hljs-type">AtomicLong</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicLong</span>();</span><span class="ln" data-line="104">        <span class="hljs-type">AtomicInteger</span> <span class="hljs-variable">taken</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>();</span><span class="ln" data-line="105">        <span class="hljs-type">Thread</span>[] <span class="hljs-variable">producers</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>[<span class="hljs-number">2</span>], consumers = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>[<span class="hljs-number">3</span>];</span><span class="ln" data-line="106">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; p &lt; producers.length; p++) {</span><span class="ln" data-line="107">            <span class="hljs-type">int</span> <span class="hljs-variable">from</span> <span class="hljs-operator">=</span> p * <span class="hljs-number">50</span> + <span class="hljs-number">1</span>;</span><span class="ln" data-line="108">            producers[p] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; {</span><span class="ln" data-line="109">                <span class="hljs-keyword">try</span> { <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> from; i &lt; from + <span class="hljs-number">50</span>; i++) belt.put(i); } <span class="hljs-keyword">catch</span> (InterruptedException e) { Thread.currentThread().interrupt(); }</span><span class="ln" data-line="110">            });</span><span class="ln" data-line="111">        }</span><span class="ln" data-line="112">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; c &lt; consumers.length; c++) {</span><span class="ln" data-line="113">            consumers[c] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; {</span><span class="ln" data-line="114">                <span class="hljs-keyword">try</span> {</span><span class="ln" data-line="115">                    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="116">                        <span class="hljs-type">int</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> belt.take();</span><span class="ln" data-line="117">                        <span class="hljs-keyword">if</span> (x == POISON) <span class="hljs-keyword">return</span>; <span class="hljs-comment">// shutdown signal</span></span><span class="ln" data-line="118">                        sum.addAndGet(x);</span><span class="ln" data-line="119">                        taken.incrementAndGet();</span><span class="ln" data-line="120">                    }</span><span class="ln" data-line="121">                } <span class="hljs-keyword">catch</span> (InterruptedException e) {</span><span class="ln" data-line="122">                    Thread.currentThread().interrupt();</span><span class="ln" data-line="123">                }</span><span class="ln" data-line="124">            });</span><span class="ln" data-line="125">        }</span><span class="ln" data-line="126">        <span class="hljs-keyword">for</span> (Thread t : consumers) t.start();</span><span class="ln" data-line="127">        <span class="hljs-keyword">for</span> (Thread t : producers) t.start();</span><span class="ln" data-line="128">        <span class="hljs-keyword">for</span> (Thread t : producers) t.join();</span><span class="ln" data-line="129">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; c &lt; consumers.length; c++) belt.put(POISON); <span class="hljs-comment">// one pill per consumer</span></span><span class="ln" data-line="130">        <span class="hljs-keyword">for</span> (Thread t : consumers) t.join();</span><span class="ln" data-line="131"> </span><span class="ln" data-line="132">        System.out.println(<span class="hljs-string">&quot;2 producers put 100 items through a queue of capacity &quot;</span> + belt.capacity());</span><span class="ln" data-line="133">        System.out.println(<span class="hljs-string">&quot;3 consumers took &quot;</span> + taken.get() + <span class="hljs-string">&quot; items, sum &quot;</span> + sum.get());</span><span class="ln" data-line="134">        System.out.println(<span class="hljs-string">&quot;size never went above capacity: &quot;</span> + (belt.maxSeen() &lt;= belt.capacity()) + <span class="hljs-string">&quot;, left in queue: &quot;</span> + belt.size());</span><span class="ln" data-line="135">    }</span><span class="ln" data-line="136">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class Solution {
+
+    static final class BoundedBlockingQueue&lt;T&gt; {
+        private final Object[] items;
+        private int head, tail, count, maxSeen;
+        private final ReentrantLock lock = new ReentrantLock();
+        private final Condition notFull = lock.newCondition();
+        private final Condition notEmpty = lock.newCondition();
+
+        BoundedBlockingQueue(int capacity) { items = new Object[capacity]; }
+
+        private void enqueue(T x) {
+            items[tail] = x;
+            tail = (tail + 1) % items.length;
+            count++;
+            maxSeen = Math.max(maxSeen, count);
+            notEmpty.signal(); // a consumer can make progress now
+        }
+
+        @SuppressWarnings(&quot;unchecked&quot;)
+        private T dequeue() {
+            T x = (T) items[head];
+            items[head] = null;
+            head = (head + 1) % items.length;
+            count--;
+            notFull.signal(); // a producer can make progress now
+            return x;
+        }
+
+        void put(T x) throws InterruptedException {
+            lock.lock();
+            try {
+                while (count == items.length) notFull.await(); // while, not if
+                enqueue(x);
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        T take() throws InterruptedException {
+            lock.lock();
+            try {
+                while (count == 0) notEmpty.await();
+                return dequeue();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        boolean offer(T x, long timeout, TimeUnit unit) throws InterruptedException {
+            long nanos = unit.toNanos(timeout);
+            lock.lock();
+            try {
+                while (count == items.length) {
+                    if (nanos &lt;= 0) return false;
+                    nanos = notFull.awaitNanos(nanos); // returns the time left
+                }
+                enqueue(x);
+                return true;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        T poll(long timeout, TimeUnit unit) throws InterruptedException {
+            long nanos = unit.toNanos(timeout);
+            lock.lock();
+            try {
+                while (count == 0) {
+                    if (nanos &lt;= 0) return null;
+                    nanos = notEmpty.awaitNanos(nanos);
+                }
+                return dequeue();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        int size() { lock.lock(); try { return count; } finally { lock.unlock(); } }
+        int capacity() { return items.length; }
+        int maxSeen() { lock.lock(); try { return maxSeen; } finally { lock.unlock(); } }
+    }
+
+    static final int POISON = -1;
+
+    public static void main(String[] args) throws Exception {
+        BoundedBlockingQueue&lt;String&gt; q = new BoundedBlockingQueue&lt;&gt;(2);
+        q.put(&quot;a&quot;);
+        q.put(&quot;b&quot;);
+        System.out.println(&quot;offer to a full queue waits 50 ms then gives up: &quot; + q.offer(&quot;c&quot;, 50, TimeUnit.MILLISECONDS));
+        String first = q.take();
+        boolean offered = q.offer(&quot;c&quot;, 50, TimeUnit.MILLISECONDS);
+        System.out.println(&quot;after one take, offer succeeds: &quot; + offered + &quot;; FIFO order: &quot; + first + &quot; &quot; + q.take() + &quot; &quot; + q.take());
+        System.out.println(&quot;poll on an empty queue returns: &quot; + q.poll(20, TimeUnit.MILLISECONDS));
+
+        BoundedBlockingQueue&lt;Integer&gt; belt = new BoundedBlockingQueue&lt;&gt;(3);
+        AtomicLong sum = new AtomicLong();
+        AtomicInteger taken = new AtomicInteger();
+        Thread[] producers = new Thread[2], consumers = new Thread[3];
+        for (int p = 0; p &lt; producers.length; p++) {
+            int from = p * 50 + 1;
+            producers[p] = new Thread(() -&gt; {
+                try { for (int i = from; i &lt; from + 50; i++) belt.put(i); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            });
+        }
+        for (int c = 0; c &lt; consumers.length; c++) {
+            consumers[c] = new Thread(() -&gt; {
+                try {
+                    while (true) {
+                        int x = belt.take();
+                        if (x == POISON) return; // shutdown signal
+                        sum.addAndGet(x);
+                        taken.incrementAndGet();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+        }
+        for (Thread t : consumers) t.start();
+        for (Thread t : producers) t.start();
+        for (Thread t : producers) t.join();
+        for (int c = 0; c &lt; consumers.length; c++) belt.put(POISON); // one pill per consumer
+        for (Thread t : consumers) t.join();
+
+        System.out.println(&quot;2 producers put 100 items through a queue of capacity &quot; + belt.capacity());
+        System.out.println(&quot;3 consumers took &quot; + taken.get() + &quot; items, sum &quot; + sum.get());
+        System.out.println(&quot;size never went above capacity: &quot; + (belt.maxSeen() &lt;= belt.capacity()) + &quot;, left in queue: &quot; + belt.size());
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-bounded-blocking-queue-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> threading</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> time</span><span class="ln" data-line="3"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Generic</span>, <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span>, TypeVar</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5">T = TypeVar(<span class="hljs-string">&quot;T&quot;</span>)</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">class</span> <span class="hljs-title class_">BoundedBlockingQueue</span>(<span class="hljs-type">Generic</span>[T]):</span><span class="ln" data-line="9">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, capacity: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="10">        <span class="hljs-variable language_">self</span>._items: <span class="hljs-type">List</span>[<span class="hljs-type">Optional</span>[T]] = [<span class="hljs-literal">None</span>] * capacity</span><span class="ln" data-line="11">        <span class="hljs-variable language_">self</span>._head = <span class="hljs-variable language_">self</span>._tail = <span class="hljs-variable language_">self</span>._count = <span class="hljs-variable language_">self</span>._max_seen = <span class="hljs-number">0</span></span><span class="ln" data-line="12">        <span class="hljs-variable language_">self</span>._lock = threading.Lock()</span><span class="ln" data-line="13">        <span class="hljs-variable language_">self</span>._not_full = threading.Condition(<span class="hljs-variable language_">self</span>._lock)  <span class="hljs-comment"># both conditions share one lock</span></span><span class="ln" data-line="14">        <span class="hljs-variable language_">self</span>._not_empty = threading.Condition(<span class="hljs-variable language_">self</span>._lock)</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_enqueue</span>(<span class="hljs-params">self, x: T</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="17">        <span class="hljs-variable language_">self</span>._items[<span class="hljs-variable language_">self</span>._tail] = x</span><span class="ln" data-line="18">        <span class="hljs-variable language_">self</span>._tail = (<span class="hljs-variable language_">self</span>._tail + <span class="hljs-number">1</span>) % <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>._items)</span><span class="ln" data-line="19">        <span class="hljs-variable language_">self</span>._count += <span class="hljs-number">1</span></span><span class="ln" data-line="20">        <span class="hljs-variable language_">self</span>._max_seen = <span class="hljs-built_in">max</span>(<span class="hljs-variable language_">self</span>._max_seen, <span class="hljs-variable language_">self</span>._count)</span><span class="ln" data-line="21">        <span class="hljs-variable language_">self</span>._not_empty.notify()  <span class="hljs-comment"># a consumer can make progress now</span></span><span class="ln" data-line="22"> </span><span class="ln" data-line="23">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_dequeue</span>(<span class="hljs-params">self</span>) -&gt; T:</span><span class="ln" data-line="24">        x = <span class="hljs-variable language_">self</span>._items[<span class="hljs-variable language_">self</span>._head]</span><span class="ln" data-line="25">        <span class="hljs-variable language_">self</span>._items[<span class="hljs-variable language_">self</span>._head] = <span class="hljs-literal">None</span></span><span class="ln" data-line="26">        <span class="hljs-variable language_">self</span>._head = (<span class="hljs-variable language_">self</span>._head + <span class="hljs-number">1</span>) % <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>._items)</span><span class="ln" data-line="27">        <span class="hljs-variable language_">self</span>._count -= <span class="hljs-number">1</span></span><span class="ln" data-line="28">        <span class="hljs-variable language_">self</span>._not_full.notify()  <span class="hljs-comment"># a producer can make progress now</span></span><span class="ln" data-line="29">        <span class="hljs-keyword">return</span> x</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">put</span>(<span class="hljs-params">self, x: T</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="32">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="33">            <span class="hljs-keyword">while</span> <span class="hljs-variable language_">self</span>._count == <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>._items):  <span class="hljs-comment"># while, not if</span></span><span class="ln" data-line="34">                <span class="hljs-variable language_">self</span>._not_full.wait()</span><span class="ln" data-line="35">            <span class="hljs-variable language_">self</span>._enqueue(x)</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">take</span>(<span class="hljs-params">self</span>) -&gt; T:</span><span class="ln" data-line="38">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="39">            <span class="hljs-keyword">while</span> <span class="hljs-variable language_">self</span>._count == <span class="hljs-number">0</span>:</span><span class="ln" data-line="40">                <span class="hljs-variable language_">self</span>._not_empty.wait()</span><span class="ln" data-line="41">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._dequeue()</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">offer</span>(<span class="hljs-params">self, x: T, timeout: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="44">        deadline = time.monotonic() + timeout</span><span class="ln" data-line="45">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="46">            <span class="hljs-keyword">while</span> <span class="hljs-variable language_">self</span>._count == <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>._items):</span><span class="ln" data-line="47">                left = deadline - time.monotonic()</span><span class="ln" data-line="48">                <span class="hljs-keyword">if</span> left &lt;= <span class="hljs-number">0</span>:</span><span class="ln" data-line="49">                    <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span></span><span class="ln" data-line="50">                <span class="hljs-variable language_">self</span>._not_full.wait(left)</span><span class="ln" data-line="51">            <span class="hljs-variable language_">self</span>._enqueue(x)</span><span class="ln" data-line="52">            <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span></span><span class="ln" data-line="53"> </span><span class="ln" data-line="54">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">poll</span>(<span class="hljs-params">self, timeout: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-type">Optional</span>[T]:</span><span class="ln" data-line="55">        deadline = time.monotonic() + timeout</span><span class="ln" data-line="56">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="57">            <span class="hljs-keyword">while</span> <span class="hljs-variable language_">self</span>._count == <span class="hljs-number">0</span>:</span><span class="ln" data-line="58">                left = deadline - time.monotonic()</span><span class="ln" data-line="59">                <span class="hljs-keyword">if</span> left &lt;= <span class="hljs-number">0</span>:</span><span class="ln" data-line="60">                    <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span></span><span class="ln" data-line="61">                <span class="hljs-variable language_">self</span>._not_empty.wait(left)</span><span class="ln" data-line="62">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._dequeue()</span><span class="ln" data-line="63"> </span><span class="ln" data-line="64">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">size</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="65">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="66">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._count</span><span class="ln" data-line="67"> </span><span class="ln" data-line="68">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">capacity</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="69">        <span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>._items)</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">max_seen</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="72">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="73">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._max_seen</span><span class="ln" data-line="74"> </span><span class="ln" data-line="75"> </span><span class="ln" data-line="76">POISON = -<span class="hljs-number">1</span></span><span class="ln" data-line="77"> </span><span class="ln" data-line="78"> </span><span class="ln" data-line="79"><span class="hljs-keyword">def</span> <span class="hljs-title function_">b</span>(<span class="hljs-params">x: <span class="hljs-built_in">bool</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="80">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;true&quot;</span> <span class="hljs-keyword">if</span> x <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;false&quot;</span></span><span class="ln" data-line="81"> </span><span class="ln" data-line="82"> </span><span class="ln" data-line="83"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="84">    q: BoundedBlockingQueue[<span class="hljs-built_in">str</span>] = BoundedBlockingQueue(<span class="hljs-number">2</span>)</span><span class="ln" data-line="85">    q.put(<span class="hljs-string">&quot;a&quot;</span>)</span><span class="ln" data-line="86">    q.put(<span class="hljs-string">&quot;b&quot;</span>)</span><span class="ln" data-line="87">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;offer to a full queue waits 50 ms then gives up: <span class="hljs-subst">{b(q.offer(<span class="hljs-string">&#x27;c&#x27;</span>, <span class="hljs-number">0.05</span>))}</span>&quot;</span>)</span><span class="ln" data-line="88">    first = q.take()</span><span class="ln" data-line="89">    offered = q.offer(<span class="hljs-string">&quot;c&quot;</span>, <span class="hljs-number">0.05</span>)</span><span class="ln" data-line="90">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;after one take, offer succeeds: <span class="hljs-subst">{b(offered)}</span>; FIFO order: <span class="hljs-subst">{first}</span> <span class="hljs-subst">{q.take()}</span> <span class="hljs-subst">{q.take()}</span>&quot;</span>)</span><span class="ln" data-line="91">    polled = q.poll(<span class="hljs-number">0.02</span>)</span><span class="ln" data-line="92">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;poll on an empty queue returns: <span class="hljs-subst">{<span class="hljs-string">&#x27;null&#x27;</span> <span class="hljs-keyword">if</span> polled <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> polled}</span>&quot;</span>)</span><span class="ln" data-line="93"> </span><span class="ln" data-line="94">    belt: BoundedBlockingQueue[<span class="hljs-built_in">int</span>] = BoundedBlockingQueue(<span class="hljs-number">3</span>)</span><span class="ln" data-line="95">    totals = {<span class="hljs-string">&quot;sum&quot;</span>: <span class="hljs-number">0</span>, <span class="hljs-string">&quot;taken&quot;</span>: <span class="hljs-number">0</span>}</span><span class="ln" data-line="96">    totals_lock = threading.Lock()</span><span class="ln" data-line="97"> </span><span class="ln" data-line="98">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">produce</span>(<span class="hljs-params">start: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="99">        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(start, start + <span class="hljs-number">50</span>):</span><span class="ln" data-line="100">            belt.put(i)</span><span class="ln" data-line="101"> </span><span class="ln" data-line="102">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">consume</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="103">        <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:</span><span class="ln" data-line="104">            x = belt.take()</span><span class="ln" data-line="105">            <span class="hljs-keyword">if</span> x == POISON:  <span class="hljs-comment"># shutdown signal</span></span><span class="ln" data-line="106">                <span class="hljs-keyword">return</span></span><span class="ln" data-line="107">            <span class="hljs-keyword">with</span> totals_lock:</span><span class="ln" data-line="108">                totals[<span class="hljs-string">&quot;sum&quot;</span>] += x</span><span class="ln" data-line="109">                totals[<span class="hljs-string">&quot;taken&quot;</span>] += <span class="hljs-number">1</span></span><span class="ln" data-line="110"> </span><span class="ln" data-line="111">    consumers = [threading.Thread(target=consume) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">3</span>)]</span><span class="ln" data-line="112">    producers = [threading.Thread(target=produce, args=(p * <span class="hljs-number">50</span> + <span class="hljs-number">1</span>,)) <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>)]</span><span class="ln" data-line="113">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> consumers + producers:</span><span class="ln" data-line="114">        t.start()</span><span class="ln" data-line="115">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> producers:</span><span class="ln" data-line="116">        t.join()</span><span class="ln" data-line="117">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> consumers:  <span class="hljs-comment"># one pill per consumer</span></span><span class="ln" data-line="118">        belt.put(POISON)</span><span class="ln" data-line="119">    <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> consumers:</span><span class="ln" data-line="120">        t.join()</span><span class="ln" data-line="121"> </span><span class="ln" data-line="122">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;2 producers put 100 items through a queue of capacity <span class="hljs-subst">{belt.capacity()}</span>&quot;</span>)</span><span class="ln" data-line="123">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;3 consumers took <span class="hljs-subst">{totals[<span class="hljs-string">&#x27;taken&#x27;</span>]}</span> items, sum <span class="hljs-subst">{totals[<span class="hljs-string">&#x27;sum&#x27;</span>]}</span>&quot;</span>)</span><span class="ln" data-line="124">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;size never went above capacity: <span class="hljs-subst">{b(belt.max_seen() &lt;= belt.capacity())}</span>, left in queue: <span class="hljs-subst">{belt.size()}</span>&quot;</span>)</span><span class="ln" data-line="125"> </span><span class="ln" data-line="126"> </span><span class="ln" data-line="127"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="128">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import threading
+import time
+from typing import Generic, List, Optional, TypeVar
+
+T = TypeVar(&quot;T&quot;)
+
+
+class BoundedBlockingQueue(Generic[T]):
+    def __init__(self, capacity: int) -&gt; None:
+        self._items: List[Optional[T]] = [None] * capacity
+        self._head = self._tail = self._count = self._max_seen = 0
+        self._lock = threading.Lock()
+        self._not_full = threading.Condition(self._lock)  # both conditions share one lock
+        self._not_empty = threading.Condition(self._lock)
+
+    def _enqueue(self, x: T) -&gt; None:
+        self._items[self._tail] = x
+        self._tail = (self._tail + 1) % len(self._items)
+        self._count += 1
+        self._max_seen = max(self._max_seen, self._count)
+        self._not_empty.notify()  # a consumer can make progress now
+
+    def _dequeue(self) -&gt; T:
+        x = self._items[self._head]
+        self._items[self._head] = None
+        self._head = (self._head + 1) % len(self._items)
+        self._count -= 1
+        self._not_full.notify()  # a producer can make progress now
+        return x
+
+    def put(self, x: T) -&gt; None:
+        with self._lock:
+            while self._count == len(self._items):  # while, not if
+                self._not_full.wait()
+            self._enqueue(x)
+
+    def take(self) -&gt; T:
+        with self._lock:
+            while self._count == 0:
+                self._not_empty.wait()
+            return self._dequeue()
+
+    def offer(self, x: T, timeout: float) -&gt; bool:
+        deadline = time.monotonic() + timeout
+        with self._lock:
+            while self._count == len(self._items):
+                left = deadline - time.monotonic()
+                if left &lt;= 0:
+                    return False
+                self._not_full.wait(left)
+            self._enqueue(x)
+            return True
+
+    def poll(self, timeout: float) -&gt; Optional[T]:
+        deadline = time.monotonic() + timeout
+        with self._lock:
+            while self._count == 0:
+                left = deadline - time.monotonic()
+                if left &lt;= 0:
+                    return None
+                self._not_empty.wait(left)
+            return self._dequeue()
+
+    def size(self) -&gt; int:
+        with self._lock:
+            return self._count
+
+    def capacity(self) -&gt; int:
+        return len(self._items)
+
+    def max_seen(self) -&gt; int:
+        with self._lock:
+            return self._max_seen
+
+
+POISON = -1
+
+
+def b(x: bool) -&gt; str:
+    return &quot;true&quot; if x else &quot;false&quot;
+
+
+def main() -&gt; None:
+    q: BoundedBlockingQueue[str] = BoundedBlockingQueue(2)
+    q.put(&quot;a&quot;)
+    q.put(&quot;b&quot;)
+    print(f&quot;offer to a full queue waits 50 ms then gives up: {b(q.offer(&#39;c&#39;, 0.05))}&quot;)
+    first = q.take()
+    offered = q.offer(&quot;c&quot;, 0.05)
+    print(f&quot;after one take, offer succeeds: {b(offered)}; FIFO order: {first} {q.take()} {q.take()}&quot;)
+    polled = q.poll(0.02)
+    print(f&quot;poll on an empty queue returns: {&#39;null&#39; if polled is None else polled}&quot;)
+
+    belt: BoundedBlockingQueue[int] = BoundedBlockingQueue(3)
+    totals = {&quot;sum&quot;: 0, &quot;taken&quot;: 0}
+    totals_lock = threading.Lock()
+
+    def produce(start: int) -&gt; None:
+        for i in range(start, start + 50):
+            belt.put(i)
+
+    def consume() -&gt; None:
+        while True:
+            x = belt.take()
+            if x == POISON:  # shutdown signal
+                return
+            with totals_lock:
+                totals[&quot;sum&quot;] += x
+                totals[&quot;taken&quot;] += 1
+
+    consumers = [threading.Thread(target=consume) for _ in range(3)]
+    producers = [threading.Thread(target=produce, args=(p * 50 + 1,)) for p in range(2)]
+    for t in consumers + producers:
+        t.start()
+    for t in producers:
+        t.join()
+    for _ in consumers:  # one pill per consumer
+        belt.put(POISON)
+    for t in consumers:
+        t.join()
+
+    print(f&quot;2 producers put 100 items through a queue of capacity {belt.capacity()}&quot;)
+    print(f&quot;3 consumers took {totals[&#39;taken&#39;]} items, sum {totals[&#39;sum&#39;]}&quot;)
+    print(f&quot;size never went above capacity: {b(belt.max_seen() &lt;= belt.capacity())}, left in queue: {belt.size()}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>offer to a full queue waits 50 ms then gives up: false
+after one take, offer succeeds: true; FIFO order: a b c
+poll on an empty queue returns: null
+2 producers put 100 items through a queue of capacity 3
+3 consumers took 100 items, sum 5050
+size never went above capacity: true, left in queue: 0</samp></pre></div>
+</figure><p class="muted">Shown in Java and Python: JavaScript runs your code on one thread, so locks and conditions have no real equivalent there. Java and Python show the design with real threads.</p><h2 id="common-mistakes">Common mistakes</h2>
+<ul class="mistakes"><li><code>if (count == capacity) await()</code> instead of <code>while</code>. A second producer can overfill the queue.</li><li>Calling <code>wait()</code>/<code>await()</code> without holding the lock (IllegalMonitorStateException).</li><li>Using one condition with <code>signal()</code>: a producer can wake another producer, and everyone ends up asleep.</li><li>Forgetting to unlock in <code>finally</code>.</li><li>Stopping consumers by interrupting them mid-item, rather than with a poison pill or a shutdown flag.</li></ul><h2 id="interview-follow-ups">Interview follow-ups</h2>
+<ul>
+<li>Make <code>put</code> and <code>take</code> not block each other (two locks, an atomic count).</li>
+<li>Add <code>drainTo(collection, max)</code> for batch consumers.</li>
+<li>How would you build a delay queue, where items become available at a given time?</li>
+<li>What changes for a lock-free single-producer single-consumer ring buffer?</li>
+</ul>
+
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/design-bounded-blocking-queue/" rel="noopener" target="_blank">Design Bounded Blocking Queue<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">LeetCode Premium</span></td><td>1188</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/design-circular-queue/" rel="noopener" target="_blank">Design Circular Queue<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>622</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../lld-fundamentals/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">LLD fundamentals</span></a><a class="pn pn-next" href="../rate-limiter/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Rate limiter</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

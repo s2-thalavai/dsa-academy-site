@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kadane&#39;s algorithm · DSA Academy</title>
+<meta name="description" content="Best subarray ending here, carried forward in O(1) space.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Kadane&#39;s algorithm</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Kadane&#39;s algorithm</h1>
+  <p class="lede">Kadane&#39;s algorithm finds the best subarray in one pass by tracking one number: the best sum of a subarray that ends right here. Either extend the previous best, or start fresh at the current element.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A running profit tally on a road trip. At each town you ask: is my tally from earlier towns helping or hurting? If it&#39;s negative, you&#39;d do better to forget it and start counting from this town.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Maximum (or minimum) sum or product of a <strong>contiguous</strong> subarray.</li>
+<li>Best single buy-and-sell, or any &quot;best gain between an earlier and a later point&quot;.</li>
+<li>A brute force would try every start and end: O(n²).</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">bestEndingHere = a[0], best = a[0]
+for i from 1 to n − 1:
+    bestEndingHere = max(a[i], bestEndingHere + a[i])   ← start fresh or extend
+    best = max(best, bestEndingHere)
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>Every subarray ends somewhere. If you know the best sum of a subarray ending at
+<code>i − 1</code>, the best ending at <code>i</code> is either that plus <code>a[i]</code>, or just <code>a[i]</code> alone
+(when the earlier part is negative and only drags it down). Taking the maximum
+of those over all <code>i</code> gives the answer.</p>
+<p>That makes Kadane a tiny dynamic programming solution with O(1) state.
+Variations change the state:</p>
+<ul>
+<li><strong>Maximum product</strong>: track both the largest and the smallest product ending
+here, because multiplying by a negative swaps them.</li>
+<li><strong>Circular array</strong>: the best wrap-around subarray is the total minus the
+<em>minimum</em> subarray. Take the larger of the two (unless every number is
+negative).</li>
+<li><strong>Best time to buy and sell</strong>: track the lowest price so far; the best profit
+today is today&#39;s price minus it.</li>
+</ul>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Maximum subarray sum</td><td class="nowrap">O(n) time, O(1) space</td><td>One pass, two variables.</td></tr><tr><td>Maximum product subarray</td><td class="nowrap">O(n) time, O(1) space</td><td>Track the current maximum and minimum.</td></tr><tr><td>Circular maximum</td><td class="nowrap">O(n)</td><td>Run Kadane for both the maximum and the minimum in the same pass.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p><code>maxSubarray</code> also returns where the best subarray starts and ends, by remembering the index where the current run began.</p><figure class="codeblock" id="code-kadane" aria-label="Maximum subarray with its range, maximum product, circular maximum and one-trade profit">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-kadane-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-kadane-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-kadane-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-kadane-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-kadane-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">    <span class="hljs-comment">/** Returns {bestSum, start, end}. */</span></span><span class="ln" data-line="4">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">maxSubarray</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a)</span> {</span><span class="ln" data-line="5">        <span class="hljs-type">int</span> <span class="hljs-variable">here</span> <span class="hljs-operator">=</span> a[<span class="hljs-number">0</span>], best = a[<span class="hljs-number">0</span>], start = <span class="hljs-number">0</span>, bestStart = <span class="hljs-number">0</span>, bestEnd = <span class="hljs-number">0</span>;</span><span class="ln" data-line="6">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; a.length; i++) {</span><span class="ln" data-line="7">            <span class="hljs-keyword">if</span> (a[i] &gt; here + a[i]) { here = a[i]; start = i; } <span class="hljs-comment">// start fresh</span></span><span class="ln" data-line="8">            <span class="hljs-keyword">else</span> here += a[i];                                    <span class="hljs-comment">// extend</span></span><span class="ln" data-line="9">            <span class="hljs-keyword">if</span> (here &gt; best) { best = here; bestStart = start; bestEnd = i; }</span><span class="ln" data-line="10">        }</span><span class="ln" data-line="11">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { best, bestStart, bestEnd };</span><span class="ln" data-line="12">    }</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">maxProduct</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a)</span> {</span><span class="ln" data-line="15">        <span class="hljs-type">int</span> <span class="hljs-variable">hi</span> <span class="hljs-operator">=</span> a[<span class="hljs-number">0</span>], lo = a[<span class="hljs-number">0</span>], best = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="16">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; a.length; i++) {</span><span class="ln" data-line="17">            <span class="hljs-type">int</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> a[i];</span><span class="ln" data-line="18">            <span class="hljs-type">int</span> <span class="hljs-variable">nextHi</span> <span class="hljs-operator">=</span> Math.max(x, Math.max(hi * x, lo * x)); <span class="hljs-comment">// a negative turns the smallest into the largest</span></span><span class="ln" data-line="19">            <span class="hljs-type">int</span> <span class="hljs-variable">nextLo</span> <span class="hljs-operator">=</span> Math.min(x, Math.min(hi * x, lo * x));</span><span class="ln" data-line="20">            hi = nextHi;</span><span class="ln" data-line="21">            lo = nextLo;</span><span class="ln" data-line="22">            best = Math.max(best, hi);</span><span class="ln" data-line="23">        }</span><span class="ln" data-line="24">        <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="25">    }</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">maxCircular</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a)</span> {</span><span class="ln" data-line="28">        <span class="hljs-type">int</span> <span class="hljs-variable">total</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, curMax = <span class="hljs-number">0</span>, bestMax = Integer.MIN_VALUE, curMin = <span class="hljs-number">0</span>, bestMin = Integer.MAX_VALUE;</span><span class="ln" data-line="29">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : a) {</span><span class="ln" data-line="30">            total += x;</span><span class="ln" data-line="31">            curMax = Math.max(x, curMax + x);</span><span class="ln" data-line="32">            bestMax = Math.max(bestMax, curMax);</span><span class="ln" data-line="33">            curMin = Math.min(x, curMin + x);</span><span class="ln" data-line="34">            bestMin = Math.min(bestMin, curMin);</span><span class="ln" data-line="35">        }</span><span class="ln" data-line="36">        <span class="hljs-keyword">return</span> bestMax &lt; <span class="hljs-number">0</span> ? bestMax : Math.max(bestMax, total - bestMin); <span class="hljs-comment">// all negative: no wrap</span></span><span class="ln" data-line="37">    }</span><span class="ln" data-line="38"> </span><span class="ln" data-line="39">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">maxProfit</span><span class="hljs-params">(<span class="hljs-type">int</span>[] prices)</span> {</span><span class="ln" data-line="40">        <span class="hljs-type">int</span> <span class="hljs-variable">lowest</span> <span class="hljs-operator">=</span> Integer.MAX_VALUE, best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="41">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> p : prices) {</span><span class="ln" data-line="42">            lowest = Math.min(lowest, p);</span><span class="ln" data-line="43">            best = Math.max(best, p - lowest);</span><span class="ln" data-line="44">        }</span><span class="ln" data-line="45">        <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="46">    }</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="49">        <span class="hljs-type">int</span>[] <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> maxSubarray(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { -<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, -<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, -<span class="hljs-number">5</span>, <span class="hljs-number">4</span> });</span><span class="ln" data-line="50">        System.out.println(<span class="hljs-string">&quot;maxSubarray(-2 1 -3 4 -1 2 1 -5 4) = &quot;</span> + r[<span class="hljs-number">0</span>] + <span class="hljs-string">&quot; from index &quot;</span> + r[<span class="hljs-number">1</span>] + <span class="hljs-string">&quot; to &quot;</span> + r[<span class="hljs-number">2</span>]);</span><span class="ln" data-line="51">        System.out.println(<span class="hljs-string">&quot;maxSubarray(-3 -1 -2) = &quot;</span> + maxSubarray(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { -<span class="hljs-number">3</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">2</span> })[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="52">        System.out.println(<span class="hljs-string">&quot;maxProduct(2 3 -2 4) = &quot;</span> + maxProduct(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, -<span class="hljs-number">2</span>, <span class="hljs-number">4</span> }) + <span class="hljs-string">&quot;, maxProduct(-2 3 -4) = &quot;</span> + maxProduct(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { -<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, -<span class="hljs-number">4</span> }));</span><span class="ln" data-line="53">        System.out.println(<span class="hljs-string">&quot;maxCircular(5 -3 5) = &quot;</span> + maxCircular(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">5</span>, -<span class="hljs-number">3</span>, <span class="hljs-number">5</span> }) + <span class="hljs-string">&quot;, maxCircular(-3 -2 -3) = &quot;</span> + maxCircular(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { -<span class="hljs-number">3</span>, -<span class="hljs-number">2</span>, -<span class="hljs-number">3</span> }));</span><span class="ln" data-line="54">        System.out.println(<span class="hljs-string">&quot;maxProfit(7 1 5 3 6 4) = &quot;</span> + maxProfit(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">7</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span> }));</span><span class="ln" data-line="55">    }</span><span class="ln" data-line="56">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">public class Solution {
+
+    /** Returns {bestSum, start, end}. */
+    static int[] maxSubarray(int[] a) {
+        int here = a[0], best = a[0], start = 0, bestStart = 0, bestEnd = 0;
+        for (int i = 1; i &lt; a.length; i++) {
+            if (a[i] &gt; here + a[i]) { here = a[i]; start = i; } // start fresh
+            else here += a[i];                                    // extend
+            if (here &gt; best) { best = here; bestStart = start; bestEnd = i; }
+        }
+        return new int[] { best, bestStart, bestEnd };
+    }
+
+    static int maxProduct(int[] a) {
+        int hi = a[0], lo = a[0], best = a[0];
+        for (int i = 1; i &lt; a.length; i++) {
+            int x = a[i];
+            int nextHi = Math.max(x, Math.max(hi * x, lo * x)); // a negative turns the smallest into the largest
+            int nextLo = Math.min(x, Math.min(hi * x, lo * x));
+            hi = nextHi;
+            lo = nextLo;
+            best = Math.max(best, hi);
+        }
+        return best;
+    }
+
+    static int maxCircular(int[] a) {
+        int total = 0, curMax = 0, bestMax = Integer.MIN_VALUE, curMin = 0, bestMin = Integer.MAX_VALUE;
+        for (int x : a) {
+            total += x;
+            curMax = Math.max(x, curMax + x);
+            bestMax = Math.max(bestMax, curMax);
+            curMin = Math.min(x, curMin + x);
+            bestMin = Math.min(bestMin, curMin);
+        }
+        return bestMax &lt; 0 ? bestMax : Math.max(bestMax, total - bestMin); // all negative: no wrap
+    }
+
+    static int maxProfit(int[] prices) {
+        int lowest = Integer.MAX_VALUE, best = 0;
+        for (int p : prices) {
+            lowest = Math.min(lowest, p);
+            best = Math.max(best, p - lowest);
+        }
+        return best;
+    }
+
+    public static void main(String[] args) {
+        int[] r = maxSubarray(new int[] { -2, 1, -3, 4, -1, 2, 1, -5, 4 });
+        System.out.println(&quot;maxSubarray(-2 1 -3 4 -1 2 1 -5 4) = &quot; + r[0] + &quot; from index &quot; + r[1] + &quot; to &quot; + r[2]);
+        System.out.println(&quot;maxSubarray(-3 -1 -2) = &quot; + maxSubarray(new int[] { -3, -1, -2 })[0]);
+        System.out.println(&quot;maxProduct(2 3 -2 4) = &quot; + maxProduct(new int[] { 2, 3, -2, 4 }) + &quot;, maxProduct(-2 3 -4) = &quot; + maxProduct(new int[] { -2, 3, -4 }));
+        System.out.println(&quot;maxCircular(5 -3 5) = &quot; + maxCircular(new int[] { 5, -3, 5 }) + &quot;, maxCircular(-3 -2 -3) = &quot; + maxCircular(new int[] { -3, -2, -3 }));
+        System.out.println(&quot;maxProfit(7 1 5 3 6 4) = &quot; + maxProfit(new int[] { 7, 1, 5, 3, 6, 4 }));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-kadane-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Returns [bestSum, start, end]. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxSubarray</span>(<span class="hljs-params">a</span>) {</span><span class="ln" data-line="3">  <span class="hljs-keyword">let</span> here = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="4">  <span class="hljs-keyword">let</span> best = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="5">  <span class="hljs-keyword">let</span> start = <span class="hljs-number">0</span>;</span><span class="ln" data-line="6">  <span class="hljs-keyword">let</span> bestStart = <span class="hljs-number">0</span>;</span><span class="ln" data-line="7">  <span class="hljs-keyword">let</span> bestEnd = <span class="hljs-number">0</span>;</span><span class="ln" data-line="8">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; a.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="9">    <span class="hljs-keyword">if</span> (a[i] &gt; here + a[i]) {</span><span class="ln" data-line="10">      here = a[i]; <span class="hljs-comment">// start fresh</span></span><span class="ln" data-line="11">      start = i;</span><span class="ln" data-line="12">    } <span class="hljs-keyword">else</span> here += a[i]; <span class="hljs-comment">// extend</span></span><span class="ln" data-line="13">    <span class="hljs-keyword">if</span> (here &gt; best) [best, bestStart, bestEnd] = [here, start, i];</span><span class="ln" data-line="14">  }</span><span class="ln" data-line="15">  <span class="hljs-keyword">return</span> [best, bestStart, bestEnd];</span><span class="ln" data-line="16">}</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxProduct</span>(<span class="hljs-params">a</span>) {</span><span class="ln" data-line="19">  <span class="hljs-keyword">let</span> hi = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="20">  <span class="hljs-keyword">let</span> lo = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="21">  <span class="hljs-keyword">let</span> best = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="22">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; a.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="23">    <span class="hljs-keyword">const</span> x = a[i];</span><span class="ln" data-line="24">    [hi, lo] = [<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(x, hi * x, lo * x), <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(x, hi * x, lo * x)]; <span class="hljs-comment">// a negative swaps them</span></span><span class="ln" data-line="25">    best = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(best, hi);</span><span class="ln" data-line="26">  }</span><span class="ln" data-line="27">  <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="28">}</span><span class="ln" data-line="29"> </span><span class="ln" data-line="30"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxCircular</span>(<span class="hljs-params">a</span>) {</span><span class="ln" data-line="31">  <span class="hljs-keyword">let</span> total = <span class="hljs-number">0</span>;</span><span class="ln" data-line="32">  <span class="hljs-keyword">let</span> curMax = <span class="hljs-number">0</span>;</span><span class="ln" data-line="33">  <span class="hljs-keyword">let</span> bestMax = -<span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="34">  <span class="hljs-keyword">let</span> curMin = <span class="hljs-number">0</span>;</span><span class="ln" data-line="35">  <span class="hljs-keyword">let</span> bestMin = <span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="36">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> a) {</span><span class="ln" data-line="37">    total += x;</span><span class="ln" data-line="38">    curMax = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(x, curMax + x);</span><span class="ln" data-line="39">    bestMax = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(bestMax, curMax);</span><span class="ln" data-line="40">    curMin = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(x, curMin + x);</span><span class="ln" data-line="41">    bestMin = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(bestMin, curMin);</span><span class="ln" data-line="42">  }</span><span class="ln" data-line="43">  <span class="hljs-keyword">return</span> bestMax &lt; <span class="hljs-number">0</span> ? bestMax : <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(bestMax, total - bestMin); <span class="hljs-comment">// all negative: no wrap</span></span><span class="ln" data-line="44">}</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxProfit</span>(<span class="hljs-params">prices</span>) {</span><span class="ln" data-line="47">  <span class="hljs-keyword">let</span> lowest = <span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="48">  <span class="hljs-keyword">let</span> best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="49">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> p <span class="hljs-keyword">of</span> prices) {</span><span class="ln" data-line="50">    lowest = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(lowest, p);</span><span class="ln" data-line="51">    best = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(best, p - lowest);</span><span class="ln" data-line="52">  }</span><span class="ln" data-line="53">  <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="54">}</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="57">  <span class="hljs-keyword">const</span> [s, <span class="hljs-keyword">from</span>, to] = <span class="hljs-title function_">maxSubarray</span>([-<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, -<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, -<span class="hljs-number">5</span>, <span class="hljs-number">4</span>]);</span><span class="ln" data-line="58">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxSubarray(-2 1 -3 4 -1 2 1 -5 4) = <span class="hljs-subst">${s}</span> from index <span class="hljs-subst">${<span class="hljs-keyword">from</span>}</span> to <span class="hljs-subst">${to}</span>`</span>);</span><span class="ln" data-line="59">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxSubarray(-3 -1 -2) = <span class="hljs-subst">${maxSubarray([-<span class="hljs-number">3</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">2</span>])[<span class="hljs-number">0</span>]}</span>`</span>);</span><span class="ln" data-line="60">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxProduct(2 3 -2 4) = <span class="hljs-subst">${maxProduct([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, -<span class="hljs-number">2</span>, <span class="hljs-number">4</span>])}</span>, maxProduct(-2 3 -4) = <span class="hljs-subst">${maxProduct([-<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, -<span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="61">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxCircular(5 -3 5) = <span class="hljs-subst">${maxCircular([<span class="hljs-number">5</span>, -<span class="hljs-number">3</span>, <span class="hljs-number">5</span>])}</span>, maxCircular(-3 -2 -3) = <span class="hljs-subst">${maxCircular([-<span class="hljs-number">3</span>, -<span class="hljs-number">2</span>, -<span class="hljs-number">3</span>])}</span>`</span>);</span><span class="ln" data-line="62">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxProfit(7 1 5 3 6 4) = <span class="hljs-subst">${maxProfit([<span class="hljs-number">7</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="63">}</span><span class="ln" data-line="64"> </span><span class="ln" data-line="65"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Returns [bestSum, start, end]. */
+function maxSubarray(a) {
+  let here = a[0];
+  let best = a[0];
+  let start = 0;
+  let bestStart = 0;
+  let bestEnd = 0;
+  for (let i = 1; i &lt; a.length; i++) {
+    if (a[i] &gt; here + a[i]) {
+      here = a[i]; // start fresh
+      start = i;
+    } else here += a[i]; // extend
+    if (here &gt; best) [best, bestStart, bestEnd] = [here, start, i];
+  }
+  return [best, bestStart, bestEnd];
+}
+
+function maxProduct(a) {
+  let hi = a[0];
+  let lo = a[0];
+  let best = a[0];
+  for (let i = 1; i &lt; a.length; i++) {
+    const x = a[i];
+    [hi, lo] = [Math.max(x, hi * x, lo * x), Math.min(x, hi * x, lo * x)]; // a negative swaps them
+    best = Math.max(best, hi);
+  }
+  return best;
+}
+
+function maxCircular(a) {
+  let total = 0;
+  let curMax = 0;
+  let bestMax = -Infinity;
+  let curMin = 0;
+  let bestMin = Infinity;
+  for (const x of a) {
+    total += x;
+    curMax = Math.max(x, curMax + x);
+    bestMax = Math.max(bestMax, curMax);
+    curMin = Math.min(x, curMin + x);
+    bestMin = Math.min(bestMin, curMin);
+  }
+  return bestMax &lt; 0 ? bestMax : Math.max(bestMax, total - bestMin); // all negative: no wrap
+}
+
+function maxProfit(prices) {
+  let lowest = Infinity;
+  let best = 0;
+  for (const p of prices) {
+    lowest = Math.min(lowest, p);
+    best = Math.max(best, p - lowest);
+  }
+  return best;
+}
+
+function main() {
+  const [s, from, to] = maxSubarray([-2, 1, -3, 4, -1, 2, 1, -5, 4]);
+  console.log(`maxSubarray(-2 1 -3 4 -1 2 1 -5 4) = ${s} from index ${from} to ${to}`);
+  console.log(`maxSubarray(-3 -1 -2) = ${maxSubarray([-3, -1, -2])[0]}`);
+  console.log(`maxProduct(2 3 -2 4) = ${maxProduct([2, 3, -2, 4])}, maxProduct(-2 3 -4) = ${maxProduct([-2, 3, -4])}`);
+  console.log(`maxCircular(5 -3 5) = ${maxCircular([5, -3, 5])}, maxCircular(-3 -2 -3) = ${maxCircular([-3, -2, -3])}`);
+  console.log(`maxProfit(7 1 5 3 6 4) = ${maxProfit([7, 1, 5, 3, 6, 4])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-kadane-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Returns [bestSum, start, end]. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxSubarray</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>] {</span><span class="ln" data-line="3">  <span class="hljs-keyword">let</span> here = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="4">  <span class="hljs-keyword">let</span> best = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="5">  <span class="hljs-keyword">let</span> start = <span class="hljs-number">0</span>;</span><span class="ln" data-line="6">  <span class="hljs-keyword">let</span> bestStart = <span class="hljs-number">0</span>;</span><span class="ln" data-line="7">  <span class="hljs-keyword">let</span> bestEnd = <span class="hljs-number">0</span>;</span><span class="ln" data-line="8">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; a.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="9">    <span class="hljs-keyword">if</span> (a[i] &gt; here + a[i]) {</span><span class="ln" data-line="10">      here = a[i]; <span class="hljs-comment">// start fresh</span></span><span class="ln" data-line="11">      start = i;</span><span class="ln" data-line="12">    } <span class="hljs-keyword">else</span> here += a[i]; <span class="hljs-comment">// extend</span></span><span class="ln" data-line="13">    <span class="hljs-keyword">if</span> (here &gt; best) [best, bestStart, bestEnd] = [here, start, i];</span><span class="ln" data-line="14">  }</span><span class="ln" data-line="15">  <span class="hljs-keyword">return</span> [best, bestStart, bestEnd];</span><span class="ln" data-line="16">}</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxProduct</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="19">  <span class="hljs-keyword">let</span> hi = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="20">  <span class="hljs-keyword">let</span> lo = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="21">  <span class="hljs-keyword">let</span> best = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="22">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; a.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="23">    <span class="hljs-keyword">const</span> x = a[i];</span><span class="ln" data-line="24">    [hi, lo] = [<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(x, hi * x, lo * x), <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(x, hi * x, lo * x)]; <span class="hljs-comment">// a negative swaps them</span></span><span class="ln" data-line="25">    best = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(best, hi);</span><span class="ln" data-line="26">  }</span><span class="ln" data-line="27">  <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="28">}</span><span class="ln" data-line="29"> </span><span class="ln" data-line="30"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxCircular</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="31">  <span class="hljs-keyword">let</span> total = <span class="hljs-number">0</span>;</span><span class="ln" data-line="32">  <span class="hljs-keyword">let</span> curMax = <span class="hljs-number">0</span>;</span><span class="ln" data-line="33">  <span class="hljs-keyword">let</span> bestMax = -<span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="34">  <span class="hljs-keyword">let</span> curMin = <span class="hljs-number">0</span>;</span><span class="ln" data-line="35">  <span class="hljs-keyword">let</span> bestMin = <span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="36">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> a) {</span><span class="ln" data-line="37">    total += x;</span><span class="ln" data-line="38">    curMax = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(x, curMax + x);</span><span class="ln" data-line="39">    bestMax = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(bestMax, curMax);</span><span class="ln" data-line="40">    curMin = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(x, curMin + x);</span><span class="ln" data-line="41">    bestMin = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(bestMin, curMin);</span><span class="ln" data-line="42">  }</span><span class="ln" data-line="43">  <span class="hljs-keyword">return</span> bestMax &lt; <span class="hljs-number">0</span> ? bestMax : <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(bestMax, total - bestMin); <span class="hljs-comment">// all negative: no wrap</span></span><span class="ln" data-line="44">}</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxProfit</span>(<span class="hljs-params"><span class="hljs-attr">prices</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="47">  <span class="hljs-keyword">let</span> lowest = <span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="48">  <span class="hljs-keyword">let</span> best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="49">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> p <span class="hljs-keyword">of</span> prices) {</span><span class="ln" data-line="50">    lowest = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(lowest, p);</span><span class="ln" data-line="51">    best = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(best, p - lowest);</span><span class="ln" data-line="52">  }</span><span class="ln" data-line="53">  <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="54">}</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="57">  <span class="hljs-keyword">const</span> [s, <span class="hljs-keyword">from</span>, to] = <span class="hljs-title function_">maxSubarray</span>([-<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, -<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, -<span class="hljs-number">5</span>, <span class="hljs-number">4</span>]);</span><span class="ln" data-line="58">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxSubarray(-2 1 -3 4 -1 2 1 -5 4) = <span class="hljs-subst">${s}</span> from index <span class="hljs-subst">${<span class="hljs-keyword">from</span>}</span> to <span class="hljs-subst">${to}</span>`</span>);</span><span class="ln" data-line="59">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxSubarray(-3 -1 -2) = <span class="hljs-subst">${maxSubarray([-<span class="hljs-number">3</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">2</span>])[<span class="hljs-number">0</span>]}</span>`</span>);</span><span class="ln" data-line="60">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxProduct(2 3 -2 4) = <span class="hljs-subst">${maxProduct([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, -<span class="hljs-number">2</span>, <span class="hljs-number">4</span>])}</span>, maxProduct(-2 3 -4) = <span class="hljs-subst">${maxProduct([-<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, -<span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="61">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxCircular(5 -3 5) = <span class="hljs-subst">${maxCircular([<span class="hljs-number">5</span>, -<span class="hljs-number">3</span>, <span class="hljs-number">5</span>])}</span>, maxCircular(-3 -2 -3) = <span class="hljs-subst">${maxCircular([-<span class="hljs-number">3</span>, -<span class="hljs-number">2</span>, -<span class="hljs-number">3</span>])}</span>`</span>);</span><span class="ln" data-line="62">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxProfit(7 1 5 3 6 4) = <span class="hljs-subst">${maxProfit([<span class="hljs-number">7</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span>])}</span>`</span>);</span><span class="ln" data-line="63">}</span><span class="ln" data-line="64"> </span><span class="ln" data-line="65"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Returns [bestSum, start, end]. */
+function maxSubarray(a: readonly number[]): [number, number, number] {
+  let here = a[0];
+  let best = a[0];
+  let start = 0;
+  let bestStart = 0;
+  let bestEnd = 0;
+  for (let i = 1; i &lt; a.length; i++) {
+    if (a[i] &gt; here + a[i]) {
+      here = a[i]; // start fresh
+      start = i;
+    } else here += a[i]; // extend
+    if (here &gt; best) [best, bestStart, bestEnd] = [here, start, i];
+  }
+  return [best, bestStart, bestEnd];
+}
+
+function maxProduct(a: readonly number[]): number {
+  let hi = a[0];
+  let lo = a[0];
+  let best = a[0];
+  for (let i = 1; i &lt; a.length; i++) {
+    const x = a[i];
+    [hi, lo] = [Math.max(x, hi * x, lo * x), Math.min(x, hi * x, lo * x)]; // a negative swaps them
+    best = Math.max(best, hi);
+  }
+  return best;
+}
+
+function maxCircular(a: readonly number[]): number {
+  let total = 0;
+  let curMax = 0;
+  let bestMax = -Infinity;
+  let curMin = 0;
+  let bestMin = Infinity;
+  for (const x of a) {
+    total += x;
+    curMax = Math.max(x, curMax + x);
+    bestMax = Math.max(bestMax, curMax);
+    curMin = Math.min(x, curMin + x);
+    bestMin = Math.min(bestMin, curMin);
+  }
+  return bestMax &lt; 0 ? bestMax : Math.max(bestMax, total - bestMin); // all negative: no wrap
+}
+
+function maxProfit(prices: readonly number[]): number {
+  let lowest = Infinity;
+  let best = 0;
+  for (const p of prices) {
+    lowest = Math.min(lowest, p);
+    best = Math.max(best, p - lowest);
+  }
+  return best;
+}
+
+function main(): void {
+  const [s, from, to] = maxSubarray([-2, 1, -3, 4, -1, 2, 1, -5, 4]);
+  console.log(`maxSubarray(-2 1 -3 4 -1 2 1 -5 4) = ${s} from index ${from} to ${to}`);
+  console.log(`maxSubarray(-3 -1 -2) = ${maxSubarray([-3, -1, -2])[0]}`);
+  console.log(`maxProduct(2 3 -2 4) = ${maxProduct([2, 3, -2, 4])}, maxProduct(-2 3 -4) = ${maxProduct([-2, 3, -4])}`);
+  console.log(`maxCircular(5 -3 5) = ${maxCircular([5, -3, 5])}, maxCircular(-3 -2 -3) = ${maxCircular([-3, -2, -3])}`);
+  console.log(`maxProfit(7 1 5 3 6 4) = ${maxProfit([7, 1, 5, 3, 6, 4])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-kadane-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Tuple</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">max_subarray</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">Tuple</span>[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="5">    <span class="hljs-string">&quot;&quot;&quot;Returns (best_sum, start, end).&quot;&quot;&quot;</span></span><span class="ln" data-line="6">    here = best = a[<span class="hljs-number">0</span>]</span><span class="ln" data-line="7">    start = best_start = best_end = <span class="hljs-number">0</span></span><span class="ln" data-line="8">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-built_in">len</span>(a)):</span><span class="ln" data-line="9">        <span class="hljs-keyword">if</span> a[i] &gt; here + a[i]:  <span class="hljs-comment"># start fresh</span></span><span class="ln" data-line="10">            here, start = a[i], i</span><span class="ln" data-line="11">        <span class="hljs-keyword">else</span>:  <span class="hljs-comment"># extend</span></span><span class="ln" data-line="12">            here += a[i]</span><span class="ln" data-line="13">        <span class="hljs-keyword">if</span> here &gt; best:</span><span class="ln" data-line="14">            best, best_start, best_end = here, start, i</span><span class="ln" data-line="15">    <span class="hljs-keyword">return</span> best, best_start, best_end</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-keyword">def</span> <span class="hljs-title function_">max_product</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="19">    hi = lo = best = a[<span class="hljs-number">0</span>]</span><span class="ln" data-line="20">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> a[<span class="hljs-number">1</span>:]:</span><span class="ln" data-line="21">        hi, lo = <span class="hljs-built_in">max</span>(x, hi * x, lo * x), <span class="hljs-built_in">min</span>(x, hi * x, lo * x)  <span class="hljs-comment"># a negative swaps them</span></span><span class="ln" data-line="22">        best = <span class="hljs-built_in">max</span>(best, hi)</span><span class="ln" data-line="23">    <span class="hljs-keyword">return</span> best</span><span class="ln" data-line="24"> </span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"><span class="hljs-keyword">def</span> <span class="hljs-title function_">max_circular</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="27">    total, cur_max, best_max, cur_min, best_min = <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;-inf&quot;</span>), <span class="hljs-number">0</span>, <span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;inf&quot;</span>)</span><span class="ln" data-line="28">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> a:</span><span class="ln" data-line="29">        total += x</span><span class="ln" data-line="30">        cur_max = <span class="hljs-built_in">max</span>(x, cur_max + x)</span><span class="ln" data-line="31">        best_max = <span class="hljs-built_in">max</span>(best_max, cur_max)</span><span class="ln" data-line="32">        cur_min = <span class="hljs-built_in">min</span>(x, cur_min + x)</span><span class="ln" data-line="33">        best_min = <span class="hljs-built_in">min</span>(best_min, cur_min)</span><span class="ln" data-line="34">    <span class="hljs-keyword">return</span> best_max <span class="hljs-keyword">if</span> best_max &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-built_in">max</span>(best_max, total - best_min)  <span class="hljs-comment"># all negative: no wrap</span></span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">def</span> <span class="hljs-title function_">max_profit</span>(<span class="hljs-params">prices: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="38">    lowest, best = <span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;inf&quot;</span>), <span class="hljs-number">0</span></span><span class="ln" data-line="39">    <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> prices:</span><span class="ln" data-line="40">        lowest = <span class="hljs-built_in">min</span>(lowest, p)</span><span class="ln" data-line="41">        best = <span class="hljs-built_in">max</span>(best, p - lowest)</span><span class="ln" data-line="42">    <span class="hljs-keyword">return</span> best</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="46">    s, frm, to = max_subarray([-<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, -<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, -<span class="hljs-number">5</span>, <span class="hljs-number">4</span>])</span><span class="ln" data-line="47">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;maxSubarray(-2 1 -3 4 -1 2 1 -5 4) = <span class="hljs-subst">{s}</span> from index <span class="hljs-subst">{frm}</span> to <span class="hljs-subst">{to}</span>&quot;</span>)</span><span class="ln" data-line="48">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;maxSubarray(-3 -1 -2) = <span class="hljs-subst">{max_subarray([-<span class="hljs-number">3</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">2</span>])[<span class="hljs-number">0</span>]}</span>&quot;</span>)</span><span class="ln" data-line="49">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;maxProduct(2 3 -2 4) = <span class="hljs-subst">{max_product([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, -<span class="hljs-number">2</span>, <span class="hljs-number">4</span>])}</span>, maxProduct(-2 3 -4) = <span class="hljs-subst">{max_product([-<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, -<span class="hljs-number">4</span>])}</span>&quot;</span>)</span><span class="ln" data-line="50">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;maxCircular(5 -3 5) = <span class="hljs-subst">{max_circular([<span class="hljs-number">5</span>, -<span class="hljs-number">3</span>, <span class="hljs-number">5</span>])}</span>, maxCircular(-3 -2 -3) = <span class="hljs-subst">{max_circular([-<span class="hljs-number">3</span>, -<span class="hljs-number">2</span>, -<span class="hljs-number">3</span>])}</span>&quot;</span>)</span><span class="ln" data-line="51">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;maxProfit(7 1 5 3 6 4) = <span class="hljs-subst">{max_profit([<span class="hljs-number">7</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span>])}</span>&quot;</span>)</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="55">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List, Tuple
+
+
+def max_subarray(a: List[int]) -&gt; Tuple[int, int, int]:
+    &quot;&quot;&quot;Returns (best_sum, start, end).&quot;&quot;&quot;
+    here = best = a[0]
+    start = best_start = best_end = 0
+    for i in range(1, len(a)):
+        if a[i] &gt; here + a[i]:  # start fresh
+            here, start = a[i], i
+        else:  # extend
+            here += a[i]
+        if here &gt; best:
+            best, best_start, best_end = here, start, i
+    return best, best_start, best_end
+
+
+def max_product(a: List[int]) -&gt; int:
+    hi = lo = best = a[0]
+    for x in a[1:]:
+        hi, lo = max(x, hi * x, lo * x), min(x, hi * x, lo * x)  # a negative swaps them
+        best = max(best, hi)
+    return best
+
+
+def max_circular(a: List[int]) -&gt; int:
+    total, cur_max, best_max, cur_min, best_min = 0, 0, float(&quot;-inf&quot;), 0, float(&quot;inf&quot;)
+    for x in a:
+        total += x
+        cur_max = max(x, cur_max + x)
+        best_max = max(best_max, cur_max)
+        cur_min = min(x, cur_min + x)
+        best_min = min(best_min, cur_min)
+    return best_max if best_max &lt; 0 else max(best_max, total - best_min)  # all negative: no wrap
+
+
+def max_profit(prices: List[int]) -&gt; int:
+    lowest, best = float(&quot;inf&quot;), 0
+    for p in prices:
+        lowest = min(lowest, p)
+        best = max(best, p - lowest)
+    return best
+
+
+def main() -&gt; None:
+    s, frm, to = max_subarray([-2, 1, -3, 4, -1, 2, 1, -5, 4])
+    print(f&quot;maxSubarray(-2 1 -3 4 -1 2 1 -5 4) = {s} from index {frm} to {to}&quot;)
+    print(f&quot;maxSubarray(-3 -1 -2) = {max_subarray([-3, -1, -2])[0]}&quot;)
+    print(f&quot;maxProduct(2 3 -2 4) = {max_product([2, 3, -2, 4])}, maxProduct(-2 3 -4) = {max_product([-2, 3, -4])}&quot;)
+    print(f&quot;maxCircular(5 -3 5) = {max_circular([5, -3, 5])}, maxCircular(-3 -2 -3) = {max_circular([-3, -2, -3])}&quot;)
+    print(f&quot;maxProfit(7 1 5 3 6 4) = {max_profit([7, 1, 5, 3, 6, 4])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>maxSubarray(-2 1 -3 4 -1 2 1 -5 4) = 6 from index 3 to 6
+maxSubarray(-3 -1 -2) = -1
+maxProduct(2 3 -2 4) = 6, maxProduct(-2 3 -4) = 24
+maxCircular(5 -3 5) = 10, maxCircular(-3 -2 -3) = -2
+maxProfit(7 1 5 3 6 4) = 5</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Initialising <code>best</code> to 0, which returns 0 for an all-negative array instead of the largest element.</li><li>In maximum product, forgetting the minimum, so a negative times a negative is missed.</li><li>In the circular version, returning <code>total − minSubarray</code> when all numbers are negative (it would be 0, an empty subarray).</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" rel="noopener" target="_blank">Best Time to Buy and Sell Stock<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>121</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/maximum-subarray/" rel="noopener" target="_blank">Maximum Subarray<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>53</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/maximum-product-subarray/" rel="noopener" target="_blank">Maximum Product Subarray<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>152</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/maximum-sum-circular-subarray/" rel="noopener" target="_blank">Maximum Sum Circular Subarray<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>918</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/maximum-subarray-sum-with-one-deletion/" rel="noopener" target="_blank">Maximum Subarray Sum with One Deletion<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>1186</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/arrays/index.html">Arrays</a>, <a href="../../algorithms/dynamic-programming/index.html">Dynamic programming</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../merge-intervals/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Merge intervals</span></a><a class="pn pn-next" href="../fast-slow-pointers/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Fast and slow pointers</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

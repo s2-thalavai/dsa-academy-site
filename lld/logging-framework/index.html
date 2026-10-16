@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logging framework · DSA Academy</title>
+<meta name="description" content="Chain of Responsibility across log levels and sinks.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../index.html" aria-current="page">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Low-level design</a></li><li><span aria-current="page">Logging framework</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Logging framework</h1>
+  <p class="lede">Design a small Log4j or Python <code>logging</code>: named loggers with levels, a chain of handlers each with its own threshold, pluggable formatters (plain text, JSON) and sinks (console, file, pager). It shows Chain of Responsibility, Strategy and a registry working together.</p>
+  <p class="tags"><span class="pill">Low-level design</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A newsroom&#39;s incoming wire. Every story passes along a line of desks: the website desk takes anything of general interest, the archive keeps everything, and the night editor&#39;s phone only rings for breaking news. Each desk decides for itself, then passes the story on.</p></aside>
+<h2 id="requirements">Requirements</h2>
+<p><strong>Functional</strong></p>
+<ul>
+<li>Levels DEBUG &lt; INFO &lt; WARN &lt; ERROR; each named logger has its own minimum level, changeable at runtime.</li>
+<li>A message that passes the logger goes through a chain of handlers; each handler writes it if it meets that handler&#39;s level.</li>
+<li>Handlers format with a formatter (plain or JSON) and write to a sink.</li>
+<li><code>getLogger(name)</code> returns the same logger every time.</li>
+</ul>
+<p><strong>Non-functional</strong></p>
+<ul>
+<li>Cheap when disabled: a filtered-out debug call does no formatting.</li>
+<li>New formats and destinations without touching the logger.</li>
+<li>Safe to call from many threads.</li>
+</ul>
+<h2 id="entities-and-relationships">Entities and relationships</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 747 402" role="img" aria-label="Class diagram: LoggerFactory caches Loggers and holds the head of a Handler chain; each Handler has a minimum level, a Formatter, a Sink and a next Handler"><defs><marker id="ah1-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker><marker id="ah1-dg-head-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head-a" d="M0 0L10 5L0 10z"/></marker></defs><path class="dg-line" d="M252.0 64.5 L314.0 64.5" marker-end="url(#ah1-dg-head)"/><path class="dg-line-a" d="M413.5 113.0 L413.5 161.0" marker-end="url(#ah1-dg-head-a)"/><path class="dg-line-a" d="M335.5 256.1 L198.5 323.0" marker-end="url(#ah1-dg-head-a)"/><path class="dg-line-a" d="M491.5 262.5 L597.7 323.0" marker-end="url(#ah1-dg-head-a)"/><path class="dg-line-a" d="M513.0 61.0 L575.0 58.8" marker-end="url(#ah1-dg-head-a)"/><rect class="dg-box" x="20.0" y="20" width="228" height="89" rx="6"/><rect class="dg-hd" x="20.0" y="20" width="228" height="28" rx="6"/><text class="dg-ch" x="134.0" y="34">LoggerFactory</text><text class="dg-c" x="30.0" y="66">- loggers: Map&lt;name, Logger&gt;</text><text class="dg-c" x="30.0" y="83">- chain: Handler</text><text class="dg-c" x="30.0" y="100">+ getLogger(name)</text><rect class="dg-box" x="318.0" y="20" width="191" height="89" rx="6"/><rect class="dg-hd" x="318.0" y="20" width="191" height="28" rx="6"/><text class="dg-ch" x="413.5" y="34">Logger</text><text class="dg-c" x="328.0" y="66">- name, level</text><text class="dg-c" x="328.0" y="83">+ debug/info/warn/error</text><text class="dg-c" x="328.0" y="100">+ setLevel(l)</text><rect class="dg-box" x="339.5" y="165" width="148" height="106" rx="6"/><rect class="dg-hd" x="339.5" y="165" width="148" height="28" rx="6"/><text class="dg-ch" x="413.5" y="179">Handler</text><text class="dg-c" x="349.5" y="211">- min: Level</text><text class="dg-c" x="349.5" y="228">- formatter, sink</text><text class="dg-c" x="349.5" y="245">- next: Handler</text><text class="dg-c" x="349.5" y="262">+ handle(record)</text><rect class="dg-box" x="45.5" y="327" width="177" height="55" rx="6"/><rect class="dg-hd" x="45.5" y="327" width="177" height="28" rx="6"/><text class="dg-ch" x="134.0" y="341">«interface» Formatter</text><text class="dg-c" x="55.5" y="373">+ format(record)</text><rect class="dg-box" x="583.0" y="327" width="140" height="55" rx="6"/><rect class="dg-hd" x="583.0" y="327" width="140" height="28" rx="6"/><text class="dg-ch" x="653.0" y="341">«interface» Sink</text><text class="dg-c" x="593.0" y="373">+ write(line)</text><rect class="dg-box" x="579.0" y="20" width="148" height="72" rx="6"/><rect class="dg-hd" x="579.0" y="20" width="148" height="28" rx="6"/><text class="dg-ch" x="653.0" y="34">LogRecord</text><text class="dg-c" x="589.0" y="66">- time, level</text><text class="dg-c" x="589.0" y="83">- logger, message</text><rect class="dg-bg" x="257.0" y="54.5" width="52" height="18" rx="4"/><text class="dg-sq" x="283.0" y="68.5">caches</text><rect class="dg-bg" x="380.5" y="127.0" width="66" height="18" rx="4"/><text class="dg-sq" x="413.5" y="141.0">sends to</text><rect class="dg-bg" x="514.5" y="49.86847599164927" width="59" height="18" rx="4"/><text class="dg-sq" x="544.0" y="63.86847599164927">creates</text></svg><figcaption>Handlers form a linked chain; formatters and sinks are strategies plugged into each handler.</figcaption></figure><ul>
+<li><strong>Two filters</strong>: the logger&#39;s level stops a record before it&#39;s even created
+(so <code>debug</code> calls in production cost almost nothing); each handler&#39;s level
+then decides which sinks get it.</li>
+<li><strong>The chain</strong> is <code>console (INFO+) → file (DEBUG+) → pager (ERROR+)</code>. This
+variant passes every record all the way down. The classic Chain of
+Responsibility stops at the first handler that handles a request, which suits
+approvals and middleware; logging usually wants every interested handler.</li>
+<li><strong>Formatter and Sink</strong> are strategies: <code>PlainFormatter</code>, <code>JsonFormatter</code>;
+<code>MemorySink</code> here, a file or network sink in real life.</li>
+</ul>
+<h2 id="design-patterns-used">Design patterns used</h2>
+<ul>
+<li><strong>Chain of Responsibility</strong>: handlers linked with <code>next</code>; each decides whether to act, then forwards.</li>
+<li><strong>Strategy</strong>: formatters and sinks plug into handlers.</li>
+<li><strong>Registry / Singleton-per-name</strong>: <code>getLogger(name)</code> caches one logger per name.</li>
+</ul>
+<h2 id="how-a-request-flows">How a request flows</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 901 362" role="img" aria-label="Sequence diagram: code calls error on a logger; the logger checks its level and creates a record; the console, file and pager handlers each check their level, write, and pass the record on"><defs><marker id="ah2-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker></defs><rect class="dg-hd" x="69.1" y="20" width="71.8" height="30" rx="6"/><text class="dg-ch" x="105.0" y="35">Caller</text><path class="dg-dash" d="M105.0 50 L105.0 352"/><rect class="dg-hd" x="213.55" y="20" width="122.89999999999999" height="30" rx="6"/><text class="dg-ch" x="275.0" y="35">Logger app.db</text><path class="dg-dash" d="M275.0 50 L275.0 352"/><rect class="dg-hd" x="376.25" y="20" width="137.5" height="30" rx="6"/><text class="dg-ch" x="445.0" y="35">console (INFO+)</text><path class="dg-dash" d="M445.0 50 L445.0 352"/><rect class="dg-hd" x="553.55" y="20" width="122.89999999999999" height="30" rx="6"/><text class="dg-ch" x="615.0" y="35">file (DEBUG+)</text><path class="dg-dash" d="M615.0 50 L615.0 352"/><rect class="dg-hd" x="719.9" y="20" width="130.2" height="30" rx="6"/><text class="dg-ch" x="785.0" y="35">pager (ERROR+)</text><path class="dg-dash" d="M785.0 50 L785.0 352"/><path class="dg-line" d="M105.0 88 L271.0 88" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="190.0" y="82">error(&quot;connection lost&quot;)</text><path class="dg-line" d="M275.0 112 h28 v14 h-26" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="309.0" y="118" text-anchor="start" style="text-anchor:start">level ok → LogRecord</text><path class="dg-line" d="M275.0 156 L441.0 156" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="360.0" y="150">handle(record)</text><path class="dg-line" d="M445.0 180 h28 v14 h-26" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="479.0" y="186" text-anchor="start" style="text-anchor:start">write plain line</text><path class="dg-line" d="M445.0 224 L611.0 224" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="530.0" y="218">next.handle</text><path class="dg-line" d="M615.0 248 h28 v14 h-26" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="649.0" y="254" text-anchor="start" style="text-anchor:start">write plain line</text><path class="dg-line" d="M615.0 292 L781.0 292" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="700.0" y="286">next.handle</text><path class="dg-line" d="M785.0 316 h28 v14 h-26" marker-end="url(#ah2-dg-head)"/><text class="dg-sq" x="819.0" y="322" text-anchor="start" style="text-anchor:start">write JSON</text></svg><figcaption>An ERROR record reaches every handler; a DEBUG record from a DEBUG logger only gets written by the file handler.</figcaption></figure><p><strong>Concurrency</strong>: the records are immutable and the chain doesn&#39;t change after
+set-up, so only the sinks need protecting: each sink&#39;s <code>write</code> is synchronised
+(or hands lines to a single writer thread, as in the async logger on the
+Snowflake IDs page).</p>
+<h2 id="cost-of-each-operation">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Filtered-out call</td><td class="nowrap">O(1)</td><td>One level comparison; no record, no formatting.</td></tr><tr><td>Accepted call</td><td class="nowrap">O(handlers)</td><td>Each handler checks its level and maybe formats and writes.</td></tr><tr><td>getLogger</td><td class="nowrap">O(1)</td><td>A map lookup.</td></tr></tbody></table></div><h2 id="code">Code</h2>
+<p>Time is a counter that ticks once per record that passes its logger, so a dropped call never uses a tick.</p><figure class="codeblock" id="code-logging-framework" aria-label="Loggers with levels, a handler chain, plain and JSON formatters, and in-memory sinks">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-logging-framework-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-logging-framework-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-logging-framework-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-logging-framework-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-logging-framework-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.Map;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.concurrent.ConcurrentHashMap;</span><span class="ln" data-line="5"><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicLong;</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9">    <span class="hljs-keyword">enum</span> <span class="hljs-title class_">Level</span> { DEBUG, INFO, WARN, ERROR }</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11">    <span class="hljs-keyword">record</span> <span class="hljs-title class_">LogRecord</span><span class="hljs-params">(<span class="hljs-type">long</span> time, Level level, String logger, String message)</span> {}</span><span class="ln" data-line="12"> </span><span class="ln" data-line="13">    <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Formatter</span> { <span class="hljs-type">String</span> <span class="hljs-title function_">format</span><span class="hljs-params">(LogRecord r)</span>; }</span><span class="ln" data-line="14">    <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Sink</span> { <span class="hljs-type">void</span> <span class="hljs-title function_">write</span><span class="hljs-params">(String line)</span>; }</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PlainFormatter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Formatter</span> {</span><span class="ln" data-line="17">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">format</span><span class="hljs-params">(LogRecord r)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;t=&quot;</span> + r.time() + <span class="hljs-string">&quot; &quot;</span> + r.level() + <span class="hljs-string">&quot; &quot;</span> + r.logger() + <span class="hljs-string">&quot;: &quot;</span> + r.message(); }</span><span class="ln" data-line="18">    }</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JsonFormatter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Formatter</span> {</span><span class="ln" data-line="21">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">quote</span><span class="hljs-params">(String s)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;\&quot;&quot;</span> + s.replace(<span class="hljs-string">&quot;\\&quot;</span>, <span class="hljs-string">&quot;\\\\&quot;</span>).replace(<span class="hljs-string">&quot;\&quot;&quot;</span>, <span class="hljs-string">&quot;\\\&quot;&quot;</span>) + <span class="hljs-string">&quot;\&quot;&quot;</span>; }</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23">        <span class="hljs-keyword">public</span> <span class="hljs-type">String</span> <span class="hljs-title function_">format</span><span class="hljs-params">(LogRecord r)</span> {</span><span class="ln" data-line="24">            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;{\&quot;t\&quot;:&quot;</span> + r.time() + <span class="hljs-string">&quot;,\&quot;level\&quot;:&quot;</span> + quote(r.level().name()) + <span class="hljs-string">&quot;,\&quot;logger\&quot;:&quot;</span> + quote(r.logger()) + <span class="hljs-string">&quot;,\&quot;msg\&quot;:&quot;</span> + quote(r.message()) + <span class="hljs-string">&quot;}&quot;</span>;</span><span class="ln" data-line="25">        }</span><span class="ln" data-line="26">    }</span><span class="ln" data-line="27"> </span><span class="ln" data-line="28">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MemorySink</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Sink</span> {</span><span class="ln" data-line="29">        <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">lines</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="30">        <span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-type">void</span> <span class="hljs-title function_">write</span><span class="hljs-params">(String line)</span> { lines.add(line); }</span><span class="ln" data-line="31">    }</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Handler</span> {</span><span class="ln" data-line="34">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Level min;</span><span class="ln" data-line="35">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Formatter formatter;</span><span class="ln" data-line="36">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Sink sink;</span><span class="ln" data-line="37">        <span class="hljs-keyword">private</span> Handler next;</span><span class="ln" data-line="38"> </span><span class="ln" data-line="39">        Handler(Level min, Formatter formatter, Sink sink) {</span><span class="ln" data-line="40">            <span class="hljs-built_in">this</span>.min = min;</span><span class="ln" data-line="41">            <span class="hljs-built_in">this</span>.formatter = formatter;</span><span class="ln" data-line="42">            <span class="hljs-built_in">this</span>.sink = sink;</span><span class="ln" data-line="43">        }</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45">        <span class="hljs-type">Handler</span> <span class="hljs-title function_">then</span><span class="hljs-params">(Handler next)</span> { <span class="hljs-built_in">this</span>.next = next; <span class="hljs-keyword">return</span> next; }</span><span class="ln" data-line="46"> </span><span class="ln" data-line="47">        <span class="hljs-type">void</span> <span class="hljs-title function_">handle</span><span class="hljs-params">(LogRecord r)</span> {</span><span class="ln" data-line="48">            <span class="hljs-keyword">if</span> (r.level().compareTo(min) &gt;= <span class="hljs-number">0</span>) sink.write(formatter.format(r));</span><span class="ln" data-line="49">            <span class="hljs-keyword">if</span> (next != <span class="hljs-literal">null</span>) next.handle(r); <span class="hljs-comment">// pass it on either way</span></span><span class="ln" data-line="50">        }</span><span class="ln" data-line="51">    }</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Logger</span> {</span><span class="ln" data-line="54">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String name;</span><span class="ln" data-line="55">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> LoggerFactory factory;</span><span class="ln" data-line="56">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-type">Level</span> <span class="hljs-variable">level</span> <span class="hljs-operator">=</span> Level.INFO;</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58">        Logger(String name, LoggerFactory factory) { <span class="hljs-built_in">this</span>.name = name; <span class="hljs-built_in">this</span>.factory = factory; }</span><span class="ln" data-line="59"> </span><span class="ln" data-line="60">        <span class="hljs-type">void</span> <span class="hljs-title function_">setLevel</span><span class="hljs-params">(Level level)</span> { <span class="hljs-built_in">this</span>.level = level; }</span><span class="ln" data-line="61"> </span><span class="ln" data-line="62">        <span class="hljs-type">void</span> <span class="hljs-title function_">log</span><span class="hljs-params">(Level l, String message)</span> {</span><span class="ln" data-line="63">            <span class="hljs-keyword">if</span> (l.compareTo(level) &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span>; <span class="hljs-comment">// cheapest possible exit: no record, no formatting</span></span><span class="ln" data-line="64">            factory.chain.handle(<span class="hljs-keyword">new</span> <span class="hljs-title class_">LogRecord</span>(factory.clock.incrementAndGet(), l, name, message));</span><span class="ln" data-line="65">        }</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67">        <span class="hljs-type">void</span> <span class="hljs-title function_">debug</span><span class="hljs-params">(String m)</span> { log(Level.DEBUG, m); }</span><span class="ln" data-line="68">        <span class="hljs-type">void</span> <span class="hljs-title function_">info</span><span class="hljs-params">(String m)</span> { log(Level.INFO, m); }</span><span class="ln" data-line="69">        <span class="hljs-type">void</span> <span class="hljs-title function_">warn</span><span class="hljs-params">(String m)</span> { log(Level.WARN, m); }</span><span class="ln" data-line="70">        <span class="hljs-type">void</span> <span class="hljs-title function_">error</span><span class="hljs-params">(String m)</span> { log(Level.ERROR, m); }</span><span class="ln" data-line="71">    }</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">LoggerFactory</span> {</span><span class="ln" data-line="74">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span>&lt;String, Logger&gt; <span class="hljs-variable">loggers</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;();</span><span class="ln" data-line="75">        <span class="hljs-keyword">final</span> Handler chain;</span><span class="ln" data-line="76">        <span class="hljs-keyword">final</span> <span class="hljs-type">AtomicLong</span> <span class="hljs-variable">clock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicLong</span>();</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78">        LoggerFactory(Handler chain) { <span class="hljs-built_in">this</span>.chain = chain; }</span><span class="ln" data-line="79"> </span><span class="ln" data-line="80">        <span class="hljs-type">Logger</span> <span class="hljs-title function_">getLogger</span><span class="hljs-params">(String name)</span> { <span class="hljs-keyword">return</span> loggers.computeIfAbsent(name, n -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">Logger</span>(n, <span class="hljs-built_in">this</span>)); }</span><span class="ln" data-line="81">    }</span><span class="ln" data-line="82"> </span><span class="ln" data-line="83">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="84">        <span class="hljs-type">MemorySink</span> <span class="hljs-variable">console</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MemorySink</span>(), file = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MemorySink</span>(), pager = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MemorySink</span>();</span><span class="ln" data-line="85">        <span class="hljs-type">Handler</span> <span class="hljs-variable">head</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Handler</span>(Level.INFO, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PlainFormatter</span>(), console);</span><span class="ln" data-line="86">        head.then(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Handler</span>(Level.DEBUG, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PlainFormatter</span>(), file))</span><span class="ln" data-line="87">            .then(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Handler</span>(Level.ERROR, <span class="hljs-keyword">new</span> <span class="hljs-title class_">JsonFormatter</span>(), pager));</span><span class="ln" data-line="88">        <span class="hljs-type">LoggerFactory</span> <span class="hljs-variable">factory</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LoggerFactory</span>(head);</span><span class="ln" data-line="89"> </span><span class="ln" data-line="90">        <span class="hljs-type">Logger</span> <span class="hljs-variable">app</span> <span class="hljs-operator">=</span> factory.getLogger(<span class="hljs-string">&quot;app&quot;</span>);</span><span class="ln" data-line="91">        <span class="hljs-type">Logger</span> <span class="hljs-variable">db</span> <span class="hljs-operator">=</span> factory.getLogger(<span class="hljs-string">&quot;app.db&quot;</span>);</span><span class="ln" data-line="92">        db.setLevel(Level.DEBUG);</span><span class="ln" data-line="93">        System.out.println(<span class="hljs-string">&quot;getLogger(\&quot;app\&quot;) twice gives the same logger: &quot;</span> + (app == factory.getLogger(<span class="hljs-string">&quot;app&quot;</span>)));</span><span class="ln" data-line="94"> </span><span class="ln" data-line="95">        app.debug(<span class="hljs-string">&quot;cache warmed&quot;</span>);                 <span class="hljs-comment">// below app&#x27;s INFO level: dropped</span></span><span class="ln" data-line="96">        db.debug(<span class="hljs-string">&quot;query took 12 ms&quot;</span>);</span><span class="ln" data-line="97">        app.info(<span class="hljs-string">&quot;server started on port 8080&quot;</span>);</span><span class="ln" data-line="98">        app.warn(<span class="hljs-string">&quot;disk 85% full&quot;</span>);</span><span class="ln" data-line="99">        db.error(<span class="hljs-string">&quot;connection lost&quot;</span>);</span><span class="ln" data-line="100">        app.setLevel(Level.WARN);</span><span class="ln" data-line="101">        app.info(<span class="hljs-string">&quot;health check ok&quot;</span>);               <span class="hljs-comment">// now below app&#x27;s level: dropped</span></span><span class="ln" data-line="102">        db.error(<span class="hljs-string">&quot;timeout talking to \&quot;replica-2\&quot;&quot;</span>);</span><span class="ln" data-line="103"> </span><span class="ln" data-line="104">        System.out.println(<span class="hljs-string">&quot;console (INFO and above, plain):&quot;</span>);</span><span class="ln" data-line="105">        <span class="hljs-keyword">for</span> (String l : console.lines) System.out.println(<span class="hljs-string">&quot;  &quot;</span> + l);</span><span class="ln" data-line="106">        System.out.println(<span class="hljs-string">&quot;file (DEBUG and above, plain):&quot;</span>);</span><span class="ln" data-line="107">        <span class="hljs-keyword">for</span> (String l : file.lines) System.out.println(<span class="hljs-string">&quot;  &quot;</span> + l);</span><span class="ln" data-line="108">        System.out.println(<span class="hljs-string">&quot;pager (ERROR only, JSON):&quot;</span>);</span><span class="ln" data-line="109">        <span class="hljs-keyword">for</span> (String l : pager.lines) System.out.println(<span class="hljs-string">&quot;  &quot;</span> + l);</span><span class="ln" data-line="110">    }</span><span class="ln" data-line="111">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+public class Solution {
+
+    enum Level { DEBUG, INFO, WARN, ERROR }
+
+    record LogRecord(long time, Level level, String logger, String message) {}
+
+    interface Formatter { String format(LogRecord r); }
+    interface Sink { void write(String line); }
+
+    static final class PlainFormatter implements Formatter {
+        public String format(LogRecord r) { return &quot;t=&quot; + r.time() + &quot; &quot; + r.level() + &quot; &quot; + r.logger() + &quot;: &quot; + r.message(); }
+    }
+
+    static final class JsonFormatter implements Formatter {
+        private static String quote(String s) { return &quot;\&quot;&quot; + s.replace(&quot;\\&quot;, &quot;\\\\&quot;).replace(&quot;\&quot;&quot;, &quot;\\\&quot;&quot;) + &quot;\&quot;&quot;; }
+
+        public String format(LogRecord r) {
+            return &quot;{\&quot;t\&quot;:&quot; + r.time() + &quot;,\&quot;level\&quot;:&quot; + quote(r.level().name()) + &quot;,\&quot;logger\&quot;:&quot; + quote(r.logger()) + &quot;,\&quot;msg\&quot;:&quot; + quote(r.message()) + &quot;}&quot;;
+        }
+    }
+
+    static final class MemorySink implements Sink {
+        final List&lt;String&gt; lines = new ArrayList&lt;&gt;();
+        public synchronized void write(String line) { lines.add(line); }
+    }
+
+    static final class Handler {
+        private final Level min;
+        private final Formatter formatter;
+        private final Sink sink;
+        private Handler next;
+
+        Handler(Level min, Formatter formatter, Sink sink) {
+            this.min = min;
+            this.formatter = formatter;
+            this.sink = sink;
+        }
+
+        Handler then(Handler next) { this.next = next; return next; }
+
+        void handle(LogRecord r) {
+            if (r.level().compareTo(min) &gt;= 0) sink.write(formatter.format(r));
+            if (next != null) next.handle(r); // pass it on either way
+        }
+    }
+
+    static final class Logger {
+        private final String name;
+        private final LoggerFactory factory;
+        private volatile Level level = Level.INFO;
+
+        Logger(String name, LoggerFactory factory) { this.name = name; this.factory = factory; }
+
+        void setLevel(Level level) { this.level = level; }
+
+        void log(Level l, String message) {
+            if (l.compareTo(level) &lt; 0) return; // cheapest possible exit: no record, no formatting
+            factory.chain.handle(new LogRecord(factory.clock.incrementAndGet(), l, name, message));
+        }
+
+        void debug(String m) { log(Level.DEBUG, m); }
+        void info(String m) { log(Level.INFO, m); }
+        void warn(String m) { log(Level.WARN, m); }
+        void error(String m) { log(Level.ERROR, m); }
+    }
+
+    static final class LoggerFactory {
+        private final Map&lt;String, Logger&gt; loggers = new ConcurrentHashMap&lt;&gt;();
+        final Handler chain;
+        final AtomicLong clock = new AtomicLong();
+
+        LoggerFactory(Handler chain) { this.chain = chain; }
+
+        Logger getLogger(String name) { return loggers.computeIfAbsent(name, n -&gt; new Logger(n, this)); }
+    }
+
+    public static void main(String[] args) {
+        MemorySink console = new MemorySink(), file = new MemorySink(), pager = new MemorySink();
+        Handler head = new Handler(Level.INFO, new PlainFormatter(), console);
+        head.then(new Handler(Level.DEBUG, new PlainFormatter(), file))
+            .then(new Handler(Level.ERROR, new JsonFormatter(), pager));
+        LoggerFactory factory = new LoggerFactory(head);
+
+        Logger app = factory.getLogger(&quot;app&quot;);
+        Logger db = factory.getLogger(&quot;app.db&quot;);
+        db.setLevel(Level.DEBUG);
+        System.out.println(&quot;getLogger(\&quot;app\&quot;) twice gives the same logger: &quot; + (app == factory.getLogger(&quot;app&quot;)));
+
+        app.debug(&quot;cache warmed&quot;);                 // below app&#39;s INFO level: dropped
+        db.debug(&quot;query took 12 ms&quot;);
+        app.info(&quot;server started on port 8080&quot;);
+        app.warn(&quot;disk 85% full&quot;);
+        db.error(&quot;connection lost&quot;);
+        app.setLevel(Level.WARN);
+        app.info(&quot;health check ok&quot;);               // now below app&#39;s level: dropped
+        db.error(&quot;timeout talking to \&quot;replica-2\&quot;&quot;);
+
+        System.out.println(&quot;console (INFO and above, plain):&quot;);
+        for (String l : console.lines) System.out.println(&quot;  &quot; + l);
+        System.out.println(&quot;file (DEBUG and above, plain):&quot;);
+        for (String l : file.lines) System.out.println(&quot;  &quot; + l);
+        System.out.println(&quot;pager (ERROR only, JSON):&quot;);
+        for (String l : pager.lines) System.out.println(&quot;  &quot; + l);
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-logging-framework-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">LEVELS</span> = { <span class="hljs-attr">DEBUG</span>: <span class="hljs-number">10</span>, <span class="hljs-attr">INFO</span>: <span class="hljs-number">20</span>, <span class="hljs-attr">WARN</span>: <span class="hljs-number">30</span>, <span class="hljs-attr">ERROR</span>: <span class="hljs-number">40</span> };</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">class</span> <span class="hljs-title class_">PlainFormatter</span> {</span><span class="ln" data-line="4">  <span class="hljs-title function_">format</span>(<span class="hljs-params">r</span>) {</span><span class="ln" data-line="5">    <span class="hljs-keyword">return</span> <span class="hljs-string">`t=<span class="hljs-subst">${r.time}</span> <span class="hljs-subst">${r.level}</span> <span class="hljs-subst">${r.logger}</span>: <span class="hljs-subst">${r.message}</span>`</span>;</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">}</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">class</span> <span class="hljs-title class_">JsonFormatter</span> {</span><span class="ln" data-line="10">  <span class="hljs-title function_">format</span>(<span class="hljs-params">r</span>) {</span><span class="ln" data-line="11">    <span class="hljs-keyword">return</span> <span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">stringify</span>({ <span class="hljs-attr">t</span>: r.<span class="hljs-property">time</span>, <span class="hljs-attr">level</span>: r.<span class="hljs-property">level</span>, <span class="hljs-attr">logger</span>: r.<span class="hljs-property">logger</span>, <span class="hljs-attr">msg</span>: r.<span class="hljs-property">message</span> });</span><span class="ln" data-line="12">  }</span><span class="ln" data-line="13">}</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MemorySink</span> {</span><span class="ln" data-line="16">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="17">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">lines</span> = [];</span><span class="ln" data-line="18">  }</span><span class="ln" data-line="19">  <span class="hljs-title function_">write</span>(<span class="hljs-params">line</span>) {</span><span class="ln" data-line="20">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">lines</span>.<span class="hljs-title function_">push</span>(line);</span><span class="ln" data-line="21">  }</span><span class="ln" data-line="22">}</span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Handler</span> {</span><span class="ln" data-line="25">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">min, formatter, sink</span>) {</span><span class="ln" data-line="26">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">min</span> = min;</span><span class="ln" data-line="27">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">formatter</span> = formatter;</span><span class="ln" data-line="28">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">sink</span> = sink;</span><span class="ln" data-line="29">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">next</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="30">  }</span><span class="ln" data-line="31">  <span class="hljs-title function_">then</span>(<span class="hljs-params">next</span>) {</span><span class="ln" data-line="32">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">next</span> = next;</span><span class="ln" data-line="33">    <span class="hljs-keyword">return</span> next;</span><span class="ln" data-line="34">  }</span><span class="ln" data-line="35">  <span class="hljs-title function_">handle</span>(<span class="hljs-params">r</span>) {</span><span class="ln" data-line="36">    <span class="hljs-keyword">if</span> (<span class="hljs-variable constant_">LEVELS</span>[r.<span class="hljs-property">level</span>] &gt;= <span class="hljs-variable constant_">LEVELS</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">min</span>]) <span class="hljs-variable language_">this</span>.<span class="hljs-property">sink</span>.<span class="hljs-title function_">write</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">formatter</span>.<span class="hljs-title function_">format</span>(r));</span><span class="ln" data-line="37">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">next</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">next</span>.<span class="hljs-title function_">handle</span>(r); <span class="hljs-comment">// pass it on either way</span></span><span class="ln" data-line="38">  }</span><span class="ln" data-line="39">}</span><span class="ln" data-line="40"> </span><span class="ln" data-line="41"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Logger</span> {</span><span class="ln" data-line="42">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">name, factory</span>) {</span><span class="ln" data-line="43">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">name</span> = name;</span><span class="ln" data-line="44">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span> = factory;</span><span class="ln" data-line="45">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">level</span> = <span class="hljs-string">&quot;INFO&quot;</span>;</span><span class="ln" data-line="46">  }</span><span class="ln" data-line="47">  <span class="hljs-title function_">setLevel</span>(<span class="hljs-params">level</span>) {</span><span class="ln" data-line="48">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">level</span> = level;</span><span class="ln" data-line="49">  }</span><span class="ln" data-line="50">  <span class="hljs-title function_">log</span>(<span class="hljs-params">level, message</span>) {</span><span class="ln" data-line="51">    <span class="hljs-keyword">if</span> (<span class="hljs-variable constant_">LEVELS</span>[level] &lt; <span class="hljs-variable constant_">LEVELS</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">level</span>]) <span class="hljs-keyword">return</span>; <span class="hljs-comment">// cheapest possible exit: no record, no formatting</span></span><span class="ln" data-line="52">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span>.<span class="hljs-property">chain</span>.<span class="hljs-title function_">handle</span>(<span class="hljs-title class_">Object</span>.<span class="hljs-title function_">freeze</span>({ <span class="hljs-attr">time</span>: ++<span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span>.<span class="hljs-property">clock</span>, level, <span class="hljs-attr">logger</span>: <span class="hljs-variable language_">this</span>.<span class="hljs-property">name</span>, message }));</span><span class="ln" data-line="53">  }</span><span class="ln" data-line="54">  <span class="hljs-title function_">debug</span>(<span class="hljs-params">m</span>) { <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;DEBUG&quot;</span>, m); }</span><span class="ln" data-line="55">  <span class="hljs-title function_">info</span>(<span class="hljs-params">m</span>) { <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;INFO&quot;</span>, m); }</span><span class="ln" data-line="56">  <span class="hljs-title function_">warn</span>(<span class="hljs-params">m</span>) { <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;WARN&quot;</span>, m); }</span><span class="ln" data-line="57">  <span class="hljs-title function_">error</span>(<span class="hljs-params">m</span>) { <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;ERROR&quot;</span>, m); }</span><span class="ln" data-line="58">}</span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LoggerFactory</span> {</span><span class="ln" data-line="61">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">chain</span>) {</span><span class="ln" data-line="62">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">chain</span> = chain;</span><span class="ln" data-line="63">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">clock</span> = <span class="hljs-number">0</span>;</span><span class="ln" data-line="64">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">loggers</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>();</span><span class="ln" data-line="65">  }</span><span class="ln" data-line="66">  <span class="hljs-title function_">getLogger</span>(<span class="hljs-params">name</span>) {</span><span class="ln" data-line="67">    <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-property">loggers</span>.<span class="hljs-title function_">has</span>(name)) <span class="hljs-variable language_">this</span>.<span class="hljs-property">loggers</span>.<span class="hljs-title function_">set</span>(name, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Logger</span>(name, <span class="hljs-variable language_">this</span>));</span><span class="ln" data-line="68">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">loggers</span>.<span class="hljs-title function_">get</span>(name);</span><span class="ln" data-line="69">  }</span><span class="ln" data-line="70">}</span><span class="ln" data-line="71"> </span><span class="ln" data-line="72"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="73">  <span class="hljs-keyword">const</span> console_ = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MemorySink</span>();</span><span class="ln" data-line="74">  <span class="hljs-keyword">const</span> file = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MemorySink</span>();</span><span class="ln" data-line="75">  <span class="hljs-keyword">const</span> pager = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MemorySink</span>();</span><span class="ln" data-line="76">  <span class="hljs-keyword">const</span> head = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Handler</span>(<span class="hljs-string">&quot;INFO&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PlainFormatter</span>(), console_);</span><span class="ln" data-line="77">  head.<span class="hljs-title function_">then</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Handler</span>(<span class="hljs-string">&quot;DEBUG&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PlainFormatter</span>(), file)).<span class="hljs-title function_">then</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Handler</span>(<span class="hljs-string">&quot;ERROR&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">JsonFormatter</span>(), pager));</span><span class="ln" data-line="78">  <span class="hljs-keyword">const</span> factory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LoggerFactory</span>(head);</span><span class="ln" data-line="79"> </span><span class="ln" data-line="80">  <span class="hljs-keyword">const</span> app = factory.<span class="hljs-title function_">getLogger</span>(<span class="hljs-string">&quot;app&quot;</span>);</span><span class="ln" data-line="81">  <span class="hljs-keyword">const</span> db = factory.<span class="hljs-title function_">getLogger</span>(<span class="hljs-string">&quot;app.db&quot;</span>);</span><span class="ln" data-line="82">  db.<span class="hljs-title function_">setLevel</span>(<span class="hljs-string">&quot;DEBUG&quot;</span>);</span><span class="ln" data-line="83">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`getLogger(&quot;app&quot;) twice gives the same logger: <span class="hljs-subst">${app === factory.getLogger(<span class="hljs-string">&quot;app&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="84"> </span><span class="ln" data-line="85">  app.<span class="hljs-title function_">debug</span>(<span class="hljs-string">&quot;cache warmed&quot;</span>); <span class="hljs-comment">// below app&#x27;s INFO level: dropped</span></span><span class="ln" data-line="86">  db.<span class="hljs-title function_">debug</span>(<span class="hljs-string">&quot;query took 12 ms&quot;</span>);</span><span class="ln" data-line="87">  app.<span class="hljs-title function_">info</span>(<span class="hljs-string">&quot;server started on port 8080&quot;</span>);</span><span class="ln" data-line="88">  app.<span class="hljs-title function_">warn</span>(<span class="hljs-string">&quot;disk 85% full&quot;</span>);</span><span class="ln" data-line="89">  db.<span class="hljs-title function_">error</span>(<span class="hljs-string">&quot;connection lost&quot;</span>);</span><span class="ln" data-line="90">  app.<span class="hljs-title function_">setLevel</span>(<span class="hljs-string">&quot;WARN&quot;</span>);</span><span class="ln" data-line="91">  app.<span class="hljs-title function_">info</span>(<span class="hljs-string">&quot;health check ok&quot;</span>); <span class="hljs-comment">// now below app&#x27;s level: dropped</span></span><span class="ln" data-line="92">  db.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;timeout talking to &quot;replica-2&quot;&#x27;</span>);</span><span class="ln" data-line="93"> </span><span class="ln" data-line="94">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;console (INFO and above, plain):&quot;</span>);</span><span class="ln" data-line="95">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> l <span class="hljs-keyword">of</span> console_.<span class="hljs-property">lines</span>) <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${l}</span>`</span>);</span><span class="ln" data-line="96">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;file (DEBUG and above, plain):&quot;</span>);</span><span class="ln" data-line="97">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> l <span class="hljs-keyword">of</span> file.<span class="hljs-property">lines</span>) <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${l}</span>`</span>);</span><span class="ln" data-line="98">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;pager (ERROR only, JSON):&quot;</span>);</span><span class="ln" data-line="99">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> l <span class="hljs-keyword">of</span> pager.<span class="hljs-property">lines</span>) <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${l}</span>`</span>);</span><span class="ln" data-line="100">}</span><span class="ln" data-line="101"> </span><span class="ln" data-line="102"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">const LEVELS = { DEBUG: 10, INFO: 20, WARN: 30, ERROR: 40 };
+
+class PlainFormatter {
+  format(r) {
+    return `t=${r.time} ${r.level} ${r.logger}: ${r.message}`;
+  }
+}
+
+class JsonFormatter {
+  format(r) {
+    return JSON.stringify({ t: r.time, level: r.level, logger: r.logger, msg: r.message });
+  }
+}
+
+class MemorySink {
+  constructor() {
+    this.lines = [];
+  }
+  write(line) {
+    this.lines.push(line);
+  }
+}
+
+class Handler {
+  constructor(min, formatter, sink) {
+    this.min = min;
+    this.formatter = formatter;
+    this.sink = sink;
+    this.next = null;
+  }
+  then(next) {
+    this.next = next;
+    return next;
+  }
+  handle(r) {
+    if (LEVELS[r.level] &gt;= LEVELS[this.min]) this.sink.write(this.formatter.format(r));
+    if (this.next) this.next.handle(r); // pass it on either way
+  }
+}
+
+class Logger {
+  constructor(name, factory) {
+    this.name = name;
+    this.factory = factory;
+    this.level = &quot;INFO&quot;;
+  }
+  setLevel(level) {
+    this.level = level;
+  }
+  log(level, message) {
+    if (LEVELS[level] &lt; LEVELS[this.level]) return; // cheapest possible exit: no record, no formatting
+    this.factory.chain.handle(Object.freeze({ time: ++this.factory.clock, level, logger: this.name, message }));
+  }
+  debug(m) { this.log(&quot;DEBUG&quot;, m); }
+  info(m) { this.log(&quot;INFO&quot;, m); }
+  warn(m) { this.log(&quot;WARN&quot;, m); }
+  error(m) { this.log(&quot;ERROR&quot;, m); }
+}
+
+class LoggerFactory {
+  constructor(chain) {
+    this.chain = chain;
+    this.clock = 0;
+    this.loggers = new Map();
+  }
+  getLogger(name) {
+    if (!this.loggers.has(name)) this.loggers.set(name, new Logger(name, this));
+    return this.loggers.get(name);
+  }
+}
+
+function main() {
+  const console_ = new MemorySink();
+  const file = new MemorySink();
+  const pager = new MemorySink();
+  const head = new Handler(&quot;INFO&quot;, new PlainFormatter(), console_);
+  head.then(new Handler(&quot;DEBUG&quot;, new PlainFormatter(), file)).then(new Handler(&quot;ERROR&quot;, new JsonFormatter(), pager));
+  const factory = new LoggerFactory(head);
+
+  const app = factory.getLogger(&quot;app&quot;);
+  const db = factory.getLogger(&quot;app.db&quot;);
+  db.setLevel(&quot;DEBUG&quot;);
+  console.log(`getLogger(&quot;app&quot;) twice gives the same logger: ${app === factory.getLogger(&quot;app&quot;)}`);
+
+  app.debug(&quot;cache warmed&quot;); // below app&#39;s INFO level: dropped
+  db.debug(&quot;query took 12 ms&quot;);
+  app.info(&quot;server started on port 8080&quot;);
+  app.warn(&quot;disk 85% full&quot;);
+  db.error(&quot;connection lost&quot;);
+  app.setLevel(&quot;WARN&quot;);
+  app.info(&quot;health check ok&quot;); // now below app&#39;s level: dropped
+  db.error(&#39;timeout talking to &quot;replica-2&quot;&#39;);
+
+  console.log(&quot;console (INFO and above, plain):&quot;);
+  for (const l of console_.lines) console.log(`  ${l}`);
+  console.log(&quot;file (DEBUG and above, plain):&quot;);
+  for (const l of file.lines) console.log(`  ${l}`);
+  console.log(&quot;pager (ERROR only, JSON):&quot;);
+  for (const l of pager.lines) console.log(`  ${l}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-logging-framework-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">LEVELS</span> = { <span class="hljs-attr">DEBUG</span>: <span class="hljs-number">10</span>, <span class="hljs-attr">INFO</span>: <span class="hljs-number">20</span>, <span class="hljs-attr">WARN</span>: <span class="hljs-number">30</span>, <span class="hljs-attr">ERROR</span>: <span class="hljs-number">40</span> } <span class="hljs-keyword">as</span> <span class="hljs-keyword">const</span>;</span><span class="ln" data-line="2"><span class="hljs-keyword">type</span> <span class="hljs-title class_">Level</span> = keyof <span class="hljs-keyword">typeof</span> <span class="hljs-variable constant_">LEVELS</span>;</span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">interface</span> <span class="hljs-title class_">LogRecord</span> {</span><span class="ln" data-line="5">  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">time</span>: <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="6">  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">level</span>: <span class="hljs-title class_">Level</span>;</span><span class="ln" data-line="7">  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">logger</span>: <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="8">  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">message</span>: <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="9">}</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"><span class="hljs-keyword">interface</span> <span class="hljs-title class_">Formatter</span> {</span><span class="ln" data-line="12">  <span class="hljs-title function_">format</span>(<span class="hljs-attr">r</span>: <span class="hljs-title class_">LogRecord</span>): <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="13">}</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-keyword">interface</span> <span class="hljs-title class_">Sink</span> {</span><span class="ln" data-line="16">  <span class="hljs-title function_">write</span>(<span class="hljs-attr">line</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span>;</span><span class="ln" data-line="17">}</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"><span class="hljs-keyword">class</span> <span class="hljs-title class_">PlainFormatter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Formatter</span> {</span><span class="ln" data-line="20">  <span class="hljs-title function_">format</span>(<span class="hljs-attr">r</span>: <span class="hljs-title class_">LogRecord</span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="21">    <span class="hljs-keyword">return</span> <span class="hljs-string">`t=<span class="hljs-subst">${r.time}</span> <span class="hljs-subst">${r.level}</span> <span class="hljs-subst">${r.logger}</span>: <span class="hljs-subst">${r.message}</span>`</span>;</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">}</span><span class="ln" data-line="24"> </span><span class="ln" data-line="25"><span class="hljs-keyword">class</span> <span class="hljs-title class_">JsonFormatter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Formatter</span> {</span><span class="ln" data-line="26">  <span class="hljs-title function_">format</span>(<span class="hljs-attr">r</span>: <span class="hljs-title class_">LogRecord</span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="27">    <span class="hljs-keyword">return</span> <span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">stringify</span>({ <span class="hljs-attr">t</span>: r.<span class="hljs-property">time</span>, <span class="hljs-attr">level</span>: r.<span class="hljs-property">level</span>, <span class="hljs-attr">logger</span>: r.<span class="hljs-property">logger</span>, <span class="hljs-attr">msg</span>: r.<span class="hljs-property">message</span> });</span><span class="ln" data-line="28">  }</span><span class="ln" data-line="29">}</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MemorySink</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Sink</span> {</span><span class="ln" data-line="32">  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">lines</span>: <span class="hljs-built_in">string</span>[] = [];</span><span class="ln" data-line="33">  <span class="hljs-title function_">write</span>(<span class="hljs-attr">line</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="34">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">lines</span>.<span class="hljs-title function_">push</span>(line);</span><span class="ln" data-line="35">  }</span><span class="ln" data-line="36">}</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Handler</span> {</span><span class="ln" data-line="39">  <span class="hljs-keyword">private</span> <span class="hljs-attr">min</span>: <span class="hljs-title class_">Level</span>;</span><span class="ln" data-line="40">  <span class="hljs-keyword">private</span> <span class="hljs-attr">formatter</span>: <span class="hljs-title class_">Formatter</span>;</span><span class="ln" data-line="41">  <span class="hljs-keyword">private</span> <span class="hljs-attr">sink</span>: <span class="hljs-title class_">Sink</span>;</span><span class="ln" data-line="42">  <span class="hljs-keyword">private</span> <span class="hljs-attr">next</span>: <span class="hljs-title class_">Handler</span> | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">min</span>: <span class="hljs-title class_">Level</span>, <span class="hljs-attr">formatter</span>: <span class="hljs-title class_">Formatter</span>, <span class="hljs-attr">sink</span>: <span class="hljs-title class_">Sink</span></span>) {</span><span class="ln" data-line="45">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">min</span> = min;</span><span class="ln" data-line="46">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">formatter</span> = formatter;</span><span class="ln" data-line="47">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">sink</span> = sink;</span><span class="ln" data-line="48">  }</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50">  <span class="hljs-title function_">then</span>(<span class="hljs-attr">next</span>: <span class="hljs-title class_">Handler</span>): <span class="hljs-title class_">Handler</span> {</span><span class="ln" data-line="51">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">next</span> = next;</span><span class="ln" data-line="52">    <span class="hljs-keyword">return</span> next;</span><span class="ln" data-line="53">  }</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55">  <span class="hljs-title function_">handle</span>(<span class="hljs-attr">r</span>: <span class="hljs-title class_">LogRecord</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="56">    <span class="hljs-keyword">if</span> (<span class="hljs-variable constant_">LEVELS</span>[r.<span class="hljs-property">level</span>] &gt;= <span class="hljs-variable constant_">LEVELS</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">min</span>]) <span class="hljs-variable language_">this</span>.<span class="hljs-property">sink</span>.<span class="hljs-title function_">write</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">formatter</span>.<span class="hljs-title function_">format</span>(r));</span><span class="ln" data-line="57">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">next</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">next</span>.<span class="hljs-title function_">handle</span>(r); <span class="hljs-comment">// pass it on either way</span></span><span class="ln" data-line="58">  }</span><span class="ln" data-line="59">}</span><span class="ln" data-line="60"> </span><span class="ln" data-line="61"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Logger</span> {</span><span class="ln" data-line="62">  <span class="hljs-keyword">private</span> <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;</span><span class="ln" data-line="63">  <span class="hljs-keyword">private</span> <span class="hljs-attr">factory</span>: <span class="hljs-title class_">LoggerFactory</span>;</span><span class="ln" data-line="64">  <span class="hljs-keyword">private</span> <span class="hljs-attr">level</span>: <span class="hljs-title class_">Level</span> = <span class="hljs-string">&quot;INFO&quot;</span>;</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">factory</span>: <span class="hljs-title class_">LoggerFactory</span></span>) {</span><span class="ln" data-line="67">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">name</span> = name;</span><span class="ln" data-line="68">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span> = factory;</span><span class="ln" data-line="69">  }</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71">  <span class="hljs-title function_">setLevel</span>(<span class="hljs-attr">level</span>: <span class="hljs-title class_">Level</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="72">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">level</span> = level;</span><span class="ln" data-line="73">  }</span><span class="ln" data-line="74"> </span><span class="ln" data-line="75">  <span class="hljs-title function_">log</span>(<span class="hljs-attr">level</span>: <span class="hljs-title class_">Level</span>, <span class="hljs-attr">message</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="76">    <span class="hljs-keyword">if</span> (<span class="hljs-variable constant_">LEVELS</span>[level] &lt; <span class="hljs-variable constant_">LEVELS</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">level</span>]) <span class="hljs-keyword">return</span>; <span class="hljs-comment">// cheapest possible exit: no record, no formatting</span></span><span class="ln" data-line="77">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span>.<span class="hljs-property">chain</span>.<span class="hljs-title function_">handle</span>({ <span class="hljs-attr">time</span>: <span class="hljs-variable language_">this</span>.<span class="hljs-property">factory</span>.<span class="hljs-title function_">tick</span>(), level, <span class="hljs-attr">logger</span>: <span class="hljs-variable language_">this</span>.<span class="hljs-property">name</span>, message });</span><span class="ln" data-line="78">  }</span><span class="ln" data-line="79"> </span><span class="ln" data-line="80">  <span class="hljs-title function_">debug</span>(<span class="hljs-attr">m</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> { <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;DEBUG&quot;</span>, m); }</span><span class="ln" data-line="81">  <span class="hljs-title function_">info</span>(<span class="hljs-attr">m</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> { <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;INFO&quot;</span>, m); }</span><span class="ln" data-line="82">  <span class="hljs-title function_">warn</span>(<span class="hljs-attr">m</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> { <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;WARN&quot;</span>, m); }</span><span class="ln" data-line="83">  <span class="hljs-title function_">error</span>(<span class="hljs-attr">m</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">void</span> { <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;ERROR&quot;</span>, m); }</span><span class="ln" data-line="84">}</span><span class="ln" data-line="85"> </span><span class="ln" data-line="86"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LoggerFactory</span> {</span><span class="ln" data-line="87">  <span class="hljs-keyword">readonly</span> <span class="hljs-attr">chain</span>: <span class="hljs-title class_">Handler</span>;</span><span class="ln" data-line="88">  <span class="hljs-keyword">private</span> clock = <span class="hljs-number">0</span>;</span><span class="ln" data-line="89">  <span class="hljs-keyword">private</span> loggers = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">Logger</span>&gt;();</span><span class="ln" data-line="90"> </span><span class="ln" data-line="91">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">chain</span>: <span class="hljs-title class_">Handler</span></span>) {</span><span class="ln" data-line="92">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">chain</span> = chain;</span><span class="ln" data-line="93">  }</span><span class="ln" data-line="94"> </span><span class="ln" data-line="95">  <span class="hljs-title function_">tick</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="96">    <span class="hljs-keyword">return</span> ++<span class="hljs-variable language_">this</span>.<span class="hljs-property">clock</span>;</span><span class="ln" data-line="97">  }</span><span class="ln" data-line="98"> </span><span class="ln" data-line="99">  <span class="hljs-title function_">getLogger</span>(<span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Logger</span> {</span><span class="ln" data-line="100">    <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-property">loggers</span>.<span class="hljs-title function_">has</span>(name)) <span class="hljs-variable language_">this</span>.<span class="hljs-property">loggers</span>.<span class="hljs-title function_">set</span>(name, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Logger</span>(name, <span class="hljs-variable language_">this</span>));</span><span class="ln" data-line="101">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">loggers</span>.<span class="hljs-title function_">get</span>(name) <span class="hljs-keyword">as</span> <span class="hljs-title class_">Logger</span>;</span><span class="ln" data-line="102">  }</span><span class="ln" data-line="103">}</span><span class="ln" data-line="104"> </span><span class="ln" data-line="105"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="106">  <span class="hljs-keyword">const</span> consoleSink = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MemorySink</span>();</span><span class="ln" data-line="107">  <span class="hljs-keyword">const</span> file = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MemorySink</span>();</span><span class="ln" data-line="108">  <span class="hljs-keyword">const</span> pager = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MemorySink</span>();</span><span class="ln" data-line="109">  <span class="hljs-keyword">const</span> head = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Handler</span>(<span class="hljs-string">&quot;INFO&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PlainFormatter</span>(), consoleSink);</span><span class="ln" data-line="110">  head.<span class="hljs-title function_">then</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Handler</span>(<span class="hljs-string">&quot;DEBUG&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PlainFormatter</span>(), file)).<span class="hljs-title function_">then</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Handler</span>(<span class="hljs-string">&quot;ERROR&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">JsonFormatter</span>(), pager));</span><span class="ln" data-line="111">  <span class="hljs-keyword">const</span> factory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LoggerFactory</span>(head);</span><span class="ln" data-line="112"> </span><span class="ln" data-line="113">  <span class="hljs-keyword">const</span> app = factory.<span class="hljs-title function_">getLogger</span>(<span class="hljs-string">&quot;app&quot;</span>);</span><span class="ln" data-line="114">  <span class="hljs-keyword">const</span> db = factory.<span class="hljs-title function_">getLogger</span>(<span class="hljs-string">&quot;app.db&quot;</span>);</span><span class="ln" data-line="115">  db.<span class="hljs-title function_">setLevel</span>(<span class="hljs-string">&quot;DEBUG&quot;</span>);</span><span class="ln" data-line="116">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`getLogger(&quot;app&quot;) twice gives the same logger: <span class="hljs-subst">${app === factory.getLogger(<span class="hljs-string">&quot;app&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="117"> </span><span class="ln" data-line="118">  app.<span class="hljs-title function_">debug</span>(<span class="hljs-string">&quot;cache warmed&quot;</span>); <span class="hljs-comment">// below app&#x27;s INFO level: dropped</span></span><span class="ln" data-line="119">  db.<span class="hljs-title function_">debug</span>(<span class="hljs-string">&quot;query took 12 ms&quot;</span>);</span><span class="ln" data-line="120">  app.<span class="hljs-title function_">info</span>(<span class="hljs-string">&quot;server started on port 8080&quot;</span>);</span><span class="ln" data-line="121">  app.<span class="hljs-title function_">warn</span>(<span class="hljs-string">&quot;disk 85% full&quot;</span>);</span><span class="ln" data-line="122">  db.<span class="hljs-title function_">error</span>(<span class="hljs-string">&quot;connection lost&quot;</span>);</span><span class="ln" data-line="123">  app.<span class="hljs-title function_">setLevel</span>(<span class="hljs-string">&quot;WARN&quot;</span>);</span><span class="ln" data-line="124">  app.<span class="hljs-title function_">info</span>(<span class="hljs-string">&quot;health check ok&quot;</span>); <span class="hljs-comment">// now below app&#x27;s level: dropped</span></span><span class="ln" data-line="125">  db.<span class="hljs-title function_">error</span>(<span class="hljs-string">&#x27;timeout talking to &quot;replica-2&quot;&#x27;</span>);</span><span class="ln" data-line="126"> </span><span class="ln" data-line="127">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;console (INFO and above, plain):&quot;</span>);</span><span class="ln" data-line="128">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> l <span class="hljs-keyword">of</span> consoleSink.<span class="hljs-property">lines</span>) <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${l}</span>`</span>);</span><span class="ln" data-line="129">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;file (DEBUG and above, plain):&quot;</span>);</span><span class="ln" data-line="130">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> l <span class="hljs-keyword">of</span> file.<span class="hljs-property">lines</span>) <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${l}</span>`</span>);</span><span class="ln" data-line="131">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;pager (ERROR only, JSON):&quot;</span>);</span><span class="ln" data-line="132">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> l <span class="hljs-keyword">of</span> pager.<span class="hljs-property">lines</span>) <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${l}</span>`</span>);</span><span class="ln" data-line="133">}</span><span class="ln" data-line="134"> </span><span class="ln" data-line="135"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">const LEVELS = { DEBUG: 10, INFO: 20, WARN: 30, ERROR: 40 } as const;
+type Level = keyof typeof LEVELS;
+
+interface LogRecord {
+  readonly time: number;
+  readonly level: Level;
+  readonly logger: string;
+  readonly message: string;
+}
+
+interface Formatter {
+  format(r: LogRecord): string;
+}
+
+interface Sink {
+  write(line: string): void;
+}
+
+class PlainFormatter implements Formatter {
+  format(r: LogRecord): string {
+    return `t=${r.time} ${r.level} ${r.logger}: ${r.message}`;
+  }
+}
+
+class JsonFormatter implements Formatter {
+  format(r: LogRecord): string {
+    return JSON.stringify({ t: r.time, level: r.level, logger: r.logger, msg: r.message });
+  }
+}
+
+class MemorySink implements Sink {
+  readonly lines: string[] = [];
+  write(line: string): void {
+    this.lines.push(line);
+  }
+}
+
+class Handler {
+  private min: Level;
+  private formatter: Formatter;
+  private sink: Sink;
+  private next: Handler | null = null;
+
+  constructor(min: Level, formatter: Formatter, sink: Sink) {
+    this.min = min;
+    this.formatter = formatter;
+    this.sink = sink;
+  }
+
+  then(next: Handler): Handler {
+    this.next = next;
+    return next;
+  }
+
+  handle(r: LogRecord): void {
+    if (LEVELS[r.level] &gt;= LEVELS[this.min]) this.sink.write(this.formatter.format(r));
+    if (this.next) this.next.handle(r); // pass it on either way
+  }
+}
+
+class Logger {
+  private name: string;
+  private factory: LoggerFactory;
+  private level: Level = &quot;INFO&quot;;
+
+  constructor(name: string, factory: LoggerFactory) {
+    this.name = name;
+    this.factory = factory;
+  }
+
+  setLevel(level: Level): void {
+    this.level = level;
+  }
+
+  log(level: Level, message: string): void {
+    if (LEVELS[level] &lt; LEVELS[this.level]) return; // cheapest possible exit: no record, no formatting
+    this.factory.chain.handle({ time: this.factory.tick(), level, logger: this.name, message });
+  }
+
+  debug(m: string): void { this.log(&quot;DEBUG&quot;, m); }
+  info(m: string): void { this.log(&quot;INFO&quot;, m); }
+  warn(m: string): void { this.log(&quot;WARN&quot;, m); }
+  error(m: string): void { this.log(&quot;ERROR&quot;, m); }
+}
+
+class LoggerFactory {
+  readonly chain: Handler;
+  private clock = 0;
+  private loggers = new Map&lt;string, Logger&gt;();
+
+  constructor(chain: Handler) {
+    this.chain = chain;
+  }
+
+  tick(): number {
+    return ++this.clock;
+  }
+
+  getLogger(name: string): Logger {
+    if (!this.loggers.has(name)) this.loggers.set(name, new Logger(name, this));
+    return this.loggers.get(name) as Logger;
+  }
+}
+
+function main(): void {
+  const consoleSink = new MemorySink();
+  const file = new MemorySink();
+  const pager = new MemorySink();
+  const head = new Handler(&quot;INFO&quot;, new PlainFormatter(), consoleSink);
+  head.then(new Handler(&quot;DEBUG&quot;, new PlainFormatter(), file)).then(new Handler(&quot;ERROR&quot;, new JsonFormatter(), pager));
+  const factory = new LoggerFactory(head);
+
+  const app = factory.getLogger(&quot;app&quot;);
+  const db = factory.getLogger(&quot;app.db&quot;);
+  db.setLevel(&quot;DEBUG&quot;);
+  console.log(`getLogger(&quot;app&quot;) twice gives the same logger: ${app === factory.getLogger(&quot;app&quot;)}`);
+
+  app.debug(&quot;cache warmed&quot;); // below app&#39;s INFO level: dropped
+  db.debug(&quot;query took 12 ms&quot;);
+  app.info(&quot;server started on port 8080&quot;);
+  app.warn(&quot;disk 85% full&quot;);
+  db.error(&quot;connection lost&quot;);
+  app.setLevel(&quot;WARN&quot;);
+  app.info(&quot;health check ok&quot;); // now below app&#39;s level: dropped
+  db.error(&#39;timeout talking to &quot;replica-2&quot;&#39;);
+
+  console.log(&quot;console (INFO and above, plain):&quot;);
+  for (const l of consoleSink.lines) console.log(`  ${l}`);
+  console.log(&quot;file (DEBUG and above, plain):&quot;);
+  for (const l of file.lines) console.log(`  ${l}`);
+  console.log(&quot;pager (ERROR only, JSON):&quot;);
+  for (const l of pager.lines) console.log(`  ${l}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-logging-framework-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> json</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> threading</span><span class="ln" data-line="3"><span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass</span><span class="ln" data-line="4"><span class="hljs-keyword">from</span> enum <span class="hljs-keyword">import</span> IntEnum</span><span class="ln" data-line="5"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Dict</span>, <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span>, Protocol</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Level</span>(<span class="hljs-title class_ inherited__">IntEnum</span>):</span><span class="ln" data-line="9">    DEBUG = <span class="hljs-number">10</span></span><span class="ln" data-line="10">    INFO = <span class="hljs-number">20</span></span><span class="ln" data-line="11">    WARN = <span class="hljs-number">30</span></span><span class="ln" data-line="12">    ERROR = <span class="hljs-number">40</span></span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span></span><span class="ln" data-line="16"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LogRecord</span>:</span><span class="ln" data-line="17">    time: <span class="hljs-built_in">int</span></span><span class="ln" data-line="18">    level: Level</span><span class="ln" data-line="19">    logger: <span class="hljs-built_in">str</span></span><span class="ln" data-line="20">    message: <span class="hljs-built_in">str</span></span><span class="ln" data-line="21"> </span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Formatter</span>(<span class="hljs-title class_ inherited__">Protocol</span>):</span><span class="ln" data-line="24">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">format</span>(<span class="hljs-params">self, r: LogRecord</span>) -&gt; <span class="hljs-built_in">str</span>: ...</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"><span class="hljs-keyword">class</span> <span class="hljs-title class_">PlainFormatter</span>:</span><span class="ln" data-line="28">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">format</span>(<span class="hljs-params">self, r: LogRecord</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="29">        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;t=<span class="hljs-subst">{r.time}</span> <span class="hljs-subst">{r.level.name}</span> <span class="hljs-subst">{r.logger}</span>: <span class="hljs-subst">{r.message}</span>&quot;</span></span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-keyword">class</span> <span class="hljs-title class_">JsonFormatter</span>:</span><span class="ln" data-line="33">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">format</span>(<span class="hljs-params">self, r: LogRecord</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="34">        <span class="hljs-keyword">return</span> json.dumps({<span class="hljs-string">&quot;t&quot;</span>: r.time, <span class="hljs-string">&quot;level&quot;</span>: r.level.name, <span class="hljs-string">&quot;logger&quot;</span>: r.logger, <span class="hljs-string">&quot;msg&quot;</span>: r.message}, separators=(<span class="hljs-string">&quot;,&quot;</span>, <span class="hljs-string">&quot;:&quot;</span>))</span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MemorySink</span>:</span><span class="ln" data-line="38">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="39">        <span class="hljs-variable language_">self</span>.lines: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>] = []</span><span class="ln" data-line="40">        <span class="hljs-variable language_">self</span>._lock = threading.Lock()</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">write</span>(<span class="hljs-params">self, line: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="43">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="44">            <span class="hljs-variable language_">self</span>.lines.append(line)</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"> </span><span class="ln" data-line="47"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Handler</span>:</span><span class="ln" data-line="48">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, min_level: Level, formatter: Formatter, sink: MemorySink</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="49">        <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">min</span>, <span class="hljs-variable language_">self</span>.formatter, <span class="hljs-variable language_">self</span>.sink = min_level, formatter, sink</span><span class="ln" data-line="50">        <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">next</span>: <span class="hljs-type">Optional</span>[<span class="hljs-string">&quot;Handler&quot;</span>] = <span class="hljs-literal">None</span></span><span class="ln" data-line="51"> </span><span class="ln" data-line="52">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">then</span>(<span class="hljs-params">self, nxt: <span class="hljs-string">&quot;Handler&quot;</span></span>) -&gt; <span class="hljs-string">&quot;Handler&quot;</span>:</span><span class="ln" data-line="53">        <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">next</span> = nxt</span><span class="ln" data-line="54">        <span class="hljs-keyword">return</span> nxt</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">handle</span>(<span class="hljs-params">self, r: LogRecord</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="57">        <span class="hljs-keyword">if</span> r.level &gt;= <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">min</span>:</span><span class="ln" data-line="58">            <span class="hljs-variable language_">self</span>.sink.write(<span class="hljs-variable language_">self</span>.formatter.<span class="hljs-built_in">format</span>(r))</span><span class="ln" data-line="59">        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">next</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:  <span class="hljs-comment"># pass it on either way</span></span><span class="ln" data-line="60">            <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">next</span>.handle(r)</span><span class="ln" data-line="61"> </span><span class="ln" data-line="62"> </span><span class="ln" data-line="63"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Logger</span>:</span><span class="ln" data-line="64">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, name: <span class="hljs-built_in">str</span>, factory: <span class="hljs-string">&quot;LoggerFactory&quot;</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="65">        <span class="hljs-variable language_">self</span>.name, <span class="hljs-variable language_">self</span>.factory = name, factory</span><span class="ln" data-line="66">        <span class="hljs-variable language_">self</span>.level = Level.INFO</span><span class="ln" data-line="67"> </span><span class="ln" data-line="68">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">set_level</span>(<span class="hljs-params">self, level: Level</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="69">        <span class="hljs-variable language_">self</span>.level = level</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">log</span>(<span class="hljs-params">self, level: Level, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="72">        <span class="hljs-keyword">if</span> level &lt; <span class="hljs-variable language_">self</span>.level:  <span class="hljs-comment"># cheapest possible exit: no record, no formatting</span></span><span class="ln" data-line="73">            <span class="hljs-keyword">return</span></span><span class="ln" data-line="74">        <span class="hljs-variable language_">self</span>.factory.chain.handle(LogRecord(<span class="hljs-variable language_">self</span>.factory.tick(), level, <span class="hljs-variable language_">self</span>.name, message))</span><span class="ln" data-line="75"> </span><span class="ln" data-line="76">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">debug</span>(<span class="hljs-params">self, m: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="77">        <span class="hljs-variable language_">self</span>.log(Level.DEBUG, m)</span><span class="ln" data-line="78"> </span><span class="ln" data-line="79">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">info</span>(<span class="hljs-params">self, m: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="80">        <span class="hljs-variable language_">self</span>.log(Level.INFO, m)</span><span class="ln" data-line="81"> </span><span class="ln" data-line="82">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">warn</span>(<span class="hljs-params">self, m: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="83">        <span class="hljs-variable language_">self</span>.log(Level.WARN, m)</span><span class="ln" data-line="84"> </span><span class="ln" data-line="85">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">error</span>(<span class="hljs-params">self, m: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="86">        <span class="hljs-variable language_">self</span>.log(Level.ERROR, m)</span><span class="ln" data-line="87"> </span><span class="ln" data-line="88"> </span><span class="ln" data-line="89"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LoggerFactory</span>:</span><span class="ln" data-line="90">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, chain: Handler</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="91">        <span class="hljs-variable language_">self</span>.chain = chain</span><span class="ln" data-line="92">        <span class="hljs-variable language_">self</span>._clock = <span class="hljs-number">0</span></span><span class="ln" data-line="93">        <span class="hljs-variable language_">self</span>._loggers: <span class="hljs-type">Dict</span>[<span class="hljs-built_in">str</span>, Logger] = {}</span><span class="ln" data-line="94">        <span class="hljs-variable language_">self</span>._lock = threading.Lock()</span><span class="ln" data-line="95"> </span><span class="ln" data-line="96">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">tick</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="97">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="98">            <span class="hljs-variable language_">self</span>._clock += <span class="hljs-number">1</span></span><span class="ln" data-line="99">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._clock</span><span class="ln" data-line="100"> </span><span class="ln" data-line="101">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_logger</span>(<span class="hljs-params">self, name: <span class="hljs-built_in">str</span></span>) -&gt; Logger:</span><span class="ln" data-line="102">        <span class="hljs-keyword">with</span> <span class="hljs-variable language_">self</span>._lock:</span><span class="ln" data-line="103">            <span class="hljs-keyword">if</span> name <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>._loggers:</span><span class="ln" data-line="104">                <span class="hljs-variable language_">self</span>._loggers[name] = Logger(name, <span class="hljs-variable language_">self</span>)</span><span class="ln" data-line="105">            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._loggers[name]</span><span class="ln" data-line="106"> </span><span class="ln" data-line="107"> </span><span class="ln" data-line="108"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="109">    console, file, pager = MemorySink(), MemorySink(), MemorySink()</span><span class="ln" data-line="110">    head = Handler(Level.INFO, PlainFormatter(), console)</span><span class="ln" data-line="111">    head.then(Handler(Level.DEBUG, PlainFormatter(), file)).then(Handler(Level.ERROR, JsonFormatter(), pager))</span><span class="ln" data-line="112">    factory = LoggerFactory(head)</span><span class="ln" data-line="113"> </span><span class="ln" data-line="114">    app = factory.get_logger(<span class="hljs-string">&quot;app&quot;</span>)</span><span class="ln" data-line="115">    db = factory.get_logger(<span class="hljs-string">&quot;app.db&quot;</span>)</span><span class="ln" data-line="116">    db.set_level(Level.DEBUG)</span><span class="ln" data-line="117">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;getLogger(&quot;app&quot;) twice gives the same logger: <span class="hljs-subst">{<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-keyword">if</span> app <span class="hljs-keyword">is</span> factory.get_logger(<span class="hljs-string">&quot;app&quot;</span>) <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;false&quot;</span>}</span>&#x27;</span>)</span><span class="ln" data-line="118"> </span><span class="ln" data-line="119">    app.debug(<span class="hljs-string">&quot;cache warmed&quot;</span>)  <span class="hljs-comment"># below app&#x27;s INFO level: dropped</span></span><span class="ln" data-line="120">    db.debug(<span class="hljs-string">&quot;query took 12 ms&quot;</span>)</span><span class="ln" data-line="121">    app.info(<span class="hljs-string">&quot;server started on port 8080&quot;</span>)</span><span class="ln" data-line="122">    app.warn(<span class="hljs-string">&quot;disk 85% full&quot;</span>)</span><span class="ln" data-line="123">    db.error(<span class="hljs-string">&quot;connection lost&quot;</span>)</span><span class="ln" data-line="124">    app.set_level(Level.WARN)</span><span class="ln" data-line="125">    app.info(<span class="hljs-string">&quot;health check ok&quot;</span>)  <span class="hljs-comment"># now below app&#x27;s level: dropped</span></span><span class="ln" data-line="126">    db.error(<span class="hljs-string">&#x27;timeout talking to &quot;replica-2&quot;&#x27;</span>)</span><span class="ln" data-line="127"> </span><span class="ln" data-line="128">    <span class="hljs-keyword">for</span> title, sink <span class="hljs-keyword">in</span> ((<span class="hljs-string">&quot;console (INFO and above, plain):&quot;</span>, console), (<span class="hljs-string">&quot;file (DEBUG and above, plain):&quot;</span>, file), (<span class="hljs-string">&quot;pager (ERROR only, JSON):&quot;</span>, pager)):</span><span class="ln" data-line="129">        <span class="hljs-built_in">print</span>(title)</span><span class="ln" data-line="130">        <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> sink.lines:</span><span class="ln" data-line="131">            <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;  <span class="hljs-subst">{line}</span>&quot;</span>)</span><span class="ln" data-line="132"> </span><span class="ln" data-line="133"> </span><span class="ln" data-line="134"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="135">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import json
+import threading
+from dataclasses import dataclass
+from enum import IntEnum
+from typing import Dict, List, Optional, Protocol
+
+
+class Level(IntEnum):
+    DEBUG = 10
+    INFO = 20
+    WARN = 30
+    ERROR = 40
+
+
+@dataclass(frozen=True)
+class LogRecord:
+    time: int
+    level: Level
+    logger: str
+    message: str
+
+
+class Formatter(Protocol):
+    def format(self, r: LogRecord) -&gt; str: ...
+
+
+class PlainFormatter:
+    def format(self, r: LogRecord) -&gt; str:
+        return f&quot;t={r.time} {r.level.name} {r.logger}: {r.message}&quot;
+
+
+class JsonFormatter:
+    def format(self, r: LogRecord) -&gt; str:
+        return json.dumps({&quot;t&quot;: r.time, &quot;level&quot;: r.level.name, &quot;logger&quot;: r.logger, &quot;msg&quot;: r.message}, separators=(&quot;,&quot;, &quot;:&quot;))
+
+
+class MemorySink:
+    def __init__(self) -&gt; None:
+        self.lines: List[str] = []
+        self._lock = threading.Lock()
+
+    def write(self, line: str) -&gt; None:
+        with self._lock:
+            self.lines.append(line)
+
+
+class Handler:
+    def __init__(self, min_level: Level, formatter: Formatter, sink: MemorySink) -&gt; None:
+        self.min, self.formatter, self.sink = min_level, formatter, sink
+        self.next: Optional[&quot;Handler&quot;] = None
+
+    def then(self, nxt: &quot;Handler&quot;) -&gt; &quot;Handler&quot;:
+        self.next = nxt
+        return nxt
+
+    def handle(self, r: LogRecord) -&gt; None:
+        if r.level &gt;= self.min:
+            self.sink.write(self.formatter.format(r))
+        if self.next is not None:  # pass it on either way
+            self.next.handle(r)
+
+
+class Logger:
+    def __init__(self, name: str, factory: &quot;LoggerFactory&quot;) -&gt; None:
+        self.name, self.factory = name, factory
+        self.level = Level.INFO
+
+    def set_level(self, level: Level) -&gt; None:
+        self.level = level
+
+    def log(self, level: Level, message: str) -&gt; None:
+        if level &lt; self.level:  # cheapest possible exit: no record, no formatting
+            return
+        self.factory.chain.handle(LogRecord(self.factory.tick(), level, self.name, message))
+
+    def debug(self, m: str) -&gt; None:
+        self.log(Level.DEBUG, m)
+
+    def info(self, m: str) -&gt; None:
+        self.log(Level.INFO, m)
+
+    def warn(self, m: str) -&gt; None:
+        self.log(Level.WARN, m)
+
+    def error(self, m: str) -&gt; None:
+        self.log(Level.ERROR, m)
+
+
+class LoggerFactory:
+    def __init__(self, chain: Handler) -&gt; None:
+        self.chain = chain
+        self._clock = 0
+        self._loggers: Dict[str, Logger] = {}
+        self._lock = threading.Lock()
+
+    def tick(self) -&gt; int:
+        with self._lock:
+            self._clock += 1
+            return self._clock
+
+    def get_logger(self, name: str) -&gt; Logger:
+        with self._lock:
+            if name not in self._loggers:
+                self._loggers[name] = Logger(name, self)
+            return self._loggers[name]
+
+
+def main() -&gt; None:
+    console, file, pager = MemorySink(), MemorySink(), MemorySink()
+    head = Handler(Level.INFO, PlainFormatter(), console)
+    head.then(Handler(Level.DEBUG, PlainFormatter(), file)).then(Handler(Level.ERROR, JsonFormatter(), pager))
+    factory = LoggerFactory(head)
+
+    app = factory.get_logger(&quot;app&quot;)
+    db = factory.get_logger(&quot;app.db&quot;)
+    db.set_level(Level.DEBUG)
+    print(f&#39;getLogger(&quot;app&quot;) twice gives the same logger: {&quot;true&quot; if app is factory.get_logger(&quot;app&quot;) else &quot;false&quot;}&#39;)
+
+    app.debug(&quot;cache warmed&quot;)  # below app&#39;s INFO level: dropped
+    db.debug(&quot;query took 12 ms&quot;)
+    app.info(&quot;server started on port 8080&quot;)
+    app.warn(&quot;disk 85% full&quot;)
+    db.error(&quot;connection lost&quot;)
+    app.set_level(Level.WARN)
+    app.info(&quot;health check ok&quot;)  # now below app&#39;s level: dropped
+    db.error(&#39;timeout talking to &quot;replica-2&quot;&#39;)
+
+    for title, sink in ((&quot;console (INFO and above, plain):&quot;, console), (&quot;file (DEBUG and above, plain):&quot;, file), (&quot;pager (ERROR only, JSON):&quot;, pager)):
+        print(title)
+        for line in sink.lines:
+            print(f&quot;  {line}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>getLogger(&quot;app&quot;) twice gives the same logger: true
+console (INFO and above, plain):
+  t=2 INFO app: server started on port 8080
+  t=3 WARN app: disk 85% full
+  t=4 ERROR app.db: connection lost
+  t=5 ERROR app.db: timeout talking to &quot;replica-2&quot;
+file (DEBUG and above, plain):
+  t=1 DEBUG app.db: query took 12 ms
+  t=2 INFO app: server started on port 8080
+  t=3 WARN app: disk 85% full
+  t=4 ERROR app.db: connection lost
+  t=5 ERROR app.db: timeout talking to &quot;replica-2&quot;
+pager (ERROR only, JSON):
+  {&quot;t&quot;:4,&quot;level&quot;:&quot;ERROR&quot;,&quot;logger&quot;:&quot;app.db&quot;,&quot;msg&quot;:&quot;connection lost&quot;}
+  {&quot;t&quot;:5,&quot;level&quot;:&quot;ERROR&quot;,&quot;logger&quot;:&quot;app.db&quot;,&quot;msg&quot;:&quot;timeout talking to \&quot;replica-2\&quot;&quot;}</samp></pre></div>
+</figure><h2 id="common-mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Building the message string before checking the level (<code>log.debug(&quot;x=&quot; + expensive())</code>). Check first, or pass a supplier.</li><li>One logger class per destination instead of separating loggers, handlers, formatters and sinks.</li><li>Creating a new logger on every call instead of caching by name.</li><li>Hand-building JSON without escaping quotes and backslashes in the message.</li></ul><h2 id="interview-follow-ups">Interview follow-ups</h2>
+<ul>
+<li>Hierarchical loggers: <code>app.db</code> inherits its level and handlers from <code>app</code> unless set.</li>
+<li>Asynchronous sinks with a bounded queue and a drop policy.</li>
+<li>Rotate files by size and date; ship logs to a remote collector.</li>
+<li>Add structured fields (request id, user id) through a context map.</li>
+</ul>
+
+
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../vending-machine/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Vending machine</span></a><a class="pn pn-next" href="../../practice/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Practice</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

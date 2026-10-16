@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course roadmap · DSA Academy</title>
+<meta name="description" content="A stage-by-stage learning path with estimated weeks, prerequisites and progress tracking.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="../assets/css/languages.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-roadmap">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../intro/index.html">Start here</a></li><li><a href="index.html" aria-current="page">Roadmap</a></li><li><a href="../data-structures/index.html">Data structures</a></li><li><a href="../algorithms/index.html">Algorithms</a></li><li><a href="../patterns/index.html">Patterns</a></li><li><a href="../lld/index.html">Low-level design</a></li><li><a href="../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Home</a></li><li><span aria-current="page">Roadmap</span></li></ol></nav>
+<div class="roadmap">
+<header class="page-head">
+  <h1>Course roadmap</h1>
+  <p class="lede">10 stages, 70 topics, about 24 weeks at 8 to 10 hours a week. Each topic lists what it needs, and every prerequisite comes earlier on the page.</p>
+</header>
+<aside class="progress-panel" aria-label="Your progress">
+  <div class="pp-main">
+    <p class="pp-count"><span data-done-count>0</span> of 70 topics done</p>
+    <div class="meter meter-big" role="progressbar" aria-label="Overall progress" aria-valuemin="0" aria-valuemax="70" aria-valuenow="0" data-total-meter><span></span></div>
+  </div>
+  <p class="pp-next" data-next-up>Next up: <a href="#topic-complexity">Complexity analysis</a></p>
+  <p class="pp-note">Progress is saved in this browser only. <button type="button" class="link-btn" data-reset-progress>Clear progress</button></p>
+</aside>
+<ol class="stages">
+<li class="stage" id="stage-foundations" data-stage="foundations">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">1</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Foundations</h2>
+    <p class="stage-meta">Weeks 1–2 · 3 topics</p>
+    <p class="stage-goal">Read code for its cost, and get comfortable with arrays and recursion.</p>
+    <div class="meter" role="progressbar" aria-label="Foundations progress" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0" data-stage-meter="foundations"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-complexity" data-topic="complexity" data-needs="">
+  <input type="checkbox" id="done-complexity" data-done="complexity" aria-label="Mark Complexity analysis as done" aria-describedby="meta-complexity">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/complexity/index.html">Complexity analysis</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-complexity">Big-O, Big-Θ, Big-Ω and amortised cost, with worked examples.</p>
+  </div>
+</li>
+<li class="topic" id="topic-arrays" data-topic="arrays" data-needs="complexity">
+  <input type="checkbox" id="done-arrays" data-done="arrays" aria-label="Mark Arrays as done" aria-describedby="meta-arrays">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/arrays/index.html">Arrays</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span>
+    <p class="topic-meta" id="meta-arrays">Contiguous memory, O(1) indexing, 2D layouts, dynamic resizing and strings. <span class="needs">Needs <a href="#topic-complexity" data-need="complexity">Complexity analysis</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-recursion" data-topic="recursion" data-needs="complexity">
+  <input type="checkbox" id="done-recursion" data-done="recursion" aria-label="Mark Recursion as done" aria-describedby="meta-recursion">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/recursion/index.html">Recursion</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-recursion">Base cases, the call stack and how to trust the recursive call. <span class="needs">Needs <a href="#topic-complexity" data-need="complexity">Complexity analysis</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+<li class="stage" id="stage-linear" data-stage="linear">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">2</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Linear structures</h2>
+    <p class="stage-meta">Weeks 3–4 · 4 topics</p>
+    <p class="stage-goal">Know the four structures every other topic is built from.</p>
+    <div class="meter" role="progressbar" aria-label="Linear structures progress" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" data-stage-meter="linear"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-linked-lists" data-topic="linked-lists" data-needs="arrays">
+  <input type="checkbox" id="done-linked-lists" data-done="linked-lists" aria-label="Mark Linked lists as done" aria-describedby="meta-linked-lists">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/linked-lists/index.html">Linked lists</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span>
+    <p class="topic-meta" id="meta-linked-lists">Nodes scattered in memory joined by pointers; singly, doubly and circular. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-stacks" data-topic="stacks" data-needs="arrays recursion">
+  <input type="checkbox" id="done-stacks" data-done="stacks" aria-label="Mark Stacks as done" aria-describedby="meta-stacks">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/stacks/index.html">Stacks</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span>
+    <p class="topic-meta" id="meta-stacks">Last in, first out. The call stack, recursion and expression evaluation. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>, <a href="#topic-recursion" data-need="recursion">Recursion</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-queues" data-topic="queues" data-needs="arrays">
+  <input type="checkbox" id="done-queues" data-done="queues" aria-label="Mark Queues as done" aria-describedby="meta-queues">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/queues/index.html">Queues</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span>
+    <p class="topic-meta" id="meta-queues">First in, first out. Circular buffers, deques and priority queues. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-hash-tables" data-topic="hash-tables" data-needs="arrays">
+  <input type="checkbox" id="done-hash-tables" data-done="hash-tables" aria-label="Mark Hash tables as done" aria-describedby="meta-hash-tables">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/hash-tables/index.html">Hash tables</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span>
+    <p class="topic-meta" id="meta-hash-tables">Hash functions, buckets, collisions, load factor and resizing. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+<li class="stage" id="stage-array-patterns" data-stage="array-patterns">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">3</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Array and list patterns</h2>
+    <p class="stage-meta">Weeks 5–7 · 8 topics</p>
+    <p class="stage-goal">Solve most easy and medium array questions in O(n).</p>
+    <div class="meter" role="progressbar" aria-label="Array and list patterns progress" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0" data-stage-meter="array-patterns"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-two-pointers" data-topic="two-pointers" data-needs="arrays">
+  <input type="checkbox" id="done-two-pointers" data-done="two-pointers" aria-label="Mark Two pointers as done" aria-describedby="meta-two-pointers">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/two-pointers/index.html">Two pointers</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-two-pointers">Two indices walk the data toward each other or in step. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-sliding-window" data-topic="sliding-window" data-needs="two-pointers hash-tables">
+  <input type="checkbox" id="done-sliding-window" data-done="sliding-window" aria-label="Mark Sliding window as done" aria-describedby="meta-sliding-window">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/sliding-window/index.html">Sliding window</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-sliding-window">Grow and shrink a contiguous range instead of rescanning it. <span class="needs">Needs <a href="#topic-two-pointers" data-need="two-pointers">Two pointers</a>, <a href="#topic-hash-tables" data-need="hash-tables">Hash tables</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-prefix-sum" data-topic="prefix-sum" data-needs="arrays hash-tables">
+  <input type="checkbox" id="done-prefix-sum" data-done="prefix-sum" aria-label="Mark Prefix sum as done" aria-describedby="meta-prefix-sum">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/prefix-sum/index.html">Prefix sum</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-prefix-sum">Precompute running totals so any range sum is one subtraction. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>, <a href="#topic-hash-tables" data-need="hash-tables">Hash tables</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-hashing" data-topic="hashing" data-needs="hash-tables">
+  <input type="checkbox" id="done-hashing" data-done="hashing" aria-label="Mark Hashing as done" aria-describedby="meta-hashing">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/hashing/index.html">Hashing</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-hashing">Trade memory for O(1) lookups of what you&#39;ve already seen. <span class="needs">Needs <a href="#topic-hash-tables" data-need="hash-tables">Hash tables</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-kadane" data-topic="kadane" data-needs="arrays">
+  <input type="checkbox" id="done-kadane" data-done="kadane" aria-label="Mark Kadane&#39;s algorithm as done" aria-describedby="meta-kadane">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/kadane/index.html">Kadane&#39;s algorithm</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-kadane">Best subarray ending here, carried forward in O(1) space. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-cyclic-sort" data-topic="cyclic-sort" data-needs="arrays">
+  <input type="checkbox" id="done-cyclic-sort" data-done="cyclic-sort" aria-label="Mark Cyclic sort as done" aria-describedby="meta-cyclic-sort">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/cyclic-sort/index.html">Cyclic sort</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-cyclic-sort">Place each number 1..n at its own index in one pass. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-fast-slow-pointers" data-topic="fast-slow-pointers" data-needs="linked-lists">
+  <input type="checkbox" id="done-fast-slow-pointers" data-done="fast-slow-pointers" aria-label="Mark Fast and slow pointers as done" aria-describedby="meta-fast-slow-pointers">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/fast-slow-pointers/index.html">Fast and slow pointers</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-fast-slow-pointers">Two speeds detect cycles and find middles. <span class="needs">Needs <a href="#topic-linked-lists" data-need="linked-lists">Linked lists</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-in-place-reversal" data-topic="in-place-reversal" data-needs="linked-lists">
+  <input type="checkbox" id="done-in-place-reversal" data-done="in-place-reversal" aria-label="Mark In-place list reversal as done" aria-describedby="meta-in-place-reversal">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/in-place-reversal/index.html">In-place list reversal</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-in-place-reversal">Reverse links in place with three pointers. <span class="needs">Needs <a href="#topic-linked-lists" data-need="linked-lists">Linked lists</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+<li class="stage" id="stage-search-sort" data-stage="search-sort">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">4</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Searching and sorting</h2>
+    <p class="stage-meta">Weeks 8–9 · 5 topics</p>
+    <p class="stage-goal">Pick the right sort, and bend binary search to new problems.</p>
+    <div class="meter" role="progressbar" aria-label="Searching and sorting progress" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" data-stage-meter="search-sort"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-searching" data-topic="searching" data-needs="arrays">
+  <input type="checkbox" id="done-searching" data-done="searching" aria-label="Mark Searching as done" aria-describedby="meta-searching">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/searching/index.html">Searching</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-searching">Linear search, binary search and binary search on the answer. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-sorting" data-topic="sorting" data-needs="arrays recursion">
+  <input type="checkbox" id="done-sorting" data-done="sorting" aria-label="Mark Sorting as done" aria-describedby="meta-sorting">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/sorting/index.html">Sorting</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-sorting">Eight sorts compared side by side, with stability explained. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>, <a href="#topic-recursion" data-need="recursion">Recursion</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-divide-and-conquer" data-topic="divide-and-conquer" data-needs="sorting">
+  <input type="checkbox" id="done-divide-and-conquer" data-done="divide-and-conquer" aria-label="Mark Divide and conquer as done" aria-describedby="meta-divide-and-conquer">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/divide-and-conquer/index.html">Divide and conquer</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-divide-and-conquer">Split, solve the halves, combine. Merge sort and beyond. <span class="needs">Needs <a href="#topic-sorting" data-need="sorting">Sorting</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-modified-binary-search" data-topic="modified-binary-search" data-needs="searching">
+  <input type="checkbox" id="done-modified-binary-search" data-done="modified-binary-search" aria-label="Mark Modified binary search as done" aria-describedby="meta-modified-binary-search">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/modified-binary-search/index.html">Modified binary search</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-modified-binary-search">Binary search on rotated arrays, boundaries and answers. <span class="needs">Needs <a href="#topic-searching" data-need="searching">Searching</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-merge-intervals" data-topic="merge-intervals" data-needs="sorting">
+  <input type="checkbox" id="done-merge-intervals" data-done="merge-intervals" aria-label="Mark Merge intervals as done" aria-describedby="meta-merge-intervals">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/merge-intervals/index.html">Merge intervals</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-merge-intervals">Sort by start, then merge or count overlaps. <span class="needs">Needs <a href="#topic-sorting" data-need="sorting">Sorting</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+<li class="stage" id="stage-stack-queue-patterns" data-stage="stack-queue-patterns">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">5</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Stack and queue patterns</h2>
+    <p class="stage-meta">Weeks 10 · 2 topics</p>
+    <p class="stage-goal">Answer &quot;next greater&quot; and &quot;window max&quot; questions in linear time.</p>
+    <div class="meter" role="progressbar" aria-label="Stack and queue patterns progress" aria-valuemin="0" aria-valuemax="2" aria-valuenow="0" data-stage-meter="stack-queue-patterns"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-monotonic-stack" data-topic="monotonic-stack" data-needs="stacks">
+  <input type="checkbox" id="done-monotonic-stack" data-done="monotonic-stack" aria-label="Mark Monotonic stack as done" aria-describedby="meta-monotonic-stack">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/monotonic-stack/index.html">Monotonic stack</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-monotonic-stack">Keep a sorted stack to find the next greater or smaller element. <span class="needs">Needs <a href="#topic-stacks" data-need="stacks">Stacks</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-monotonic-deque" data-topic="monotonic-deque" data-needs="queues sliding-window">
+  <input type="checkbox" id="done-monotonic-deque" data-done="monotonic-deque" aria-label="Mark Monotonic deque as done" aria-describedby="meta-monotonic-deque">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/monotonic-deque/index.html">Monotonic deque</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-monotonic-deque">Window maximum or minimum in O(n). <span class="needs">Needs <a href="#topic-queues" data-need="queues">Queues</a>, <a href="#topic-sliding-window" data-need="sliding-window">Sliding window</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+<li class="stage" id="stage-trees-heaps" data-stage="trees-heaps">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">6</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Trees and heaps</h2>
+    <p class="stage-meta">Weeks 11–13 · 9 topics</p>
+    <p class="stage-goal">Traverse any tree, and use heaps for ranking and merging.</p>
+    <div class="meter" role="progressbar" aria-label="Trees and heaps progress" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" data-stage-meter="trees-heaps"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-trees" data-topic="trees" data-needs="recursion queues">
+  <input type="checkbox" id="done-trees" data-done="trees" aria-label="Mark Trees as done" aria-describedby="meta-trees">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/trees/index.html">Trees</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span>
+    <p class="topic-meta" id="meta-trees">Binary trees, BSTs, balanced trees, traversals, segment and Fenwick trees. <span class="needs">Needs <a href="#topic-recursion" data-need="recursion">Recursion</a>, <a href="#topic-queues" data-need="queues">Queues</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-tree-dfs" data-topic="tree-dfs" data-needs="trees">
+  <input type="checkbox" id="done-tree-dfs" data-done="tree-dfs" aria-label="Mark Tree DFS as done" aria-describedby="meta-tree-dfs">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/tree-dfs/index.html">Tree DFS</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-tree-dfs">Pre, in and post order, and passing state down or up. <span class="needs">Needs <a href="#topic-trees" data-need="trees">Trees</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-tree-bfs" data-topic="tree-bfs" data-needs="trees">
+  <input type="checkbox" id="done-tree-bfs" data-done="tree-bfs" aria-label="Mark Tree BFS as done" aria-describedby="meta-tree-bfs">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/tree-bfs/index.html">Tree BFS</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-tree-bfs">Level by level with a queue. <span class="needs">Needs <a href="#topic-trees" data-need="trees">Trees</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-heaps" data-topic="heaps" data-needs="trees">
+  <input type="checkbox" id="done-heaps" data-done="heaps" aria-label="Mark Heaps as done" aria-describedby="meta-heaps">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/heaps/index.html">Heaps</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span>
+    <p class="topic-meta" id="meta-heaps">A tree stored in an array. Sift up, sift down and O(n) heapify. <span class="needs">Needs <a href="#topic-trees" data-need="trees">Trees</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-top-k" data-topic="top-k" data-needs="heaps">
+  <input type="checkbox" id="done-top-k" data-done="top-k" aria-label="Mark Top K elements as done" aria-describedby="meta-top-k">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/top-k/index.html">Top K elements</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-top-k">A size-K heap keeps the best K seen so far. <span class="needs">Needs <a href="#topic-heaps" data-need="heaps">Heaps</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-two-heaps" data-topic="two-heaps" data-needs="heaps">
+  <input type="checkbox" id="done-two-heaps" data-done="two-heaps" aria-label="Mark Two heaps as done" aria-describedby="meta-two-heaps">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/two-heaps/index.html">Two heaps</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-two-heaps">A max-heap and a min-heap split the data at the median. <span class="needs">Needs <a href="#topic-heaps" data-need="heaps">Heaps</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-k-way-merge" data-topic="k-way-merge" data-needs="heaps linked-lists">
+  <input type="checkbox" id="done-k-way-merge" data-done="k-way-merge" aria-label="Mark K-way merge as done" aria-describedby="meta-k-way-merge">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/k-way-merge/index.html">K-way merge</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-k-way-merge">Merge K sorted inputs using a heap of their heads. <span class="needs">Needs <a href="#topic-heaps" data-need="heaps">Heaps</a>, <a href="#topic-linked-lists" data-need="linked-lists">Linked lists</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-trie" data-topic="trie" data-needs="trees hash-tables">
+  <input type="checkbox" id="done-trie" data-done="trie" aria-label="Mark Trie as done" aria-describedby="meta-trie">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/trie/index.html">Trie</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span><span class="topic-kind kind-adv">Advanced</span>
+    <p class="topic-meta" id="meta-trie">A tree of characters for fast prefix lookups. <span class="needs">Needs <a href="#topic-trees" data-need="trees">Trees</a>, <a href="#topic-hash-tables" data-need="hash-tables">Hash tables</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-trie-pattern" data-topic="trie-pattern" data-needs="trie">
+  <input type="checkbox" id="done-trie-pattern" data-done="trie-pattern" aria-label="Mark Trie as done" aria-describedby="meta-trie-pattern">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/trie-pattern/index.html">Trie</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-trie-pattern">Prefix search, autocomplete and word games. <span class="needs">Needs <a href="#topic-trie" data-need="trie">Trie</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+<li class="stage" id="stage-graphs" data-stage="graphs">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">7</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Graphs</h2>
+    <p class="stage-meta">Weeks 14–16 · 8 topics</p>
+    <p class="stage-goal">Model a problem as a graph, then choose the right traversal.</p>
+    <div class="meter" role="progressbar" aria-label="Graphs progress" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0" data-stage-meter="graphs"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-graphs" data-topic="graphs" data-needs="hash-tables queues">
+  <input type="checkbox" id="done-graphs" data-done="graphs" aria-label="Mark Graphs as done" aria-describedby="meta-graphs">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/graphs/index.html">Graphs</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span>
+    <p class="topic-meta" id="meta-graphs">Adjacency lists and matrices, grids as graphs, DAGs. <span class="needs">Needs <a href="#topic-hash-tables" data-need="hash-tables">Hash tables</a>, <a href="#topic-queues" data-need="queues">Queues</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-graph-algorithms" data-topic="graph-algorithms" data-needs="graphs heaps">
+  <input type="checkbox" id="done-graph-algorithms" data-done="graph-algorithms" aria-label="Mark Graph algorithms as done" aria-describedby="meta-graph-algorithms">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/graph-algorithms/index.html">Graph algorithms</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-graph-algorithms">BFS, DFS, topological sort, Dijkstra, Bellman-Ford, Floyd-Warshall, Prim, Kruskal. <span class="needs">Needs <a href="#topic-graphs" data-need="graphs">Graphs</a>, <a href="#topic-heaps" data-need="heaps">Heaps</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-graph-bfs-dfs" data-topic="graph-bfs-dfs" data-needs="graphs">
+  <input type="checkbox" id="done-graph-bfs-dfs" data-done="graph-bfs-dfs" aria-label="Mark Graph BFS and DFS as done" aria-describedby="meta-graph-bfs-dfs">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/graph-bfs-dfs/index.html">Graph BFS and DFS</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-graph-bfs-dfs">Explore reachable nodes, count components, find shortest hops. <span class="needs">Needs <a href="#topic-graphs" data-need="graphs">Graphs</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-matrix-traversal" data-topic="matrix-traversal" data-needs="graph-bfs-dfs">
+  <input type="checkbox" id="done-matrix-traversal" data-done="matrix-traversal" aria-label="Mark Matrix traversal as done" aria-describedby="meta-matrix-traversal">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/matrix-traversal/index.html">Matrix traversal</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-matrix-traversal">Spirals, rotations and flood fill on 2D grids. <span class="needs">Needs <a href="#topic-graph-bfs-dfs" data-need="graph-bfs-dfs">Graph BFS and DFS</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-topological-sort" data-topic="topological-sort" data-needs="graph-bfs-dfs">
+  <input type="checkbox" id="done-topological-sort" data-done="topological-sort" aria-label="Mark Topological sort as done" aria-describedby="meta-topological-sort">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/topological-sort/index.html">Topological sort</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-topological-sort">Order tasks so every dependency comes first. <span class="needs">Needs <a href="#topic-graph-bfs-dfs" data-need="graph-bfs-dfs">Graph BFS and DFS</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-union-find-ds" data-topic="union-find-ds" data-needs="arrays">
+  <input type="checkbox" id="done-union-find-ds" data-done="union-find-ds" aria-label="Mark Disjoint set (Union-Find) as done" aria-describedby="meta-union-find-ds">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../data-structures/union-find-ds/index.html">Disjoint set (Union-Find)</a></span>
+    <span class="topic-kind kind-data-structures">Structure</span><span class="topic-kind kind-adv">Advanced</span>
+    <p class="topic-meta" id="meta-union-find-ds">Track groups that merge, with path compression and union by rank. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-union-find" data-topic="union-find" data-needs="union-find-ds graphs">
+  <input type="checkbox" id="done-union-find" data-done="union-find" aria-label="Mark Union-Find as done" aria-describedby="meta-union-find">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/union-find/index.html">Union-Find</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-union-find">Merge groups and ask whether two items are connected. <span class="needs">Needs <a href="#topic-union-find-ds" data-need="union-find-ds">Disjoint set (Union-Find)</a>, <a href="#topic-graphs" data-need="graphs">Graphs</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-shortest-path" data-topic="shortest-path" data-needs="graph-algorithms">
+  <input type="checkbox" id="done-shortest-path" data-done="shortest-path" aria-label="Mark Shortest path as done" aria-describedby="meta-shortest-path">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/shortest-path/index.html">Shortest path</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-shortest-path">Dijkstra, Bellman-Ford and 0-1 BFS on weighted graphs. <span class="needs">Needs <a href="#topic-graph-algorithms" data-need="graph-algorithms">Graph algorithms</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+<li class="stage" id="stage-dp-greedy" data-stage="dp-greedy">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">8</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Backtracking, greedy and DP</h2>
+    <p class="stage-meta">Weeks 17–20 · 9 topics</p>
+    <p class="stage-goal">Turn a brute-force search into a fast solution.</p>
+    <div class="meter" role="progressbar" aria-label="Backtracking, greedy and DP progress" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" data-stage-meter="dp-greedy"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-backtracking-technique" data-topic="backtracking-technique" data-needs="recursion">
+  <input type="checkbox" id="done-backtracking-technique" data-done="backtracking-technique" aria-label="Mark Backtracking as done" aria-describedby="meta-backtracking-technique">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/backtracking-technique/index.html">Backtracking</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-backtracking-technique">Build a candidate step by step and undo when it can&#39;t work. <span class="needs">Needs <a href="#topic-recursion" data-need="recursion">Recursion</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-backtracking" data-topic="backtracking" data-needs="backtracking-technique">
+  <input type="checkbox" id="done-backtracking" data-done="backtracking" aria-label="Mark Backtracking as done" aria-describedby="meta-backtracking">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/backtracking/index.html">Backtracking</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-backtracking">Subsets, permutations, combinations and constraint puzzles. <span class="needs">Needs <a href="#topic-backtracking-technique" data-need="backtracking-technique">Backtracking</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-greedy-technique" data-topic="greedy-technique" data-needs="sorting">
+  <input type="checkbox" id="done-greedy-technique" data-done="greedy-technique" aria-label="Mark Greedy as done" aria-describedby="meta-greedy-technique">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/greedy-technique/index.html">Greedy</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-greedy-technique">Take the best local choice, and prove it never hurts later. <span class="needs">Needs <a href="#topic-sorting" data-need="sorting">Sorting</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-greedy" data-topic="greedy" data-needs="greedy-technique heaps">
+  <input type="checkbox" id="done-greedy" data-done="greedy" aria-label="Mark Greedy as done" aria-describedby="meta-greedy">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/greedy/index.html">Greedy</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-greedy">Interval scheduling, jumps and gas stations. <span class="needs">Needs <a href="#topic-greedy-technique" data-need="greedy-technique">Greedy</a>, <a href="#topic-heaps" data-need="heaps">Heaps</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-dynamic-programming" data-topic="dynamic-programming" data-needs="recursion hash-tables">
+  <input type="checkbox" id="done-dynamic-programming" data-done="dynamic-programming" aria-label="Mark Dynamic programming as done" aria-describedby="meta-dynamic-programming">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/dynamic-programming/index.html">Dynamic programming</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-dynamic-programming">Memoisation and tabulation across 1D, 2D, knapsack, interval and string DP. <span class="needs">Needs <a href="#topic-recursion" data-need="recursion">Recursion</a>, <a href="#topic-hash-tables" data-need="hash-tables">Hash tables</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-dp-1d" data-topic="dp-1d" data-needs="dynamic-programming">
+  <input type="checkbox" id="done-dp-1d" data-done="dp-1d" aria-label="Mark 1D dynamic programming as done" aria-describedby="meta-dp-1d">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/dp-1d/index.html">1D dynamic programming</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-dp-1d">One index of state: stairs, robbers and decoding. <span class="needs">Needs <a href="#topic-dynamic-programming" data-need="dynamic-programming">Dynamic programming</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-dp-2d" data-topic="dp-2d" data-needs="dp-1d">
+  <input type="checkbox" id="done-dp-2d" data-done="dp-2d" aria-label="Mark 2D dynamic programming as done" aria-describedby="meta-dp-2d">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/dp-2d/index.html">2D dynamic programming</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-dp-2d">Grids and two-string problems like edit distance. <span class="needs">Needs <a href="#topic-dp-1d" data-need="dp-1d">1D dynamic programming</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-knapsack" data-topic="knapsack" data-needs="dp-2d">
+  <input type="checkbox" id="done-knapsack" data-done="knapsack" aria-label="Mark Knapsack as done" aria-describedby="meta-knapsack">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/knapsack/index.html">Knapsack</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-knapsack">Choose items under a capacity: 0/1 and unbounded. <span class="needs">Needs <a href="#topic-dp-2d" data-need="dp-2d">2D dynamic programming</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-interval-dp" data-topic="interval-dp" data-needs="dp-2d">
+  <input type="checkbox" id="done-interval-dp" data-done="interval-dp" aria-label="Mark Interval DP as done" aria-describedby="meta-interval-dp">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/interval-dp/index.html">Interval DP</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-interval-dp">Solve every subrange, shortest first. <span class="needs">Needs <a href="#topic-dp-2d" data-need="dp-2d">2D dynamic programming</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+<li class="stage" id="stage-specialist" data-stage="specialist">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">9</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Specialist topics</h2>
+    <p class="stage-meta">Weeks 21 · 5 topics</p>
+    <p class="stage-goal">Cover the tricks that show up in a minority of questions but cost a lot if missed.</p>
+    <div class="meter" role="progressbar" aria-label="Specialist topics progress" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" data-stage-meter="specialist"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-bit-manipulation-technique" data-topic="bit-manipulation-technique" data-needs="complexity">
+  <input type="checkbox" id="done-bit-manipulation-technique" data-done="bit-manipulation-technique" aria-label="Mark Bit manipulation as done" aria-describedby="meta-bit-manipulation-technique">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/bit-manipulation-technique/index.html">Bit manipulation</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-bit-manipulation-technique">Masks, shifts and the tricks that turn loops into one operation. <span class="needs">Needs <a href="#topic-complexity" data-need="complexity">Complexity analysis</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-bit-manipulation" data-topic="bit-manipulation" data-needs="bit-manipulation-technique">
+  <input type="checkbox" id="done-bit-manipulation" data-done="bit-manipulation" aria-label="Mark Bit manipulation as done" aria-describedby="meta-bit-manipulation">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/bit-manipulation/index.html">Bit manipulation</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-bit-manipulation">XOR tricks, counting bits and subset masks. <span class="needs">Needs <a href="#topic-bit-manipulation-technique" data-need="bit-manipulation-technique">Bit manipulation</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-math-basics" data-topic="math-basics" data-needs="complexity">
+  <input type="checkbox" id="done-math-basics" data-done="math-basics" aria-label="Mark Math basics as done" aria-describedby="meta-math-basics">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/math-basics/index.html">Math basics</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-math-basics">GCD, primes and the sieve, modular arithmetic, fast power. <span class="needs">Needs <a href="#topic-complexity" data-need="complexity">Complexity analysis</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-string-algorithms" data-topic="string-algorithms" data-needs="arrays hash-tables">
+  <input type="checkbox" id="done-string-algorithms" data-done="string-algorithms" aria-label="Mark String algorithms as done" aria-describedby="meta-string-algorithms">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../algorithms/string-algorithms/index.html">String algorithms</a></span>
+    <span class="topic-kind kind-algorithms">Technique</span>
+    <p class="topic-meta" id="meta-string-algorithms">KMP, Rabin-Karp and an overview of the Z-algorithm. <span class="needs">Needs <a href="#topic-arrays" data-need="arrays">Arrays</a>, <a href="#topic-hash-tables" data-need="hash-tables">Hash tables</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-data-structure-design" data-topic="data-structure-design" data-needs="hash-tables linked-lists heaps">
+  <input type="checkbox" id="done-data-structure-design" data-done="data-structure-design" aria-label="Mark Data structure design as done" aria-describedby="meta-data-structure-design">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../patterns/data-structure-design/index.html">Data structure design</a></span>
+    <span class="topic-kind kind-patterns">Pattern</span>
+    <p class="topic-meta" id="meta-data-structure-design">Build LRU caches, min stacks and iterators. <span class="needs">Needs <a href="#topic-hash-tables" data-need="hash-tables">Hash tables</a>, <a href="#topic-linked-lists" data-need="linked-lists">Linked lists</a>, <a href="#topic-heaps" data-need="heaps">Heaps</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+<li class="stage" id="stage-lld" data-stage="lld">
+  <div class="stage-rail" aria-hidden="true"><span class="stage-num">10</span></div>
+  <div class="stage-body">
+    <h2 class="stage-title">Low-level design</h2>
+    <p class="stage-meta">Weeks 22–24 · 17 topics</p>
+    <p class="stage-goal">Design classes that hold up under concurrency, and explain why.</p>
+    <div class="meter" role="progressbar" aria-label="Low-level design progress" aria-valuemin="0" aria-valuemax="17" aria-valuenow="0" data-stage-meter="lld"><span></span></div>
+    <ul class="topics"><li class="topic" id="topic-lld-fundamentals" data-topic="lld-fundamentals" data-needs="">
+  <input type="checkbox" id="done-lld-fundamentals" data-done="lld-fundamentals" aria-label="Mark LLD fundamentals as done" aria-describedby="meta-lld-fundamentals">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/lld-fundamentals/index.html">LLD fundamentals</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-lld-fundamentals">SOLID, key design patterns and Java concurrency primitives.</p>
+  </div>
+</li>
+<li class="topic" id="topic-bounded-blocking-queue" data-topic="bounded-blocking-queue" data-needs="lld-fundamentals queues">
+  <input type="checkbox" id="done-bounded-blocking-queue" data-done="bounded-blocking-queue" aria-label="Mark Bounded blocking queue as done" aria-describedby="meta-bounded-blocking-queue">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/bounded-blocking-queue/index.html">Bounded blocking queue</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-bounded-blocking-queue">Producer–consumer with locks and conditions. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>, <a href="#topic-queues" data-need="queues">Queues</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-rate-limiter" data-topic="rate-limiter" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-rate-limiter" data-done="rate-limiter" aria-label="Mark Rate limiter as done" aria-describedby="meta-rate-limiter">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/rate-limiter/index.html">Rate limiter</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-rate-limiter">Token bucket and sliding window, safe under many threads. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-lru-cache-concurrent" data-topic="lru-cache-concurrent" data-needs="lld-fundamentals data-structure-design">
+  <input type="checkbox" id="done-lru-cache-concurrent" data-done="lru-cache-concurrent" aria-label="Mark Thread-safe LRU cache as done" aria-describedby="meta-lru-cache-concurrent">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/lru-cache-concurrent/index.html">Thread-safe LRU cache</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-lru-cache-concurrent">Hash map plus linked list behind a lock strategy. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>, <a href="#topic-data-structure-design" data-need="data-structure-design">Data structure design</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-thread-pool" data-topic="thread-pool" data-needs="bounded-blocking-queue">
+  <input type="checkbox" id="done-thread-pool" data-done="thread-pool" aria-label="Mark Thread pool and scheduler as done" aria-describedby="meta-thread-pool">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/thread-pool/index.html">Thread pool and scheduler</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-thread-pool">Workers, a task queue, delayed and periodic tasks. <span class="needs">Needs <a href="#topic-bounded-blocking-queue" data-need="bounded-blocking-queue">Bounded blocking queue</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-parking-lot" data-topic="parking-lot" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-parking-lot" data-done="parking-lot" aria-label="Mark Parking lot as done" aria-describedby="meta-parking-lot">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/parking-lot/index.html">Parking lot</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-parking-lot">Concurrent entry and exit gates competing for spots. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-movie-booking" data-topic="movie-booking" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-movie-booking" data-done="movie-booking" aria-label="Mark Movie ticket booking as done" aria-describedby="meta-movie-booking">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/movie-booking/index.html">Movie ticket booking</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-movie-booking">Seat locks with timeouts so two people never buy one seat. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-pub-sub" data-topic="pub-sub" data-needs="bounded-blocking-queue">
+  <input type="checkbox" id="done-pub-sub" data-done="pub-sub" aria-label="Mark Pub-sub message queue as done" aria-describedby="meta-pub-sub">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/pub-sub/index.html">Pub-sub message queue</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-pub-sub">Topics, offsets and multiple consumers. <span class="needs">Needs <a href="#topic-bounded-blocking-queue" data-need="bounded-blocking-queue">Bounded blocking queue</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-rw-lock-kv" data-topic="rw-lock-kv" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-rw-lock-kv" data-done="rw-lock-kv" aria-label="Mark Read-write lock and KV store as done" aria-describedby="meta-rw-lock-kv">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/rw-lock-kv/index.html">Read-write lock and KV store</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-rw-lock-kv">Many readers, one writer, no starvation. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-elevator" data-topic="elevator" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-elevator" data-done="elevator" aria-label="Mark Elevator system as done" aria-describedby="meta-elevator">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/elevator/index.html">Elevator system</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-elevator">Several elevators and a dispatcher deciding who goes where. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-id-generator-logger" data-topic="id-generator-logger" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-id-generator-logger" data-done="id-generator-logger" aria-label="Mark Snowflake IDs and a thread-safe logger as done" aria-describedby="meta-id-generator-logger">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/id-generator-logger/index.html">Snowflake IDs and a thread-safe logger</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-id-generator-logger">Unique IDs without coordination; logs that don&#39;t interleave. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-sync-puzzles" data-topic="sync-puzzles" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-sync-puzzles" data-done="sync-puzzles" aria-label="Mark Synchronisation puzzles as done" aria-describedby="meta-sync-puzzles">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/sync-puzzles/index.html">Synchronisation puzzles</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-sync-puzzles">Print in Order, FooBar, H2O, Fizz Buzz, Dining Philosophers, Web Crawler. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-splitwise" data-topic="splitwise" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-splitwise" data-done="splitwise" aria-label="Mark Splitwise as done" aria-describedby="meta-splitwise">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/splitwise/index.html">Splitwise</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-splitwise">Expenses, splits and simplified balances. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-snake-ladder" data-topic="snake-ladder" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-snake-ladder" data-done="snake-ladder" aria-label="Mark Snake and ladder as done" aria-describedby="meta-snake-ladder">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/snake-ladder/index.html">Snake and ladder</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-snake-ladder">Board, players, dice and turn order. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-library-management" data-topic="library-management" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-library-management" data-done="library-management" aria-label="Mark Library management as done" aria-describedby="meta-library-management">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/library-management/index.html">Library management</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-library-management">Members, loans, reservations and fines. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-vending-machine" data-topic="vending-machine" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-vending-machine" data-done="vending-machine" aria-label="Mark Vending machine as done" aria-describedby="meta-vending-machine">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/vending-machine/index.html">Vending machine</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-vending-machine">The State pattern, one state per mode. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li>
+<li class="topic" id="topic-logging-framework" data-topic="logging-framework" data-needs="lld-fundamentals">
+  <input type="checkbox" id="done-logging-framework" data-done="logging-framework" aria-label="Mark Logging framework as done" aria-describedby="meta-logging-framework">
+  <div class="topic-body">
+    <span class="topic-name"><a href="../lld/logging-framework/index.html">Logging framework</a></span>
+    <span class="topic-kind kind-lld">Design</span>
+    <p class="topic-meta" id="meta-logging-framework">Chain of Responsibility across log levels and sinks. <span class="needs">Needs <a href="#topic-lld-fundamentals" data-need="lld-fundamentals">LLD fundamentals</a>.</span></p>
+  </div>
+</li></ul>
+  </div>
+</li>
+</ol>
+</div>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../intro/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Start here</span></a><a class="pn pn-next" href="../data-structures/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Data structures</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../assets/js/visualizers.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

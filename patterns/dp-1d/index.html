@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1D dynamic programming · DSA Academy</title>
+<meta name="description" content="One index of state: stairs, robbers and decoding.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">1D dynamic programming</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>1D dynamic programming</h1>
+  <p class="lede">One-dimensional DP problems have a single index of progress: a step, a house, a position in a string. The answer at i depends on a few earlier answers, so you fill a row left to right and often keep only the last two values.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Climbing a staircase where each step has a price. The cheapest way to stand on step i is the cheaper of arriving from step i − 1 or step i − 2, plus the price of step i. You never need to remember more than the last two steps.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>A sequence (array or string) and a question about the best or number of ways to reach the end.</li>
+<li>Each decision looks back a fixed number of steps: take or skip this house, decode one or two digits.</li>
+<li>&quot;Can this string be split into dictionary words?&quot; (each position looks back at word-sized steps).</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">dp[0..base] = base cases
+for i from base + 1 to n:
+    dp[i] = combine(dp[i − 1], dp[i − 2], …)     ← the last few states only
+return dp[n]
+(keep two variables instead of the array when only dp[i − 1] and dp[i − 2] are read)
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>State the meaning of <code>dp[i]</code> in words before writing the recurrence:</p>
+<ul>
+<li><strong>Min cost climbing stairs</strong>: <code>dp[i]</code> = cheapest cost to stand on step i.
+<code>dp[i] = cost[i] + min(dp[i − 1], dp[i − 2])</code>.</li>
+<li><strong>House robber</strong>: best haul from the first i houses. Either skip house i
+(<code>dp[i − 1]</code>) or rob it (<code>dp[i − 2] + money[i]</code>). In a <strong>circle</strong>, the first
+and last houses touch, so run the line version twice: once without the last
+house, once without the first.</li>
+<li><strong>Decode ways</strong>: ways to decode the first i characters. Add <code>dp[i − 1]</code> if
+the last digit is 1–9, and <code>dp[i − 2]</code> if the last two digits form 10–26.</li>
+<li><strong>Word break</strong>: whether the first i characters split into words. True if some
+word ends at i and <code>dp[i − len(word)]</code> is true.</li>
+</ul>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Climbing stairs, house robber, decode ways</td><td class="nowrap">O(n) time, O(1) space</td><td>n states, constant work each, two rolling variables.</td></tr><tr><td>Word break</td><td class="nowrap">O(n × W × L)</td><td>For each end, try each dictionary word of length L (or each split point with a hash set: O(n²)).</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>The first three keep only two rolling values. Word break needs the whole row because it looks back by word lengths.</p><figure class="codeblock" id="code-dp-1d" aria-label="Min cost stairs, circular house robber, decode ways and word break">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-dp-1d-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-dp-1d-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-dp-1d-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-dp-1d-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-dp-1d-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.HashSet;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.Set;</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">minCostClimbing</span><span class="hljs-params">(<span class="hljs-type">int</span>[] cost)</span> {</span><span class="ln" data-line="8">        <span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> cost[<span class="hljs-number">0</span>], b = cost[<span class="hljs-number">1</span>]; <span class="hljs-comment">// cheapest cost to stand on the previous two steps</span></span><span class="ln" data-line="9">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span>; i &lt; cost.length; i++) {</span><span class="ln" data-line="10">            <span class="hljs-type">int</span> <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> cost[i] + Math.min(a, b);</span><span class="ln" data-line="11">            a = b;</span><span class="ln" data-line="12">            b = c;</span><span class="ln" data-line="13">        }</span><span class="ln" data-line="14">        <span class="hljs-keyword">return</span> Math.min(a, b); <span class="hljs-comment">// the top is past the last step: arrive from either</span></span><span class="ln" data-line="15">    }</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">robLine</span><span class="hljs-params">(<span class="hljs-type">int</span>[] h, <span class="hljs-type">int</span> from, <span class="hljs-type">int</span> to)</span> {</span><span class="ln" data-line="18">        <span class="hljs-type">int</span> <span class="hljs-variable">skip</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, take = <span class="hljs-number">0</span>;</span><span class="ln" data-line="19">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> from; i &lt;= to; i++) {</span><span class="ln" data-line="20">            <span class="hljs-type">int</span> <span class="hljs-variable">newTake</span> <span class="hljs-operator">=</span> skip + h[i];</span><span class="ln" data-line="21">            skip = Math.max(skip, take);</span><span class="ln" data-line="22">            take = newTake;</span><span class="ln" data-line="23">        }</span><span class="ln" data-line="24">        <span class="hljs-keyword">return</span> Math.max(skip, take);</span><span class="ln" data-line="25">    }</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">robCircle</span><span class="hljs-params">(<span class="hljs-type">int</span>[] h)</span> {</span><span class="ln" data-line="28">        <span class="hljs-keyword">if</span> (h.length == <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> h[<span class="hljs-number">0</span>];</span><span class="ln" data-line="29">        <span class="hljs-keyword">return</span> Math.max(robLine(h, <span class="hljs-number">0</span>, h.length - <span class="hljs-number">2</span>), robLine(h, <span class="hljs-number">1</span>, h.length - <span class="hljs-number">1</span>)); <span class="hljs-comment">// first and last can&#x27;t both be robbed</span></span><span class="ln" data-line="30">    }</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">numDecodings</span><span class="hljs-params">(String s)</span> {</span><span class="ln" data-line="33">        <span class="hljs-type">int</span> <span class="hljs-variable">prev2</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>, prev1 = s.charAt(<span class="hljs-number">0</span>) == <span class="hljs-string">&#x27;0&#x27;</span> ? <span class="hljs-number">0</span> : <span class="hljs-number">1</span>; <span class="hljs-comment">// ways for &quot;&quot; and the first character</span></span><span class="ln" data-line="34">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span>; i &lt;= s.length(); i++) {</span><span class="ln" data-line="35">            <span class="hljs-type">int</span> <span class="hljs-variable">cur</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="36">            <span class="hljs-keyword">if</span> (s.charAt(i - <span class="hljs-number">1</span>) != <span class="hljs-string">&#x27;0&#x27;</span>) cur += prev1;</span><span class="ln" data-line="37">            <span class="hljs-type">int</span> <span class="hljs-variable">two</span> <span class="hljs-operator">=</span> Integer.parseInt(s.substring(i - <span class="hljs-number">2</span>, i));</span><span class="ln" data-line="38">            <span class="hljs-keyword">if</span> (two &gt;= <span class="hljs-number">10</span> &amp;&amp; two &lt;= <span class="hljs-number">26</span>) cur += prev2;</span><span class="ln" data-line="39">            prev2 = prev1;</span><span class="ln" data-line="40">            prev1 = cur;</span><span class="ln" data-line="41">        }</span><span class="ln" data-line="42">        <span class="hljs-keyword">return</span> prev1;</span><span class="ln" data-line="43">    }</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45">    <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">wordBreak</span><span class="hljs-params">(String s, List&lt;String&gt; dict)</span> {</span><span class="ln" data-line="46">        <span class="hljs-type">Set</span>&lt;String&gt; <span class="hljs-variable">words</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>&lt;&gt;(dict);</span><span class="ln" data-line="47">        <span class="hljs-type">boolean</span>[] <span class="hljs-variable">ok</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">boolean</span>[s.length() + <span class="hljs-number">1</span>];</span><span class="ln" data-line="48">        ok[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>; <span class="hljs-comment">// the empty prefix splits trivially</span></span><span class="ln" data-line="49">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt;= s.length(); i++)</span><span class="ln" data-line="50">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; j &lt; i &amp;&amp; !ok[i]; j++)</span><span class="ln" data-line="51">                ok[i] = ok[j] &amp;&amp; words.contains(s.substring(j, i));</span><span class="ln" data-line="52">        <span class="hljs-keyword">return</span> ok[s.length()];</span><span class="ln" data-line="53">    }</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="56">        System.out.println(<span class="hljs-string">&quot;minCostClimbing(10 15 20) = &quot;</span> + minCostClimbing(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">10</span>, <span class="hljs-number">15</span>, <span class="hljs-number">20</span> })</span><span class="ln" data-line="57">                + <span class="hljs-string">&quot;, (1 100 1 1 1 100 1 1 100 1) = &quot;</span> + minCostClimbing(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span> }));</span><span class="ln" data-line="58">        System.out.println(<span class="hljs-string">&quot;robCircle(2 3 2) = &quot;</span> + robCircle(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span> }) + <span class="hljs-string">&quot;, robCircle(1 2 3 1) = &quot;</span> + robCircle(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span> }));</span><span class="ln" data-line="59">        System.out.println(<span class="hljs-string">&quot;numDecodings(226) = &quot;</span> + numDecodings(<span class="hljs-string">&quot;226&quot;</span>) + <span class="hljs-string">&quot;, numDecodings(06) = &quot;</span> + numDecodings(<span class="hljs-string">&quot;06&quot;</span>) + <span class="hljs-string">&quot;, numDecodings(11106) = &quot;</span> + numDecodings(<span class="hljs-string">&quot;11106&quot;</span>));</span><span class="ln" data-line="60">        System.out.println(<span class="hljs-string">&quot;wordBreak(leetcode) = &quot;</span> + wordBreak(<span class="hljs-string">&quot;leetcode&quot;</span>, List.of(<span class="hljs-string">&quot;leet&quot;</span>, <span class="hljs-string">&quot;code&quot;</span>))</span><span class="ln" data-line="61">                + <span class="hljs-string">&quot;, wordBreak(catsandog) = &quot;</span> + wordBreak(<span class="hljs-string">&quot;catsandog&quot;</span>, List.of(<span class="hljs-string">&quot;cats&quot;</span>, <span class="hljs-string">&quot;dog&quot;</span>, <span class="hljs-string">&quot;sand&quot;</span>, <span class="hljs-string">&quot;and&quot;</span>, <span class="hljs-string">&quot;cat&quot;</span>)));</span><span class="ln" data-line="62">    }</span><span class="ln" data-line="63">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class Solution {
+
+    static int minCostClimbing(int[] cost) {
+        int a = cost[0], b = cost[1]; // cheapest cost to stand on the previous two steps
+        for (int i = 2; i &lt; cost.length; i++) {
+            int c = cost[i] + Math.min(a, b);
+            a = b;
+            b = c;
+        }
+        return Math.min(a, b); // the top is past the last step: arrive from either
+    }
+
+    static int robLine(int[] h, int from, int to) {
+        int skip = 0, take = 0;
+        for (int i = from; i &lt;= to; i++) {
+            int newTake = skip + h[i];
+            skip = Math.max(skip, take);
+            take = newTake;
+        }
+        return Math.max(skip, take);
+    }
+
+    static int robCircle(int[] h) {
+        if (h.length == 1) return h[0];
+        return Math.max(robLine(h, 0, h.length - 2), robLine(h, 1, h.length - 1)); // first and last can&#39;t both be robbed
+    }
+
+    static int numDecodings(String s) {
+        int prev2 = 1, prev1 = s.charAt(0) == &#39;0&#39; ? 0 : 1; // ways for &quot;&quot; and the first character
+        for (int i = 2; i &lt;= s.length(); i++) {
+            int cur = 0;
+            if (s.charAt(i - 1) != &#39;0&#39;) cur += prev1;
+            int two = Integer.parseInt(s.substring(i - 2, i));
+            if (two &gt;= 10 &amp;&amp; two &lt;= 26) cur += prev2;
+            prev2 = prev1;
+            prev1 = cur;
+        }
+        return prev1;
+    }
+
+    static boolean wordBreak(String s, List&lt;String&gt; dict) {
+        Set&lt;String&gt; words = new HashSet&lt;&gt;(dict);
+        boolean[] ok = new boolean[s.length() + 1];
+        ok[0] = true; // the empty prefix splits trivially
+        for (int i = 1; i &lt;= s.length(); i++)
+            for (int j = 0; j &lt; i &amp;&amp; !ok[i]; j++)
+                ok[i] = ok[j] &amp;&amp; words.contains(s.substring(j, i));
+        return ok[s.length()];
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;minCostClimbing(10 15 20) = &quot; + minCostClimbing(new int[] { 10, 15, 20 })
+                + &quot;, (1 100 1 1 1 100 1 1 100 1) = &quot; + minCostClimbing(new int[] { 1, 100, 1, 1, 1, 100, 1, 1, 100, 1 }));
+        System.out.println(&quot;robCircle(2 3 2) = &quot; + robCircle(new int[] { 2, 3, 2 }) + &quot;, robCircle(1 2 3 1) = &quot; + robCircle(new int[] { 1, 2, 3, 1 }));
+        System.out.println(&quot;numDecodings(226) = &quot; + numDecodings(&quot;226&quot;) + &quot;, numDecodings(06) = &quot; + numDecodings(&quot;06&quot;) + &quot;, numDecodings(11106) = &quot; + numDecodings(&quot;11106&quot;));
+        System.out.println(&quot;wordBreak(leetcode) = &quot; + wordBreak(&quot;leetcode&quot;, List.of(&quot;leet&quot;, &quot;code&quot;))
+                + &quot;, wordBreak(catsandog) = &quot; + wordBreak(&quot;catsandog&quot;, List.of(&quot;cats&quot;, &quot;dog&quot;, &quot;sand&quot;, &quot;and&quot;, &quot;cat&quot;)));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-dp-1d-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minCostClimbing</span>(<span class="hljs-params">cost</span>) {</span><span class="ln" data-line="2">  <span class="hljs-keyword">let</span> a = cost[<span class="hljs-number">0</span>]; <span class="hljs-comment">// cheapest cost to stand on the previous two steps</span></span><span class="ln" data-line="3">  <span class="hljs-keyword">let</span> b = cost[<span class="hljs-number">1</span>];</span><span class="ln" data-line="4">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">2</span>; i &lt; cost.<span class="hljs-property">length</span>; i++) [a, b] = [b, cost[i] + <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(a, b)];</span><span class="ln" data-line="5">  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(a, b); <span class="hljs-comment">// the top is past the last step: arrive from either</span></span><span class="ln" data-line="6">}</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">function</span> <span class="hljs-title function_">robLine</span>(<span class="hljs-params">h</span>) {</span><span class="ln" data-line="9">  <span class="hljs-keyword">let</span> skip = <span class="hljs-number">0</span>;</span><span class="ln" data-line="10">  <span class="hljs-keyword">let</span> take = <span class="hljs-number">0</span>;</span><span class="ln" data-line="11">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> h) [skip, take] = [<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(skip, take), skip + x];</span><span class="ln" data-line="12">  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(skip, take);</span><span class="ln" data-line="13">}</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-keyword">function</span> <span class="hljs-title function_">robCircle</span>(<span class="hljs-params">h</span>) {</span><span class="ln" data-line="16">  <span class="hljs-keyword">if</span> (h.<span class="hljs-property">length</span> === <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> h[<span class="hljs-number">0</span>];</span><span class="ln" data-line="17">  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(<span class="hljs-title function_">robLine</span>(h.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>)), <span class="hljs-title function_">robLine</span>(h.<span class="hljs-title function_">slice</span>(<span class="hljs-number">1</span>))); <span class="hljs-comment">// first and last can&#x27;t both be robbed</span></span><span class="ln" data-line="18">}</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">function</span> <span class="hljs-title function_">numDecodings</span>(<span class="hljs-params">s</span>) {</span><span class="ln" data-line="21">  <span class="hljs-keyword">let</span> prev2 = <span class="hljs-number">1</span>; <span class="hljs-comment">// ways for &quot;&quot;</span></span><span class="ln" data-line="22">  <span class="hljs-keyword">let</span> prev1 = s[<span class="hljs-number">0</span>] === <span class="hljs-string">&quot;0&quot;</span> ? <span class="hljs-number">0</span> : <span class="hljs-number">1</span>; <span class="hljs-comment">// ways for the first character</span></span><span class="ln" data-line="23">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">2</span>; i &lt;= s.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="24">    <span class="hljs-keyword">let</span> cur = <span class="hljs-number">0</span>;</span><span class="ln" data-line="25">    <span class="hljs-keyword">if</span> (s[i - <span class="hljs-number">1</span>] !== <span class="hljs-string">&quot;0&quot;</span>) cur += prev1;</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> two = <span class="hljs-title class_">Number</span>(s.<span class="hljs-title function_">slice</span>(i - <span class="hljs-number">2</span>, i));</span><span class="ln" data-line="27">    <span class="hljs-keyword">if</span> (two &gt;= <span class="hljs-number">10</span> &amp;&amp; two &lt;= <span class="hljs-number">26</span>) cur += prev2;</span><span class="ln" data-line="28">    [prev2, prev1] = [prev1, cur];</span><span class="ln" data-line="29">  }</span><span class="ln" data-line="30">  <span class="hljs-keyword">return</span> prev1;</span><span class="ln" data-line="31">}</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"><span class="hljs-keyword">function</span> <span class="hljs-title function_">wordBreak</span>(<span class="hljs-params">s, dict</span>) {</span><span class="ln" data-line="34">  <span class="hljs-keyword">const</span> words = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>(dict);</span><span class="ln" data-line="35">  <span class="hljs-keyword">const</span> ok = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(s.<span class="hljs-property">length</span> + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>);</span><span class="ln" data-line="36">  ok[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>; <span class="hljs-comment">// the empty prefix splits trivially</span></span><span class="ln" data-line="37">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt;= s.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="38">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = <span class="hljs-number">0</span>; j &lt; i &amp;&amp; !ok[i]; j++) ok[i] = ok[j] &amp;&amp; words.<span class="hljs-title function_">has</span>(s.<span class="hljs-title function_">slice</span>(j, i));</span><span class="ln" data-line="39">  }</span><span class="ln" data-line="40">  <span class="hljs-keyword">return</span> ok[s.<span class="hljs-property">length</span>];</span><span class="ln" data-line="41">}</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="44">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`minCostClimbing(10 15 20) = <span class="hljs-subst">${minCostClimbing([<span class="hljs-number">10</span>, <span class="hljs-number">15</span>, <span class="hljs-number">20</span>])}</span>, (1 100 1 1 1 100 1 1 100 1) = <span class="hljs-subst">${minCostClimbing([<span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>])}</span>`</span>);</span><span class="ln" data-line="45">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`robCircle(2 3 2) = <span class="hljs-subst">${robCircle([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>])}</span>, robCircle(1 2 3 1) = <span class="hljs-subst">${robCircle([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>])}</span>`</span>);</span><span class="ln" data-line="46">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`numDecodings(226) = <span class="hljs-subst">${numDecodings(<span class="hljs-string">&quot;226&quot;</span>)}</span>, numDecodings(06) = <span class="hljs-subst">${numDecodings(<span class="hljs-string">&quot;06&quot;</span>)}</span>, numDecodings(11106) = <span class="hljs-subst">${numDecodings(<span class="hljs-string">&quot;11106&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="47">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`wordBreak(leetcode) = <span class="hljs-subst">${wordBreak(<span class="hljs-string">&quot;leetcode&quot;</span>, [<span class="hljs-string">&quot;leet&quot;</span>, <span class="hljs-string">&quot;code&quot;</span>])}</span>, wordBreak(catsandog) = <span class="hljs-subst">${wordBreak(<span class="hljs-string">&quot;catsandog&quot;</span>, [<span class="hljs-string">&quot;cats&quot;</span>, <span class="hljs-string">&quot;dog&quot;</span>, <span class="hljs-string">&quot;sand&quot;</span>, <span class="hljs-string">&quot;and&quot;</span>, <span class="hljs-string">&quot;cat&quot;</span>])}</span>`</span>);</span><span class="ln" data-line="48">}</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function minCostClimbing(cost) {
+  let a = cost[0]; // cheapest cost to stand on the previous two steps
+  let b = cost[1];
+  for (let i = 2; i &lt; cost.length; i++) [a, b] = [b, cost[i] + Math.min(a, b)];
+  return Math.min(a, b); // the top is past the last step: arrive from either
+}
+
+function robLine(h) {
+  let skip = 0;
+  let take = 0;
+  for (const x of h) [skip, take] = [Math.max(skip, take), skip + x];
+  return Math.max(skip, take);
+}
+
+function robCircle(h) {
+  if (h.length === 1) return h[0];
+  return Math.max(robLine(h.slice(0, -1)), robLine(h.slice(1))); // first and last can&#39;t both be robbed
+}
+
+function numDecodings(s) {
+  let prev2 = 1; // ways for &quot;&quot;
+  let prev1 = s[0] === &quot;0&quot; ? 0 : 1; // ways for the first character
+  for (let i = 2; i &lt;= s.length; i++) {
+    let cur = 0;
+    if (s[i - 1] !== &quot;0&quot;) cur += prev1;
+    const two = Number(s.slice(i - 2, i));
+    if (two &gt;= 10 &amp;&amp; two &lt;= 26) cur += prev2;
+    [prev2, prev1] = [prev1, cur];
+  }
+  return prev1;
+}
+
+function wordBreak(s, dict) {
+  const words = new Set(dict);
+  const ok = new Array(s.length + 1).fill(false);
+  ok[0] = true; // the empty prefix splits trivially
+  for (let i = 1; i &lt;= s.length; i++) {
+    for (let j = 0; j &lt; i &amp;&amp; !ok[i]; j++) ok[i] = ok[j] &amp;&amp; words.has(s.slice(j, i));
+  }
+  return ok[s.length];
+}
+
+function main() {
+  console.log(`minCostClimbing(10 15 20) = ${minCostClimbing([10, 15, 20])}, (1 100 1 1 1 100 1 1 100 1) = ${minCostClimbing([1, 100, 1, 1, 1, 100, 1, 1, 100, 1])}`);
+  console.log(`robCircle(2 3 2) = ${robCircle([2, 3, 2])}, robCircle(1 2 3 1) = ${robCircle([1, 2, 3, 1])}`);
+  console.log(`numDecodings(226) = ${numDecodings(&quot;226&quot;)}, numDecodings(06) = ${numDecodings(&quot;06&quot;)}, numDecodings(11106) = ${numDecodings(&quot;11106&quot;)}`);
+  console.log(`wordBreak(leetcode) = ${wordBreak(&quot;leetcode&quot;, [&quot;leet&quot;, &quot;code&quot;])}, wordBreak(catsandog) = ${wordBreak(&quot;catsandog&quot;, [&quot;cats&quot;, &quot;dog&quot;, &quot;sand&quot;, &quot;and&quot;, &quot;cat&quot;])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-dp-1d-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minCostClimbing</span>(<span class="hljs-params"><span class="hljs-attr">cost</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="2">  <span class="hljs-keyword">let</span> a = cost[<span class="hljs-number">0</span>]; <span class="hljs-comment">// cheapest cost to stand on the previous two steps</span></span><span class="ln" data-line="3">  <span class="hljs-keyword">let</span> b = cost[<span class="hljs-number">1</span>];</span><span class="ln" data-line="4">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">2</span>; i &lt; cost.<span class="hljs-property">length</span>; i++) [a, b] = [b, cost[i] + <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(a, b)];</span><span class="ln" data-line="5">  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(a, b); <span class="hljs-comment">// the top is past the last step: arrive from either</span></span><span class="ln" data-line="6">}</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">function</span> <span class="hljs-title function_">robLine</span>(<span class="hljs-params"><span class="hljs-attr">h</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="9">  <span class="hljs-keyword">let</span> skip = <span class="hljs-number">0</span>;</span><span class="ln" data-line="10">  <span class="hljs-keyword">let</span> take = <span class="hljs-number">0</span>;</span><span class="ln" data-line="11">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> h) [skip, take] = [<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(skip, take), skip + x];</span><span class="ln" data-line="12">  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(skip, take);</span><span class="ln" data-line="13">}</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-keyword">function</span> <span class="hljs-title function_">robCircle</span>(<span class="hljs-params"><span class="hljs-attr">h</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="16">  <span class="hljs-keyword">if</span> (h.<span class="hljs-property">length</span> === <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> h[<span class="hljs-number">0</span>];</span><span class="ln" data-line="17">  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(<span class="hljs-title function_">robLine</span>(h.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>)), <span class="hljs-title function_">robLine</span>(h.<span class="hljs-title function_">slice</span>(<span class="hljs-number">1</span>))); <span class="hljs-comment">// first and last can&#x27;t both be robbed</span></span><span class="ln" data-line="18">}</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">function</span> <span class="hljs-title function_">numDecodings</span>(<span class="hljs-params"><span class="hljs-attr">s</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="21">  <span class="hljs-keyword">let</span> prev2 = <span class="hljs-number">1</span>; <span class="hljs-comment">// ways for &quot;&quot;</span></span><span class="ln" data-line="22">  <span class="hljs-keyword">let</span> prev1 = s[<span class="hljs-number">0</span>] === <span class="hljs-string">&quot;0&quot;</span> ? <span class="hljs-number">0</span> : <span class="hljs-number">1</span>; <span class="hljs-comment">// ways for the first character</span></span><span class="ln" data-line="23">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">2</span>; i &lt;= s.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="24">    <span class="hljs-keyword">let</span> cur = <span class="hljs-number">0</span>;</span><span class="ln" data-line="25">    <span class="hljs-keyword">if</span> (s[i - <span class="hljs-number">1</span>] !== <span class="hljs-string">&quot;0&quot;</span>) cur += prev1;</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> two = <span class="hljs-title class_">Number</span>(s.<span class="hljs-title function_">slice</span>(i - <span class="hljs-number">2</span>, i));</span><span class="ln" data-line="27">    <span class="hljs-keyword">if</span> (two &gt;= <span class="hljs-number">10</span> &amp;&amp; two &lt;= <span class="hljs-number">26</span>) cur += prev2;</span><span class="ln" data-line="28">    [prev2, prev1] = [prev1, cur];</span><span class="ln" data-line="29">  }</span><span class="ln" data-line="30">  <span class="hljs-keyword">return</span> prev1;</span><span class="ln" data-line="31">}</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"><span class="hljs-keyword">function</span> <span class="hljs-title function_">wordBreak</span>(<span class="hljs-params"><span class="hljs-attr">s</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">dict</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[]</span>): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="34">  <span class="hljs-keyword">const</span> words = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>(dict);</span><span class="ln" data-line="35">  <span class="hljs-keyword">const</span> <span class="hljs-attr">ok</span>: <span class="hljs-built_in">boolean</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(s.<span class="hljs-property">length</span> + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>);</span><span class="ln" data-line="36">  ok[<span class="hljs-number">0</span>] = <span class="hljs-literal">true</span>; <span class="hljs-comment">// the empty prefix splits trivially</span></span><span class="ln" data-line="37">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt;= s.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="38">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = <span class="hljs-number">0</span>; j &lt; i &amp;&amp; !ok[i]; j++) ok[i] = ok[j] &amp;&amp; words.<span class="hljs-title function_">has</span>(s.<span class="hljs-title function_">slice</span>(j, i));</span><span class="ln" data-line="39">  }</span><span class="ln" data-line="40">  <span class="hljs-keyword">return</span> ok[s.<span class="hljs-property">length</span>];</span><span class="ln" data-line="41">}</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="44">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`minCostClimbing(10 15 20) = <span class="hljs-subst">${minCostClimbing([<span class="hljs-number">10</span>, <span class="hljs-number">15</span>, <span class="hljs-number">20</span>])}</span>, (1 100 1 1 1 100 1 1 100 1) = <span class="hljs-subst">${minCostClimbing([<span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>])}</span>`</span>);</span><span class="ln" data-line="45">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`robCircle(2 3 2) = <span class="hljs-subst">${robCircle([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>])}</span>, robCircle(1 2 3 1) = <span class="hljs-subst">${robCircle([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>])}</span>`</span>);</span><span class="ln" data-line="46">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`numDecodings(226) = <span class="hljs-subst">${numDecodings(<span class="hljs-string">&quot;226&quot;</span>)}</span>, numDecodings(06) = <span class="hljs-subst">${numDecodings(<span class="hljs-string">&quot;06&quot;</span>)}</span>, numDecodings(11106) = <span class="hljs-subst">${numDecodings(<span class="hljs-string">&quot;11106&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="47">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`wordBreak(leetcode) = <span class="hljs-subst">${wordBreak(<span class="hljs-string">&quot;leetcode&quot;</span>, [<span class="hljs-string">&quot;leet&quot;</span>, <span class="hljs-string">&quot;code&quot;</span>])}</span>, wordBreak(catsandog) = <span class="hljs-subst">${wordBreak(<span class="hljs-string">&quot;catsandog&quot;</span>, [<span class="hljs-string">&quot;cats&quot;</span>, <span class="hljs-string">&quot;dog&quot;</span>, <span class="hljs-string">&quot;sand&quot;</span>, <span class="hljs-string">&quot;and&quot;</span>, <span class="hljs-string">&quot;cat&quot;</span>])}</span>`</span>);</span><span class="ln" data-line="48">}</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function minCostClimbing(cost: readonly number[]): number {
+  let a = cost[0]; // cheapest cost to stand on the previous two steps
+  let b = cost[1];
+  for (let i = 2; i &lt; cost.length; i++) [a, b] = [b, cost[i] + Math.min(a, b)];
+  return Math.min(a, b); // the top is past the last step: arrive from either
+}
+
+function robLine(h: readonly number[]): number {
+  let skip = 0;
+  let take = 0;
+  for (const x of h) [skip, take] = [Math.max(skip, take), skip + x];
+  return Math.max(skip, take);
+}
+
+function robCircle(h: readonly number[]): number {
+  if (h.length === 1) return h[0];
+  return Math.max(robLine(h.slice(0, -1)), robLine(h.slice(1))); // first and last can&#39;t both be robbed
+}
+
+function numDecodings(s: string): number {
+  let prev2 = 1; // ways for &quot;&quot;
+  let prev1 = s[0] === &quot;0&quot; ? 0 : 1; // ways for the first character
+  for (let i = 2; i &lt;= s.length; i++) {
+    let cur = 0;
+    if (s[i - 1] !== &quot;0&quot;) cur += prev1;
+    const two = Number(s.slice(i - 2, i));
+    if (two &gt;= 10 &amp;&amp; two &lt;= 26) cur += prev2;
+    [prev2, prev1] = [prev1, cur];
+  }
+  return prev1;
+}
+
+function wordBreak(s: string, dict: readonly string[]): boolean {
+  const words = new Set(dict);
+  const ok: boolean[] = new Array(s.length + 1).fill(false);
+  ok[0] = true; // the empty prefix splits trivially
+  for (let i = 1; i &lt;= s.length; i++) {
+    for (let j = 0; j &lt; i &amp;&amp; !ok[i]; j++) ok[i] = ok[j] &amp;&amp; words.has(s.slice(j, i));
+  }
+  return ok[s.length];
+}
+
+function main(): void {
+  console.log(`minCostClimbing(10 15 20) = ${minCostClimbing([10, 15, 20])}, (1 100 1 1 1 100 1 1 100 1) = ${minCostClimbing([1, 100, 1, 1, 1, 100, 1, 1, 100, 1])}`);
+  console.log(`robCircle(2 3 2) = ${robCircle([2, 3, 2])}, robCircle(1 2 3 1) = ${robCircle([1, 2, 3, 1])}`);
+  console.log(`numDecodings(226) = ${numDecodings(&quot;226&quot;)}, numDecodings(06) = ${numDecodings(&quot;06&quot;)}, numDecodings(11106) = ${numDecodings(&quot;11106&quot;)}`);
+  console.log(`wordBreak(leetcode) = ${wordBreak(&quot;leetcode&quot;, [&quot;leet&quot;, &quot;code&quot;])}, wordBreak(catsandog) = ${wordBreak(&quot;catsandog&quot;, [&quot;cats&quot;, &quot;dog&quot;, &quot;sand&quot;, &quot;and&quot;, &quot;cat&quot;])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-dp-1d-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">min_cost_climbing</span>(<span class="hljs-params">cost: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="5">    a, b = cost[<span class="hljs-number">0</span>], cost[<span class="hljs-number">1</span>]  <span class="hljs-comment"># cheapest cost to stand on the previous two steps</span></span><span class="ln" data-line="6">    <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> cost[<span class="hljs-number">2</span>:]:</span><span class="ln" data-line="7">        a, b = b, c + <span class="hljs-built_in">min</span>(a, b)</span><span class="ln" data-line="8">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">min</span>(a, b)  <span class="hljs-comment"># the top is past the last step: arrive from either</span></span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"><span class="hljs-keyword">def</span> <span class="hljs-title function_">rob_line</span>(<span class="hljs-params">h: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="12">    skip = take = <span class="hljs-number">0</span></span><span class="ln" data-line="13">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> h:</span><span class="ln" data-line="14">        skip, take = <span class="hljs-built_in">max</span>(skip, take), skip + x</span><span class="ln" data-line="15">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">max</span>(skip, take)</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-keyword">def</span> <span class="hljs-title function_">rob_circle</span>(<span class="hljs-params">h: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="19">    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(h) == <span class="hljs-number">1</span>:</span><span class="ln" data-line="20">        <span class="hljs-keyword">return</span> h[<span class="hljs-number">0</span>]</span><span class="ln" data-line="21">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">max</span>(rob_line(h[:-<span class="hljs-number">1</span>]), rob_line(h[<span class="hljs-number">1</span>:]))  <span class="hljs-comment"># first and last can&#x27;t both be robbed</span></span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">def</span> <span class="hljs-title function_">num_decodings</span>(<span class="hljs-params">s: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="25">    prev2, prev1 = <span class="hljs-number">1</span>, <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> s[<span class="hljs-number">0</span>] == <span class="hljs-string">&quot;0&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>  <span class="hljs-comment"># ways for &quot;&quot; and the first character</span></span><span class="ln" data-line="26">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>, <span class="hljs-built_in">len</span>(s) + <span class="hljs-number">1</span>):</span><span class="ln" data-line="27">        cur = prev1 <span class="hljs-keyword">if</span> s[i - <span class="hljs-number">1</span>] != <span class="hljs-string">&quot;0&quot;</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span></span><span class="ln" data-line="28">        <span class="hljs-keyword">if</span> <span class="hljs-number">10</span> &lt;= <span class="hljs-built_in">int</span>(s[i - <span class="hljs-number">2</span>:i]) &lt;= <span class="hljs-number">26</span>:</span><span class="ln" data-line="29">            cur += prev2</span><span class="ln" data-line="30">        prev2, prev1 = prev1, cur</span><span class="ln" data-line="31">    <span class="hljs-keyword">return</span> prev1</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"> </span><span class="ln" data-line="34"><span class="hljs-keyword">def</span> <span class="hljs-title function_">word_break</span>(<span class="hljs-params">s: <span class="hljs-built_in">str</span>, words: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="35">    dictionary = <span class="hljs-built_in">set</span>(words)</span><span class="ln" data-line="36">    ok = [<span class="hljs-literal">True</span>] + [<span class="hljs-literal">False</span>] * <span class="hljs-built_in">len</span>(s)  <span class="hljs-comment"># the empty prefix splits trivially</span></span><span class="ln" data-line="37">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-built_in">len</span>(s) + <span class="hljs-number">1</span>):</span><span class="ln" data-line="38">        ok[i] = <span class="hljs-built_in">any</span>(ok[j] <span class="hljs-keyword">and</span> s[j:i] <span class="hljs-keyword">in</span> dictionary <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(i))</span><span class="ln" data-line="39">    <span class="hljs-keyword">return</span> ok[<span class="hljs-built_in">len</span>(s)]</span><span class="ln" data-line="40"> </span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">def</span> <span class="hljs-title function_">b</span>(<span class="hljs-params">x: <span class="hljs-built_in">bool</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="43">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;true&quot;</span> <span class="hljs-keyword">if</span> x <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;false&quot;</span></span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="47">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;minCostClimbing(10 15 20) = <span class="hljs-subst">{min_cost_climbing([<span class="hljs-number">10</span>, <span class="hljs-number">15</span>, <span class="hljs-number">20</span>])}</span>, (1 100 1 1 1 100 1 1 100 1) = <span class="hljs-subst">{min_cost_climbing([<span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>, <span class="hljs-number">1</span>])}</span>&quot;</span>)</span><span class="ln" data-line="48">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;robCircle(2 3 2) = <span class="hljs-subst">{rob_circle([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>])}</span>, robCircle(1 2 3 1) = <span class="hljs-subst">{rob_circle([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>])}</span>&quot;</span>)</span><span class="ln" data-line="49">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;numDecodings(226) = <span class="hljs-subst">{num_decodings(<span class="hljs-string">&#x27;226&#x27;</span>)}</span>, numDecodings(06) = <span class="hljs-subst">{num_decodings(<span class="hljs-string">&#x27;06&#x27;</span>)}</span>, numDecodings(11106) = <span class="hljs-subst">{num_decodings(<span class="hljs-string">&#x27;11106&#x27;</span>)}</span>&quot;</span>)</span><span class="ln" data-line="50">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;wordBreak(leetcode) = <span class="hljs-subst">{b(word_break(<span class="hljs-string">&#x27;leetcode&#x27;</span>, [<span class="hljs-string">&#x27;leet&#x27;</span>, <span class="hljs-string">&#x27;code&#x27;</span>]))}</span>, wordBreak(catsandog) = <span class="hljs-subst">{b(word_break(<span class="hljs-string">&#x27;catsandog&#x27;</span>, [<span class="hljs-string">&#x27;cats&#x27;</span>, <span class="hljs-string">&#x27;dog&#x27;</span>, <span class="hljs-string">&#x27;sand&#x27;</span>, <span class="hljs-string">&#x27;and&#x27;</span>, <span class="hljs-string">&#x27;cat&#x27;</span>]))}</span>&quot;</span>)</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="54">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List
+
+
+def min_cost_climbing(cost: List[int]) -&gt; int:
+    a, b = cost[0], cost[1]  # cheapest cost to stand on the previous two steps
+    for c in cost[2:]:
+        a, b = b, c + min(a, b)
+    return min(a, b)  # the top is past the last step: arrive from either
+
+
+def rob_line(h: List[int]) -&gt; int:
+    skip = take = 0
+    for x in h:
+        skip, take = max(skip, take), skip + x
+    return max(skip, take)
+
+
+def rob_circle(h: List[int]) -&gt; int:
+    if len(h) == 1:
+        return h[0]
+    return max(rob_line(h[:-1]), rob_line(h[1:]))  # first and last can&#39;t both be robbed
+
+
+def num_decodings(s: str) -&gt; int:
+    prev2, prev1 = 1, 0 if s[0] == &quot;0&quot; else 1  # ways for &quot;&quot; and the first character
+    for i in range(2, len(s) + 1):
+        cur = prev1 if s[i - 1] != &quot;0&quot; else 0
+        if 10 &lt;= int(s[i - 2:i]) &lt;= 26:
+            cur += prev2
+        prev2, prev1 = prev1, cur
+    return prev1
+
+
+def word_break(s: str, words: List[str]) -&gt; bool:
+    dictionary = set(words)
+    ok = [True] + [False] * len(s)  # the empty prefix splits trivially
+    for i in range(1, len(s) + 1):
+        ok[i] = any(ok[j] and s[j:i] in dictionary for j in range(i))
+    return ok[len(s)]
+
+
+def b(x: bool) -&gt; str:
+    return &quot;true&quot; if x else &quot;false&quot;
+
+
+def main() -&gt; None:
+    print(f&quot;minCostClimbing(10 15 20) = {min_cost_climbing([10, 15, 20])}, (1 100 1 1 1 100 1 1 100 1) = {min_cost_climbing([1, 100, 1, 1, 1, 100, 1, 1, 100, 1])}&quot;)
+    print(f&quot;robCircle(2 3 2) = {rob_circle([2, 3, 2])}, robCircle(1 2 3 1) = {rob_circle([1, 2, 3, 1])}&quot;)
+    print(f&quot;numDecodings(226) = {num_decodings(&#39;226&#39;)}, numDecodings(06) = {num_decodings(&#39;06&#39;)}, numDecodings(11106) = {num_decodings(&#39;11106&#39;)}&quot;)
+    print(f&quot;wordBreak(leetcode) = {b(word_break(&#39;leetcode&#39;, [&#39;leet&#39;, &#39;code&#39;]))}, wordBreak(catsandog) = {b(word_break(&#39;catsandog&#39;, [&#39;cats&#39;, &#39;dog&#39;, &#39;sand&#39;, &#39;and&#39;, &#39;cat&#39;]))}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>minCostClimbing(10 15 20) = 15, (1 100 1 1 1 100 1 1 100 1) = 6
+robCircle(2 3 2) = 3, robCircle(1 2 3 1) = 4
+numDecodings(226) = 3, numDecodings(06) = 0, numDecodings(11106) = 2
+wordBreak(leetcode) = true, wordBreak(catsandog) = false</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>In decode ways, treating <code>&quot;0&quot;</code> as a valid single digit, or <code>&quot;06&quot;</code> as a valid pair.</li><li>In circular house robber, forgetting the single-house case.</li><li>Overwriting the rolling variables in the wrong order, so the new value reads itself.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/min-cost-climbing-stairs/" rel="noopener" target="_blank">Min Cost Climbing Stairs<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>746</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/house-robber/" rel="noopener" target="_blank">House Robber<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>198</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/house-robber-ii/" rel="noopener" target="_blank">House Robber II<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>213</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/decode-ways/" rel="noopener" target="_blank">Decode Ways<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>91</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/word-break/" rel="noopener" target="_blank">Word Break<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>139</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/longest-valid-parentheses/" rel="noopener" target="_blank">Longest Valid Parentheses<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>32</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../algorithms/dynamic-programming/index.html">Dynamic programming</a>, <a href="../../data-structures/arrays/index.html">Arrays</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../backtracking/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Backtracking</span></a><a class="pn pn-next" href="../dp-2d/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">2D dynamic programming</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trie · DSA Academy</title>
+<meta name="description" content="Prefix search, autocomplete and word games.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Trie</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Trie</h1>
+  <p class="lede">Whenever a problem keeps asking about prefixes of many words, build a trie once and walk it. Every question about a prefix becomes a walk of the prefix&#39;s length, no matter how many words there are.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A library catalogue drawer system: one drawer per first letter, one folder per second letter inside it, and so on. Finding every book starting with &quot;mou&quot; means opening three nested drawers, not reading every card.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Autocomplete, search suggestions, &quot;words starting with&quot;.</li>
+<li>Replacing words by their shortest root, or checking many words against a dictionary of prefixes.</li>
+<li>Searching for many words at once in a grid (Word Search II), pruning paths no word starts with.</li>
+<li>Longest common prefix across a set of strings.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">build: insert every word into the trie (mark word ends)
+query(prefix):
+    node = root
+    for each char in prefix:
+        node = node.child[char]; if missing: stop early
+    use node: is it a word end? which words lie below it?
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>The data structure is covered on the Trie page. This pattern is about using it:</p>
+<ul>
+<li><strong>Replace words</strong>: for each word in a sentence, walk the trie and stop at the
+first node marked as a root. If the walk falls off the trie first, keep the
+word.</li>
+<li><strong>Search suggestions</strong>: after each typed letter, walk one step further and
+collect up to three words below the current node, visiting children in
+alphabetical order.</li>
+<li><strong>Longest common prefix</strong>: insert all words, then walk down from the root
+while the node has exactly one child and isn&#39;t the end of a word.</li>
+</ul>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Build a trie of all words</td><td class="nowrap">O(total characters)</td><td>One node step per character.</td></tr><tr><td>One prefix query</td><td class="nowrap">O(prefix length)</td><td>Plus the size of any output collected below it.</td></tr><tr><td>Replace words in a sentence</td><td class="nowrap">O(sentence length)</td><td>Each word walks at most its own length.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Each node keeps 26 child slots, so a depth-first walk visits children in alphabetical order without sorting.</p><figure class="codeblock" id="code-trie-pattern" aria-label="Longest common prefix, replace words and search suggestions">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-trie-pattern-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-trie-pattern-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-trie-pattern-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-trie-pattern-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-trie-pattern-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Node</span> {</span><span class="ln" data-line="7">        <span class="hljs-type">Node</span>[] <span class="hljs-variable">child</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>[<span class="hljs-number">26</span>];</span><span class="ln" data-line="8">        <span class="hljs-type">boolean</span> end;</span><span class="ln" data-line="9">        <span class="hljs-type">int</span> kids; <span class="hljs-comment">// number of non-null children</span></span><span class="ln" data-line="10">    }</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12">    <span class="hljs-keyword">static</span> <span class="hljs-type">Node</span> <span class="hljs-title function_">build</span><span class="hljs-params">(String[] words)</span> {</span><span class="ln" data-line="13">        <span class="hljs-type">Node</span> <span class="hljs-variable">root</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>();</span><span class="ln" data-line="14">        <span class="hljs-keyword">for</span> (String w : words) {</span><span class="ln" data-line="15">            <span class="hljs-type">Node</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> root;</span><span class="ln" data-line="16">            <span class="hljs-keyword">for</span> (<span class="hljs-type">char</span> c : w.toCharArray()) {</span><span class="ln" data-line="17">                <span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> c - <span class="hljs-string">&#x27;a&#x27;</span>;</span><span class="ln" data-line="18">                <span class="hljs-keyword">if</span> (n.child[i] == <span class="hljs-literal">null</span>) { n.child[i] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>(); n.kids++; }</span><span class="ln" data-line="19">                n = n.child[i];</span><span class="ln" data-line="20">            }</span><span class="ln" data-line="21">            n.end = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="22">        }</span><span class="ln" data-line="23">        <span class="hljs-keyword">return</span> root;</span><span class="ln" data-line="24">    }</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">longestCommonPrefix</span><span class="hljs-params">(String[] words)</span> {</span><span class="ln" data-line="27">        <span class="hljs-type">Node</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> build(words);</span><span class="ln" data-line="28">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="29">        <span class="hljs-keyword">while</span> (n.kids == <span class="hljs-number">1</span> &amp;&amp; !n.end) { <span class="hljs-comment">// a single path, and no word ends here</span></span><span class="ln" data-line="30">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">26</span>; i++) {</span><span class="ln" data-line="31">                <span class="hljs-keyword">if</span> (n.child[i] != <span class="hljs-literal">null</span>) { sb.append((<span class="hljs-type">char</span>) (<span class="hljs-string">&#x27;a&#x27;</span> + i)); n = n.child[i]; <span class="hljs-keyword">break</span>; }</span><span class="ln" data-line="32">            }</span><span class="ln" data-line="33">        }</span><span class="ln" data-line="34">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="35">    }</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">replaceWords</span><span class="hljs-params">(String[] roots, String sentence)</span> {</span><span class="ln" data-line="38">        <span class="hljs-type">Node</span> <span class="hljs-variable">trie</span> <span class="hljs-operator">=</span> build(roots);</span><span class="ln" data-line="39">        <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="40">        <span class="hljs-keyword">for</span> (String word : sentence.split(<span class="hljs-string">&quot; &quot;</span>)) {</span><span class="ln" data-line="41">            <span class="hljs-type">Node</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> trie;</span><span class="ln" data-line="42">            <span class="hljs-type">String</span> <span class="hljs-variable">replacement</span> <span class="hljs-operator">=</span> word;</span><span class="ln" data-line="43">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">k</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; k &lt; word.length(); k++) {</span><span class="ln" data-line="44">                n = n.child[word.charAt(k) - <span class="hljs-string">&#x27;a&#x27;</span>];</span><span class="ln" data-line="45">                <span class="hljs-keyword">if</span> (n == <span class="hljs-literal">null</span>) <span class="hljs-keyword">break</span>;               <span class="hljs-comment">// no root is a prefix of this word</span></span><span class="ln" data-line="46">                <span class="hljs-keyword">if</span> (n.end) { replacement = word.substring(<span class="hljs-number">0</span>, k + <span class="hljs-number">1</span>); <span class="hljs-keyword">break</span>; } <span class="hljs-comment">// shortest root wins</span></span><span class="ln" data-line="47">            }</span><span class="ln" data-line="48">            out.add(replacement);</span><span class="ln" data-line="49">        }</span><span class="ln" data-line="50">        <span class="hljs-keyword">return</span> String.join(<span class="hljs-string">&quot; &quot;</span>, out);</span><span class="ln" data-line="51">    }</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53">    <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">collect</span><span class="hljs-params">(Node n, StringBuilder path, List&lt;String&gt; out)</span> {</span><span class="ln" data-line="54">        <span class="hljs-keyword">if</span> (out.size() == <span class="hljs-number">3</span>) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="55">        <span class="hljs-keyword">if</span> (n.end) out.add(path.toString());</span><span class="ln" data-line="56">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">26</span> &amp;&amp; out.size() &lt; <span class="hljs-number">3</span>; i++) {</span><span class="ln" data-line="57">            <span class="hljs-keyword">if</span> (n.child[i] == <span class="hljs-literal">null</span>) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="58">            path.append((<span class="hljs-type">char</span>) (<span class="hljs-string">&#x27;a&#x27;</span> + i));</span><span class="ln" data-line="59">            collect(n.child[i], path, out);</span><span class="ln" data-line="60">            path.deleteCharAt(path.length() - <span class="hljs-number">1</span>);</span><span class="ln" data-line="61">        }</span><span class="ln" data-line="62">    }</span><span class="ln" data-line="63"> </span><span class="ln" data-line="64">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-title function_">suggestions</span><span class="hljs-params">(String[] products, String typed)</span> {</span><span class="ln" data-line="65">        <span class="hljs-type">Node</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> build(products);</span><span class="ln" data-line="66">        <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">lines</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="67">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">prefix</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="68">        <span class="hljs-keyword">for</span> (<span class="hljs-type">char</span> c : typed.toCharArray()) {</span><span class="ln" data-line="69">            prefix.append(c);</span><span class="ln" data-line="70">            n = n == <span class="hljs-literal">null</span> ? <span class="hljs-literal">null</span> : n.child[c - <span class="hljs-string">&#x27;a&#x27;</span>];</span><span class="ln" data-line="71">            <span class="hljs-type">List</span>&lt;String&gt; <span class="hljs-variable">found</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="72">            <span class="hljs-keyword">if</span> (n != <span class="hljs-literal">null</span>) collect(n, <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>(prefix), found);</span><span class="ln" data-line="73">            lines.add(prefix + <span class="hljs-string">&quot;: &quot;</span> + String.join(<span class="hljs-string">&quot; &quot;</span>, found));</span><span class="ln" data-line="74">        }</span><span class="ln" data-line="75">        <span class="hljs-keyword">return</span> lines;</span><span class="ln" data-line="76">    }</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="79">        System.out.println(<span class="hljs-string">&quot;longest common prefix of flower flow flight: \&quot;&quot;</span> + longestCommonPrefix(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] { <span class="hljs-string">&quot;flower&quot;</span>, <span class="hljs-string">&quot;flow&quot;</span>, <span class="hljs-string">&quot;flight&quot;</span> }) + <span class="hljs-string">&quot;\&quot;&quot;</span>);</span><span class="ln" data-line="80">        System.out.println(<span class="hljs-string">&quot;replace words: &quot;</span> + replaceWords(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] { <span class="hljs-string">&quot;cat&quot;</span>, <span class="hljs-string">&quot;bat&quot;</span>, <span class="hljs-string">&quot;rat&quot;</span> }, <span class="hljs-string">&quot;the cattle was rattled by the battery&quot;</span>));</span><span class="ln" data-line="81">        <span class="hljs-keyword">for</span> (String line : suggestions(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] { <span class="hljs-string">&quot;mobile&quot;</span>, <span class="hljs-string">&quot;mouse&quot;</span>, <span class="hljs-string">&quot;moneypot&quot;</span>, <span class="hljs-string">&quot;monitor&quot;</span>, <span class="hljs-string">&quot;mousepad&quot;</span> }, <span class="hljs-string">&quot;mouse&quot;</span>)) System.out.println(<span class="hljs-string">&quot;  &quot;</span> + line);</span><span class="ln" data-line="82">    }</span><span class="ln" data-line="83">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.List;
+
+public class Solution {
+
+    static class Node {
+        Node[] child = new Node[26];
+        boolean end;
+        int kids; // number of non-null children
+    }
+
+    static Node build(String[] words) {
+        Node root = new Node();
+        for (String w : words) {
+            Node n = root;
+            for (char c : w.toCharArray()) {
+                int i = c - &#39;a&#39;;
+                if (n.child[i] == null) { n.child[i] = new Node(); n.kids++; }
+                n = n.child[i];
+            }
+            n.end = true;
+        }
+        return root;
+    }
+
+    static String longestCommonPrefix(String[] words) {
+        Node n = build(words);
+        StringBuilder sb = new StringBuilder();
+        while (n.kids == 1 &amp;&amp; !n.end) { // a single path, and no word ends here
+            for (int i = 0; i &lt; 26; i++) {
+                if (n.child[i] != null) { sb.append((char) (&#39;a&#39; + i)); n = n.child[i]; break; }
+            }
+        }
+        return sb.toString();
+    }
+
+    static String replaceWords(String[] roots, String sentence) {
+        Node trie = build(roots);
+        List&lt;String&gt; out = new ArrayList&lt;&gt;();
+        for (String word : sentence.split(&quot; &quot;)) {
+            Node n = trie;
+            String replacement = word;
+            for (int k = 0; k &lt; word.length(); k++) {
+                n = n.child[word.charAt(k) - &#39;a&#39;];
+                if (n == null) break;               // no root is a prefix of this word
+                if (n.end) { replacement = word.substring(0, k + 1); break; } // shortest root wins
+            }
+            out.add(replacement);
+        }
+        return String.join(&quot; &quot;, out);
+    }
+
+    static void collect(Node n, StringBuilder path, List&lt;String&gt; out) {
+        if (out.size() == 3) return;
+        if (n.end) out.add(path.toString());
+        for (int i = 0; i &lt; 26 &amp;&amp; out.size() &lt; 3; i++) {
+            if (n.child[i] == null) continue;
+            path.append((char) (&#39;a&#39; + i));
+            collect(n.child[i], path, out);
+            path.deleteCharAt(path.length() - 1);
+        }
+    }
+
+    static List&lt;String&gt; suggestions(String[] products, String typed) {
+        Node n = build(products);
+        List&lt;String&gt; lines = new ArrayList&lt;&gt;();
+        StringBuilder prefix = new StringBuilder();
+        for (char c : typed.toCharArray()) {
+            prefix.append(c);
+            n = n == null ? null : n.child[c - &#39;a&#39;];
+            List&lt;String&gt; found = new ArrayList&lt;&gt;();
+            if (n != null) collect(n, new StringBuilder(prefix), found);
+            lines.add(prefix + &quot;: &quot; + String.join(&quot; &quot;, found));
+        }
+        return lines;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;longest common prefix of flower flow flight: \&quot;&quot; + longestCommonPrefix(new String[] { &quot;flower&quot;, &quot;flow&quot;, &quot;flight&quot; }) + &quot;\&quot;&quot;);
+        System.out.println(&quot;replace words: &quot; + replaceWords(new String[] { &quot;cat&quot;, &quot;bat&quot;, &quot;rat&quot; }, &quot;the cattle was rattled by the battery&quot;));
+        for (String line : suggestions(new String[] { &quot;mobile&quot;, &quot;mouse&quot;, &quot;moneypot&quot;, &quot;monitor&quot;, &quot;mousepad&quot; }, &quot;mouse&quot;)) System.out.println(&quot;  &quot; + line);
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-trie-pattern-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Node</span> {</span><span class="ln" data-line="2">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="3">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">child</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(<span class="hljs-number">26</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">null</span>);</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">end</span> = <span class="hljs-literal">false</span>;</span><span class="ln" data-line="5">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">kids</span> = <span class="hljs-number">0</span>; <span class="hljs-comment">// number of non-null children</span></span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">}</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">function</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">words</span>) {</span><span class="ln" data-line="10">  <span class="hljs-keyword">const</span> root = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>();</span><span class="ln" data-line="11">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> w <span class="hljs-keyword">of</span> words) {</span><span class="ln" data-line="12">    <span class="hljs-keyword">let</span> n = root;</span><span class="ln" data-line="13">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> ch <span class="hljs-keyword">of</span> w) {</span><span class="ln" data-line="14">      <span class="hljs-keyword">const</span> i = ch.<span class="hljs-title function_">charCodeAt</span>(<span class="hljs-number">0</span>) - <span class="hljs-number">97</span>;</span><span class="ln" data-line="15">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">child</span>[i] === <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="16">        n.<span class="hljs-property">child</span>[i] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>();</span><span class="ln" data-line="17">        n.<span class="hljs-property">kids</span>++;</span><span class="ln" data-line="18">      }</span><span class="ln" data-line="19">      n = n.<span class="hljs-property">child</span>[i];</span><span class="ln" data-line="20">    }</span><span class="ln" data-line="21">    n.<span class="hljs-property">end</span> = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">  <span class="hljs-keyword">return</span> root;</span><span class="ln" data-line="24">}</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"><span class="hljs-keyword">function</span> <span class="hljs-title function_">longestCommonPrefix</span>(<span class="hljs-params">words</span>) {</span><span class="ln" data-line="27">  <span class="hljs-keyword">let</span> n = <span class="hljs-title function_">build</span>(words);</span><span class="ln" data-line="28">  <span class="hljs-keyword">let</span> prefix = <span class="hljs-string">&quot;&quot;</span>;</span><span class="ln" data-line="29">  <span class="hljs-keyword">while</span> (n.<span class="hljs-property">kids</span> === <span class="hljs-number">1</span> &amp;&amp; !n.<span class="hljs-property">end</span>) {</span><span class="ln" data-line="30">    <span class="hljs-keyword">const</span> i = n.<span class="hljs-property">child</span>.<span class="hljs-title function_">findIndex</span>(<span class="hljs-function">(<span class="hljs-params">c</span>) =&gt;</span> c !== <span class="hljs-literal">null</span>); <span class="hljs-comment">// a single path, and no word ends here</span></span><span class="ln" data-line="31">    prefix += <span class="hljs-title class_">String</span>.<span class="hljs-title function_">fromCharCode</span>(<span class="hljs-number">97</span> + i);</span><span class="ln" data-line="32">    n = n.<span class="hljs-property">child</span>[i];</span><span class="ln" data-line="33">  }</span><span class="ln" data-line="34">  <span class="hljs-keyword">return</span> prefix;</span><span class="ln" data-line="35">}</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">function</span> <span class="hljs-title function_">replaceWords</span>(<span class="hljs-params">roots, sentence</span>) {</span><span class="ln" data-line="38">  <span class="hljs-keyword">const</span> trie = <span class="hljs-title function_">build</span>(roots);</span><span class="ln" data-line="39">  <span class="hljs-keyword">return</span> sentence</span><span class="ln" data-line="40">    .<span class="hljs-title function_">split</span>(<span class="hljs-string">&quot; &quot;</span>)</span><span class="ln" data-line="41">    .<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">word</span>) =&gt;</span> {</span><span class="ln" data-line="42">      <span class="hljs-keyword">let</span> n = trie;</span><span class="ln" data-line="43">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">0</span>; k &lt; word.<span class="hljs-property">length</span>; k++) {</span><span class="ln" data-line="44">        n = n.<span class="hljs-property">child</span>[word.<span class="hljs-title function_">charCodeAt</span>(k) - <span class="hljs-number">97</span>];</span><span class="ln" data-line="45">        <span class="hljs-keyword">if</span> (n === <span class="hljs-literal">null</span>) <span class="hljs-keyword">break</span>; <span class="hljs-comment">// no root is a prefix of this word</span></span><span class="ln" data-line="46">        <span class="hljs-keyword">if</span> (n.<span class="hljs-property">end</span>) <span class="hljs-keyword">return</span> word.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, k + <span class="hljs-number">1</span>); <span class="hljs-comment">// shortest root wins</span></span><span class="ln" data-line="47">      }</span><span class="ln" data-line="48">      <span class="hljs-keyword">return</span> word;</span><span class="ln" data-line="49">    })</span><span class="ln" data-line="50">    .<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="51">}</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"><span class="hljs-keyword">function</span> <span class="hljs-title function_">suggestions</span>(<span class="hljs-params">products, typed</span>) {</span><span class="ln" data-line="54">  <span class="hljs-keyword">let</span> n = <span class="hljs-title function_">build</span>(products);</span><span class="ln" data-line="55">  <span class="hljs-keyword">const</span> <span class="hljs-title function_">collect</span> = (<span class="hljs-params">node, path, out</span>) =&gt; {</span><span class="ln" data-line="56">    <span class="hljs-keyword">if</span> (out.<span class="hljs-property">length</span> === <span class="hljs-number">3</span>) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="57">    <span class="hljs-keyword">if</span> (node.<span class="hljs-property">end</span>) out.<span class="hljs-title function_">push</span>(path);</span><span class="ln" data-line="58">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">26</span> &amp;&amp; out.<span class="hljs-property">length</span> &lt; <span class="hljs-number">3</span>; i++) <span class="hljs-keyword">if</span> (node.<span class="hljs-property">child</span>[i] !== <span class="hljs-literal">null</span>) <span class="hljs-title function_">collect</span>(node.<span class="hljs-property">child</span>[i], path + <span class="hljs-title class_">String</span>.<span class="hljs-title function_">fromCharCode</span>(<span class="hljs-number">97</span> + i), out);</span><span class="ln" data-line="59">  };</span><span class="ln" data-line="60">  <span class="hljs-keyword">const</span> lines = [];</span><span class="ln" data-line="61">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">1</span>; k &lt;= typed.<span class="hljs-property">length</span>; k++) {</span><span class="ln" data-line="62">    <span class="hljs-keyword">const</span> prefix = typed.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, k);</span><span class="ln" data-line="63">    n = n === <span class="hljs-literal">null</span> ? <span class="hljs-literal">null</span> : n.<span class="hljs-property">child</span>[typed.<span class="hljs-title function_">charCodeAt</span>(k - <span class="hljs-number">1</span>) - <span class="hljs-number">97</span>];</span><span class="ln" data-line="64">    <span class="hljs-keyword">const</span> found = [];</span><span class="ln" data-line="65">    <span class="hljs-keyword">if</span> (n !== <span class="hljs-literal">null</span>) <span class="hljs-title function_">collect</span>(n, prefix, found);</span><span class="ln" data-line="66">    lines.<span class="hljs-title function_">push</span>(<span class="hljs-string">`<span class="hljs-subst">${prefix}</span>: <span class="hljs-subst">${found.join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="67">  }</span><span class="ln" data-line="68">  <span class="hljs-keyword">return</span> lines;</span><span class="ln" data-line="69">}</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="72">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`longest common prefix of flower flow flight: &quot;<span class="hljs-subst">${longestCommonPrefix([<span class="hljs-string">&quot;flower&quot;</span>, <span class="hljs-string">&quot;flow&quot;</span>, <span class="hljs-string">&quot;flight&quot;</span>])}</span>&quot;`</span>);</span><span class="ln" data-line="73">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`replace words: <span class="hljs-subst">${replaceWords([<span class="hljs-string">&quot;cat&quot;</span>, <span class="hljs-string">&quot;bat&quot;</span>, <span class="hljs-string">&quot;rat&quot;</span>], <span class="hljs-string">&quot;the cattle was rattled by the battery&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="74">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> line <span class="hljs-keyword">of</span> <span class="hljs-title function_">suggestions</span>([<span class="hljs-string">&quot;mobile&quot;</span>, <span class="hljs-string">&quot;mouse&quot;</span>, <span class="hljs-string">&quot;moneypot&quot;</span>, <span class="hljs-string">&quot;monitor&quot;</span>, <span class="hljs-string">&quot;mousepad&quot;</span>], <span class="hljs-string">&quot;mouse&quot;</span>)) <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${line}</span>`</span>);</span><span class="ln" data-line="75">}</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">class Node {
+  constructor() {
+    this.child = new Array(26).fill(null);
+    this.end = false;
+    this.kids = 0; // number of non-null children
+  }
+}
+
+function build(words) {
+  const root = new Node();
+  for (const w of words) {
+    let n = root;
+    for (const ch of w) {
+      const i = ch.charCodeAt(0) - 97;
+      if (n.child[i] === null) {
+        n.child[i] = new Node();
+        n.kids++;
+      }
+      n = n.child[i];
+    }
+    n.end = true;
+  }
+  return root;
+}
+
+function longestCommonPrefix(words) {
+  let n = build(words);
+  let prefix = &quot;&quot;;
+  while (n.kids === 1 &amp;&amp; !n.end) {
+    const i = n.child.findIndex((c) =&gt; c !== null); // a single path, and no word ends here
+    prefix += String.fromCharCode(97 + i);
+    n = n.child[i];
+  }
+  return prefix;
+}
+
+function replaceWords(roots, sentence) {
+  const trie = build(roots);
+  return sentence
+    .split(&quot; &quot;)
+    .map((word) =&gt; {
+      let n = trie;
+      for (let k = 0; k &lt; word.length; k++) {
+        n = n.child[word.charCodeAt(k) - 97];
+        if (n === null) break; // no root is a prefix of this word
+        if (n.end) return word.slice(0, k + 1); // shortest root wins
+      }
+      return word;
+    })
+    .join(&quot; &quot;);
+}
+
+function suggestions(products, typed) {
+  let n = build(products);
+  const collect = (node, path, out) =&gt; {
+    if (out.length === 3) return;
+    if (node.end) out.push(path);
+    for (let i = 0; i &lt; 26 &amp;&amp; out.length &lt; 3; i++) if (node.child[i] !== null) collect(node.child[i], path + String.fromCharCode(97 + i), out);
+  };
+  const lines = [];
+  for (let k = 1; k &lt;= typed.length; k++) {
+    const prefix = typed.slice(0, k);
+    n = n === null ? null : n.child[typed.charCodeAt(k - 1) - 97];
+    const found = [];
+    if (n !== null) collect(n, prefix, found);
+    lines.push(`${prefix}: ${found.join(&quot; &quot;)}`);
+  }
+  return lines;
+}
+
+function main() {
+  console.log(`longest common prefix of flower flow flight: &quot;${longestCommonPrefix([&quot;flower&quot;, &quot;flow&quot;, &quot;flight&quot;])}&quot;`);
+  console.log(`replace words: ${replaceWords([&quot;cat&quot;, &quot;bat&quot;, &quot;rat&quot;], &quot;the cattle was rattled by the battery&quot;)}`);
+  for (const line of suggestions([&quot;mobile&quot;, &quot;mouse&quot;, &quot;moneypot&quot;, &quot;monitor&quot;, &quot;mousepad&quot;], &quot;mouse&quot;)) console.log(`  ${line}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-trie-pattern-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">class</span> <span class="hljs-title class_">TrieNode</span> {</span><span class="ln" data-line="2">  <span class="hljs-attr">child</span>: (<span class="hljs-title class_">TrieNode</span> | <span class="hljs-literal">null</span>)[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(<span class="hljs-number">26</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">null</span>);</span><span class="ln" data-line="3">  end = <span class="hljs-literal">false</span>;</span><span class="ln" data-line="4">  kids = <span class="hljs-number">0</span>; <span class="hljs-comment">// number of non-null children</span></span><span class="ln" data-line="5">}</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">function</span> <span class="hljs-title function_">build</span>(<span class="hljs-params"><span class="hljs-attr">words</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[]</span>): <span class="hljs-title class_">TrieNode</span> {</span><span class="ln" data-line="8">  <span class="hljs-keyword">const</span> root = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TrieNode</span>();</span><span class="ln" data-line="9">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> w <span class="hljs-keyword">of</span> words) {</span><span class="ln" data-line="10">    <span class="hljs-keyword">let</span> n = root;</span><span class="ln" data-line="11">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> ch <span class="hljs-keyword">of</span> w) {</span><span class="ln" data-line="12">      <span class="hljs-keyword">const</span> i = ch.<span class="hljs-title function_">charCodeAt</span>(<span class="hljs-number">0</span>) - <span class="hljs-number">97</span>;</span><span class="ln" data-line="13">      <span class="hljs-keyword">let</span> next = n.<span class="hljs-property">child</span>[i];</span><span class="ln" data-line="14">      <span class="hljs-keyword">if</span> (next === <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="15">        next = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TrieNode</span>();</span><span class="ln" data-line="16">        n.<span class="hljs-property">child</span>[i] = next;</span><span class="ln" data-line="17">        n.<span class="hljs-property">kids</span>++;</span><span class="ln" data-line="18">      }</span><span class="ln" data-line="19">      n = next;</span><span class="ln" data-line="20">    }</span><span class="ln" data-line="21">    n.<span class="hljs-property">end</span> = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">  <span class="hljs-keyword">return</span> root;</span><span class="ln" data-line="24">}</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"><span class="hljs-keyword">function</span> <span class="hljs-title function_">longestCommonPrefix</span>(<span class="hljs-params"><span class="hljs-attr">words</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[]</span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="27">  <span class="hljs-keyword">let</span> n = <span class="hljs-title function_">build</span>(words);</span><span class="ln" data-line="28">  <span class="hljs-keyword">let</span> prefix = <span class="hljs-string">&quot;&quot;</span>;</span><span class="ln" data-line="29">  <span class="hljs-keyword">while</span> (n.<span class="hljs-property">kids</span> === <span class="hljs-number">1</span> &amp;&amp; !n.<span class="hljs-property">end</span>) {</span><span class="ln" data-line="30">    <span class="hljs-keyword">const</span> i = n.<span class="hljs-property">child</span>.<span class="hljs-title function_">findIndex</span>(<span class="hljs-function">(<span class="hljs-params">c</span>) =&gt;</span> c !== <span class="hljs-literal">null</span>); <span class="hljs-comment">// a single path, and no word ends here</span></span><span class="ln" data-line="31">    prefix += <span class="hljs-title class_">String</span>.<span class="hljs-title function_">fromCharCode</span>(<span class="hljs-number">97</span> + i);</span><span class="ln" data-line="32">    n = n.<span class="hljs-property">child</span>[i] <span class="hljs-keyword">as</span> <span class="hljs-title class_">TrieNode</span>;</span><span class="ln" data-line="33">  }</span><span class="ln" data-line="34">  <span class="hljs-keyword">return</span> prefix;</span><span class="ln" data-line="35">}</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">function</span> <span class="hljs-title function_">replaceWords</span>(<span class="hljs-params"><span class="hljs-attr">roots</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[], <span class="hljs-attr">sentence</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="38">  <span class="hljs-keyword">const</span> trie = <span class="hljs-title function_">build</span>(roots);</span><span class="ln" data-line="39">  <span class="hljs-keyword">return</span> sentence</span><span class="ln" data-line="40">    .<span class="hljs-title function_">split</span>(<span class="hljs-string">&quot; &quot;</span>)</span><span class="ln" data-line="41">    .<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">word</span>) =&gt;</span> {</span><span class="ln" data-line="42">      <span class="hljs-keyword">let</span> <span class="hljs-attr">n</span>: <span class="hljs-title class_">TrieNode</span> | <span class="hljs-literal">null</span> = trie;</span><span class="ln" data-line="43">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">0</span>; k &lt; word.<span class="hljs-property">length</span> &amp;&amp; n !== <span class="hljs-literal">null</span>; k++) {</span><span class="ln" data-line="44">        n = n.<span class="hljs-property">child</span>[word.<span class="hljs-title function_">charCodeAt</span>(k) - <span class="hljs-number">97</span>];</span><span class="ln" data-line="45">        <span class="hljs-keyword">if</span> (n !== <span class="hljs-literal">null</span> &amp;&amp; n.<span class="hljs-property">end</span>) <span class="hljs-keyword">return</span> word.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, k + <span class="hljs-number">1</span>); <span class="hljs-comment">// shortest root wins</span></span><span class="ln" data-line="46">      }</span><span class="ln" data-line="47">      <span class="hljs-keyword">return</span> word;</span><span class="ln" data-line="48">    })</span><span class="ln" data-line="49">    .<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="50">}</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"><span class="hljs-keyword">function</span> <span class="hljs-title function_">suggestions</span>(<span class="hljs-params"><span class="hljs-attr">products</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[], <span class="hljs-attr">typed</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">string</span>[] {</span><span class="ln" data-line="53">  <span class="hljs-keyword">let</span> <span class="hljs-attr">n</span>: <span class="hljs-title class_">TrieNode</span> | <span class="hljs-literal">null</span> = <span class="hljs-title function_">build</span>(products);</span><span class="ln" data-line="54">  <span class="hljs-keyword">const</span> collect = (<span class="hljs-attr">node</span>: <span class="hljs-title class_">TrieNode</span>, <span class="hljs-attr">path</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">out</span>: <span class="hljs-built_in">string</span>[]): <span class="hljs-function"><span class="hljs-params">void</span> =&gt;</span> {</span><span class="ln" data-line="55">    <span class="hljs-keyword">if</span> (out.<span class="hljs-property">length</span> === <span class="hljs-number">3</span>) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="56">    <span class="hljs-keyword">if</span> (node.<span class="hljs-property">end</span>) out.<span class="hljs-title function_">push</span>(path);</span><span class="ln" data-line="57">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">26</span> &amp;&amp; out.<span class="hljs-property">length</span> &lt; <span class="hljs-number">3</span>; i++) {</span><span class="ln" data-line="58">      <span class="hljs-keyword">const</span> c = node.<span class="hljs-property">child</span>[i];</span><span class="ln" data-line="59">      <span class="hljs-keyword">if</span> (c !== <span class="hljs-literal">null</span>) <span class="hljs-title function_">collect</span>(c, path + <span class="hljs-title class_">String</span>.<span class="hljs-title function_">fromCharCode</span>(<span class="hljs-number">97</span> + i), out);</span><span class="ln" data-line="60">    }</span><span class="ln" data-line="61">  };</span><span class="ln" data-line="62">  <span class="hljs-keyword">const</span> <span class="hljs-attr">lines</span>: <span class="hljs-built_in">string</span>[] = [];</span><span class="ln" data-line="63">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">1</span>; k &lt;= typed.<span class="hljs-property">length</span>; k++) {</span><span class="ln" data-line="64">    <span class="hljs-keyword">const</span> prefix = typed.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, k);</span><span class="ln" data-line="65">    n = n === <span class="hljs-literal">null</span> ? <span class="hljs-literal">null</span> : n.<span class="hljs-property">child</span>[typed.<span class="hljs-title function_">charCodeAt</span>(k - <span class="hljs-number">1</span>) - <span class="hljs-number">97</span>];</span><span class="ln" data-line="66">    <span class="hljs-keyword">const</span> <span class="hljs-attr">found</span>: <span class="hljs-built_in">string</span>[] = [];</span><span class="ln" data-line="67">    <span class="hljs-keyword">if</span> (n !== <span class="hljs-literal">null</span>) <span class="hljs-title function_">collect</span>(n, prefix, found);</span><span class="ln" data-line="68">    lines.<span class="hljs-title function_">push</span>(<span class="hljs-string">`<span class="hljs-subst">${prefix}</span>: <span class="hljs-subst">${found.join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="69">  }</span><span class="ln" data-line="70">  <span class="hljs-keyword">return</span> lines;</span><span class="ln" data-line="71">}</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="74">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`longest common prefix of flower flow flight: &quot;<span class="hljs-subst">${longestCommonPrefix([<span class="hljs-string">&quot;flower&quot;</span>, <span class="hljs-string">&quot;flow&quot;</span>, <span class="hljs-string">&quot;flight&quot;</span>])}</span>&quot;`</span>);</span><span class="ln" data-line="75">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`replace words: <span class="hljs-subst">${replaceWords([<span class="hljs-string">&quot;cat&quot;</span>, <span class="hljs-string">&quot;bat&quot;</span>, <span class="hljs-string">&quot;rat&quot;</span>], <span class="hljs-string">&quot;the cattle was rattled by the battery&quot;</span>)}</span>`</span>);</span><span class="ln" data-line="76">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> line <span class="hljs-keyword">of</span> <span class="hljs-title function_">suggestions</span>([<span class="hljs-string">&quot;mobile&quot;</span>, <span class="hljs-string">&quot;mouse&quot;</span>, <span class="hljs-string">&quot;moneypot&quot;</span>, <span class="hljs-string">&quot;monitor&quot;</span>, <span class="hljs-string">&quot;mousepad&quot;</span>], <span class="hljs-string">&quot;mouse&quot;</span>)) <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${line}</span>`</span>);</span><span class="ln" data-line="77">}</span><span class="ln" data-line="78"> </span><span class="ln" data-line="79"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">class TrieNode {
+  child: (TrieNode | null)[] = new Array(26).fill(null);
+  end = false;
+  kids = 0; // number of non-null children
+}
+
+function build(words: readonly string[]): TrieNode {
+  const root = new TrieNode();
+  for (const w of words) {
+    let n = root;
+    for (const ch of w) {
+      const i = ch.charCodeAt(0) - 97;
+      let next = n.child[i];
+      if (next === null) {
+        next = new TrieNode();
+        n.child[i] = next;
+        n.kids++;
+      }
+      n = next;
+    }
+    n.end = true;
+  }
+  return root;
+}
+
+function longestCommonPrefix(words: readonly string[]): string {
+  let n = build(words);
+  let prefix = &quot;&quot;;
+  while (n.kids === 1 &amp;&amp; !n.end) {
+    const i = n.child.findIndex((c) =&gt; c !== null); // a single path, and no word ends here
+    prefix += String.fromCharCode(97 + i);
+    n = n.child[i] as TrieNode;
+  }
+  return prefix;
+}
+
+function replaceWords(roots: readonly string[], sentence: string): string {
+  const trie = build(roots);
+  return sentence
+    .split(&quot; &quot;)
+    .map((word) =&gt; {
+      let n: TrieNode | null = trie;
+      for (let k = 0; k &lt; word.length &amp;&amp; n !== null; k++) {
+        n = n.child[word.charCodeAt(k) - 97];
+        if (n !== null &amp;&amp; n.end) return word.slice(0, k + 1); // shortest root wins
+      }
+      return word;
+    })
+    .join(&quot; &quot;);
+}
+
+function suggestions(products: readonly string[], typed: string): string[] {
+  let n: TrieNode | null = build(products);
+  const collect = (node: TrieNode, path: string, out: string[]): void =&gt; {
+    if (out.length === 3) return;
+    if (node.end) out.push(path);
+    for (let i = 0; i &lt; 26 &amp;&amp; out.length &lt; 3; i++) {
+      const c = node.child[i];
+      if (c !== null) collect(c, path + String.fromCharCode(97 + i), out);
+    }
+  };
+  const lines: string[] = [];
+  for (let k = 1; k &lt;= typed.length; k++) {
+    const prefix = typed.slice(0, k);
+    n = n === null ? null : n.child[typed.charCodeAt(k - 1) - 97];
+    const found: string[] = [];
+    if (n !== null) collect(n, prefix, found);
+    lines.push(`${prefix}: ${found.join(&quot; &quot;)}`);
+  }
+  return lines;
+}
+
+function main(): void {
+  console.log(`longest common prefix of flower flow flight: &quot;${longestCommonPrefix([&quot;flower&quot;, &quot;flow&quot;, &quot;flight&quot;])}&quot;`);
+  console.log(`replace words: ${replaceWords([&quot;cat&quot;, &quot;bat&quot;, &quot;rat&quot;], &quot;the cattle was rattled by the battery&quot;)}`);
+  for (const line of suggestions([&quot;mobile&quot;, &quot;mouse&quot;, &quot;moneypot&quot;, &quot;monitor&quot;, &quot;mousepad&quot;], &quot;mouse&quot;)) console.log(`  ${line}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-trie-pattern-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Node</span>:</span><span class="ln" data-line="5">    __slots__ = (<span class="hljs-string">&quot;child&quot;</span>, <span class="hljs-string">&quot;end&quot;</span>, <span class="hljs-string">&quot;kids&quot;</span>)</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="8">        <span class="hljs-variable language_">self</span>.child: <span class="hljs-type">List</span>[<span class="hljs-type">Optional</span>[<span class="hljs-string">&quot;Node&quot;</span>]] = [<span class="hljs-literal">None</span>] * <span class="hljs-number">26</span></span><span class="ln" data-line="9">        <span class="hljs-variable language_">self</span>.end = <span class="hljs-literal">False</span></span><span class="ln" data-line="10">        <span class="hljs-variable language_">self</span>.kids = <span class="hljs-number">0</span>  <span class="hljs-comment"># number of non-None children</span></span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"><span class="hljs-keyword">def</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">words: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; Node:</span><span class="ln" data-line="14">    root = Node()</span><span class="ln" data-line="15">    <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> words:</span><span class="ln" data-line="16">        n = root</span><span class="ln" data-line="17">        <span class="hljs-keyword">for</span> ch <span class="hljs-keyword">in</span> w:</span><span class="ln" data-line="18">            i = <span class="hljs-built_in">ord</span>(ch) - <span class="hljs-number">97</span></span><span class="ln" data-line="19">            <span class="hljs-keyword">if</span> n.child[i] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="20">                n.child[i] = Node()</span><span class="ln" data-line="21">                n.kids += <span class="hljs-number">1</span></span><span class="ln" data-line="22">            n = n.child[i]</span><span class="ln" data-line="23">        n.end = <span class="hljs-literal">True</span></span><span class="ln" data-line="24">    <span class="hljs-keyword">return</span> root</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"><span class="hljs-keyword">def</span> <span class="hljs-title function_">longest_common_prefix</span>(<span class="hljs-params">words: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="28">    n, prefix = build(words), []</span><span class="ln" data-line="29">    <span class="hljs-keyword">while</span> n.kids == <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> n.end:  <span class="hljs-comment"># a single path, and no word ends here</span></span><span class="ln" data-line="30">        i = <span class="hljs-built_in">next</span>(k <span class="hljs-keyword">for</span> k, c <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(n.child) <span class="hljs-keyword">if</span> c <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>)</span><span class="ln" data-line="31">        prefix.append(<span class="hljs-built_in">chr</span>(<span class="hljs-number">97</span> + i))</span><span class="ln" data-line="32">        n = n.child[i]</span><span class="ln" data-line="33">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;&quot;</span>.join(prefix)</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"><span class="hljs-keyword">def</span> <span class="hljs-title function_">replace_words</span>(<span class="hljs-params">roots: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>], sentence: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="37">    trie, out = build(roots), []</span><span class="ln" data-line="38">    <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> sentence.split(<span class="hljs-string">&quot; &quot;</span>):</span><span class="ln" data-line="39">        n, replacement = trie, word</span><span class="ln" data-line="40">        <span class="hljs-keyword">for</span> k, ch <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(word):</span><span class="ln" data-line="41">            n = n.child[<span class="hljs-built_in">ord</span>(ch) - <span class="hljs-number">97</span>]</span><span class="ln" data-line="42">            <span class="hljs-keyword">if</span> n <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:  <span class="hljs-comment"># no root is a prefix of this word</span></span><span class="ln" data-line="43">                <span class="hljs-keyword">break</span></span><span class="ln" data-line="44">            <span class="hljs-keyword">if</span> n.end:  <span class="hljs-comment"># shortest root wins</span></span><span class="ln" data-line="45">                replacement = word[:k + <span class="hljs-number">1</span>]</span><span class="ln" data-line="46">                <span class="hljs-keyword">break</span></span><span class="ln" data-line="47">        out.append(replacement)</span><span class="ln" data-line="48">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; &quot;</span>.join(out)</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"><span class="hljs-keyword">def</span> <span class="hljs-title function_">suggestions</span>(<span class="hljs-params">products: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>], typed: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]:</span><span class="ln" data-line="52">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">collect</span>(<span class="hljs-params">node: Node, path: <span class="hljs-built_in">str</span>, out: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="53">        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(out) == <span class="hljs-number">3</span>:</span><span class="ln" data-line="54">            <span class="hljs-keyword">return</span></span><span class="ln" data-line="55">        <span class="hljs-keyword">if</span> node.end:</span><span class="ln" data-line="56">            out.append(path)</span><span class="ln" data-line="57">        <span class="hljs-keyword">for</span> i, c <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(node.child):</span><span class="ln" data-line="58">            <span class="hljs-keyword">if</span> c <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(out) &lt; <span class="hljs-number">3</span>:</span><span class="ln" data-line="59">                collect(c, path + <span class="hljs-built_in">chr</span>(<span class="hljs-number">97</span> + i), out)</span><span class="ln" data-line="60"> </span><span class="ln" data-line="61">    n: <span class="hljs-type">Optional</span>[Node] = build(products)</span><span class="ln" data-line="62">    lines = []</span><span class="ln" data-line="63">    <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-built_in">len</span>(typed) + <span class="hljs-number">1</span>):</span><span class="ln" data-line="64">        prefix = typed[:k]</span><span class="ln" data-line="65">        n = <span class="hljs-literal">None</span> <span class="hljs-keyword">if</span> n <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">else</span> n.child[<span class="hljs-built_in">ord</span>(typed[k - <span class="hljs-number">1</span>]) - <span class="hljs-number">97</span>]</span><span class="ln" data-line="66">        found: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>] = []</span><span class="ln" data-line="67">        <span class="hljs-keyword">if</span> n <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="68">            collect(n, prefix, found)</span><span class="ln" data-line="69">        lines.append(<span class="hljs-string">f&quot;<span class="hljs-subst">{prefix}</span>: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(found)}</span>&quot;</span>)</span><span class="ln" data-line="70">    <span class="hljs-keyword">return</span> lines</span><span class="ln" data-line="71"> </span><span class="ln" data-line="72"> </span><span class="ln" data-line="73"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="74">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;longest common prefix of flower flow flight: &quot;<span class="hljs-subst">{longest_common_prefix([<span class="hljs-string">&quot;flower&quot;</span>, <span class="hljs-string">&quot;flow&quot;</span>, <span class="hljs-string">&quot;flight&quot;</span>])}</span>&quot;&#x27;</span>)</span><span class="ln" data-line="75">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;replace words: <span class="hljs-subst">{replace_words([<span class="hljs-string">&#x27;cat&#x27;</span>, <span class="hljs-string">&#x27;bat&#x27;</span>, <span class="hljs-string">&#x27;rat&#x27;</span>], <span class="hljs-string">&#x27;the cattle was rattled by the battery&#x27;</span>)}</span>&quot;</span>)</span><span class="ln" data-line="76">    <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> suggestions([<span class="hljs-string">&quot;mobile&quot;</span>, <span class="hljs-string">&quot;mouse&quot;</span>, <span class="hljs-string">&quot;moneypot&quot;</span>, <span class="hljs-string">&quot;monitor&quot;</span>, <span class="hljs-string">&quot;mousepad&quot;</span>], <span class="hljs-string">&quot;mouse&quot;</span>):</span><span class="ln" data-line="77">        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;  <span class="hljs-subst">{line}</span>&quot;</span>)</span><span class="ln" data-line="78"> </span><span class="ln" data-line="79"> </span><span class="ln" data-line="80"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="81">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List, Optional
+
+
+class Node:
+    __slots__ = (&quot;child&quot;, &quot;end&quot;, &quot;kids&quot;)
+
+    def __init__(self) -&gt; None:
+        self.child: List[Optional[&quot;Node&quot;]] = [None] * 26
+        self.end = False
+        self.kids = 0  # number of non-None children
+
+
+def build(words: List[str]) -&gt; Node:
+    root = Node()
+    for w in words:
+        n = root
+        for ch in w:
+            i = ord(ch) - 97
+            if n.child[i] is None:
+                n.child[i] = Node()
+                n.kids += 1
+            n = n.child[i]
+        n.end = True
+    return root
+
+
+def longest_common_prefix(words: List[str]) -&gt; str:
+    n, prefix = build(words), []
+    while n.kids == 1 and not n.end:  # a single path, and no word ends here
+        i = next(k for k, c in enumerate(n.child) if c is not None)
+        prefix.append(chr(97 + i))
+        n = n.child[i]
+    return &quot;&quot;.join(prefix)
+
+
+def replace_words(roots: List[str], sentence: str) -&gt; str:
+    trie, out = build(roots), []
+    for word in sentence.split(&quot; &quot;):
+        n, replacement = trie, word
+        for k, ch in enumerate(word):
+            n = n.child[ord(ch) - 97]
+            if n is None:  # no root is a prefix of this word
+                break
+            if n.end:  # shortest root wins
+                replacement = word[:k + 1]
+                break
+        out.append(replacement)
+    return &quot; &quot;.join(out)
+
+
+def suggestions(products: List[str], typed: str) -&gt; List[str]:
+    def collect(node: Node, path: str, out: List[str]) -&gt; None:
+        if len(out) == 3:
+            return
+        if node.end:
+            out.append(path)
+        for i, c in enumerate(node.child):
+            if c is not None and len(out) &lt; 3:
+                collect(c, path + chr(97 + i), out)
+
+    n: Optional[Node] = build(products)
+    lines = []
+    for k in range(1, len(typed) + 1):
+        prefix = typed[:k]
+        n = None if n is None else n.child[ord(typed[k - 1]) - 97]
+        found: List[str] = []
+        if n is not None:
+            collect(n, prefix, found)
+        lines.append(f&quot;{prefix}: {&#39; &#39;.join(found)}&quot;)
+    return lines
+
+
+def main() -&gt; None:
+    print(f&#39;longest common prefix of flower flow flight: &quot;{longest_common_prefix([&quot;flower&quot;, &quot;flow&quot;, &quot;flight&quot;])}&quot;&#39;)
+    print(f&quot;replace words: {replace_words([&#39;cat&#39;, &#39;bat&#39;, &#39;rat&#39;], &#39;the cattle was rattled by the battery&#39;)}&quot;)
+    for line in suggestions([&quot;mobile&quot;, &quot;mouse&quot;, &quot;moneypot&quot;, &quot;monitor&quot;, &quot;mousepad&quot;], &quot;mouse&quot;):
+        print(f&quot;  {line}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>longest common prefix of flower flow flight: &quot;fl&quot;
+replace words: the cat was rat by the bat
+  m: mobile moneypot monitor
+  mo: mobile moneypot monitor
+  mou: mouse mousepad
+  mous: mouse mousepad
+  mouse: mouse mousepad</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Forgetting the end-of-word flag, so a prefix that isn&#39;t a word is treated as one.</li><li>Collecting suggestions in insertion order instead of alphabetical order.</li><li>Rebuilding the trie for every query instead of once.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/longest-common-prefix/" rel="noopener" target="_blank">Longest Common Prefix<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>14</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/implement-trie-prefix-tree/" rel="noopener" target="_blank">Implement Trie (Prefix Tree)<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>208</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/replace-words/" rel="noopener" target="_blank">Replace Words<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>648</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/search-suggestions-system/" rel="noopener" target="_blank">Search Suggestions System<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>1268</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/word-search-ii/" rel="noopener" target="_blank">Word Search II<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>212</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/trie/index.html">Trie</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../shortest-path/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Shortest path</span></a><a class="pn pn-next" href="../backtracking/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Backtracking</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

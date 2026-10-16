@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two heaps · DSA Academy</title>
+<meta name="description" content="A max-heap and a min-heap split the data at the median.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Two heaps</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Two heaps</h1>
+  <p class="lede">Split the data into a smaller half and a larger half: a max-heap for the smaller half and a min-heap for the larger half. Their tops sit right at the middle, so the median is always one or two lookups away.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Lining people up by height and drawing a line through the middle. You only ever need to know the tallest person on the short side and the shortest person on the tall side. When someone new arrives, they join one side, and if the sides get unbalanced, the person nearest the line steps across.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>A running <strong>median</strong> of a stream.</li>
+<li>The median of a sliding window.</li>
+<li>Repeatedly choosing the best item from one pool while items move between pools (IPO: affordable projects vs the most profitable).</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">low  = max-heap   (smaller half)
+high = min-heap   (larger half)
+add(x):
+    push x into low; move low&#39;s top into high          ← keeps every low ≤ every high
+    if high has more items than low: move high&#39;s top into low
+median:
+    if sizes are equal: (low.top + high.top) / 2
+    else: low.top
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>The invariant has two parts: every value in <code>low</code> is at most every value in
+<code>high</code>, and <code>low</code> has the same number of items as <code>high</code> or one more. Pushing
+through <code>low</code> into <code>high</code> and then rebalancing keeps both true with at most
+three heap operations per insert.</p>
+<p>Because both tops are reachable in O(1), the median query is O(1) and insert is
+O(log n). Sorting the stream after every insert would be O(n log n) per insert.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Add a number</td><td class="nowrap">O(log n)</td><td>At most three heap pushes or pops.</td></tr><tr><td>Get the median</td><td class="nowrap">O(1)</td><td>Read one or both tops.</td></tr><tr><td>Sliding window median</td><td class="nowrap">O(n log k)</td><td>Needs deletion of the item leaving the window, usually lazily.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Medians are printed with one decimal place in every language so the outputs match.</p><figure class="codeblock" id="code-two-heaps" aria-label="A running median with two heaps">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-two-heaps-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-two-heaps-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-two-heaps-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-two-heaps-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-two-heaps-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.Collections;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.PriorityQueue;</span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MedianFinder</span> {</span><span class="ln" data-line="7">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">PriorityQueue</span>&lt;Integer&gt; <span class="hljs-variable">low</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;(Collections.reverseOrder()); <span class="hljs-comment">// max-heap</span></span><span class="ln" data-line="8">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">PriorityQueue</span>&lt;Integer&gt; <span class="hljs-variable">high</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;();                          <span class="hljs-comment">// min-heap</span></span><span class="ln" data-line="9"> </span><span class="ln" data-line="10">        <span class="hljs-type">void</span> <span class="hljs-title function_">add</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> {</span><span class="ln" data-line="11">            low.offer(x);</span><span class="ln" data-line="12">            high.offer(low.poll());                     <span class="hljs-comment">// largest of the small half moves up</span></span><span class="ln" data-line="13">            <span class="hljs-keyword">if</span> (high.size() &gt; low.size()) low.offer(high.poll()); <span class="hljs-comment">// keep low the same size or one bigger</span></span><span class="ln" data-line="14">        }</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">        <span class="hljs-type">double</span> <span class="hljs-title function_">median</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="17">            <span class="hljs-keyword">return</span> low.size() &gt; high.size() ? low.peek() : (low.peek() + (<span class="hljs-type">double</span>) high.peek()) / <span class="hljs-number">2</span>;</span><span class="ln" data-line="18">        }</span><span class="ln" data-line="19">    }</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">runningMedians</span><span class="hljs-params">(<span class="hljs-type">int</span>... xs)</span> {</span><span class="ln" data-line="22">        <span class="hljs-type">MedianFinder</span> <span class="hljs-variable">mf</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MedianFinder</span>();</span><span class="ln" data-line="23">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="24">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : xs) {</span><span class="ln" data-line="25">            mf.add(x);</span><span class="ln" data-line="26">            sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(String.format(java.util.Locale.ROOT, <span class="hljs-string">&quot;%.1f&quot;</span>, mf.median()));</span><span class="ln" data-line="27">        }</span><span class="ln" data-line="28">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="29">    }</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="32">        System.out.println(<span class="hljs-string">&quot;medians of 5 15 1 3: &quot;</span> + runningMedians(<span class="hljs-number">5</span>, <span class="hljs-number">15</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>));</span><span class="ln" data-line="33">        System.out.println(<span class="hljs-string">&quot;medians of 2 3 4: &quot;</span> + runningMedians(<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>));</span><span class="ln" data-line="34">        System.out.println(<span class="hljs-string">&quot;medians of 1 2 3 4 5 6: &quot;</span> + runningMedians(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>));</span><span class="ln" data-line="35">    }</span><span class="ln" data-line="36">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.Collections;
+import java.util.PriorityQueue;
+
+public class Solution {
+
+    static class MedianFinder {
+        private final PriorityQueue&lt;Integer&gt; low = new PriorityQueue&lt;&gt;(Collections.reverseOrder()); // max-heap
+        private final PriorityQueue&lt;Integer&gt; high = new PriorityQueue&lt;&gt;();                          // min-heap
+
+        void add(int x) {
+            low.offer(x);
+            high.offer(low.poll());                     // largest of the small half moves up
+            if (high.size() &gt; low.size()) low.offer(high.poll()); // keep low the same size or one bigger
+        }
+
+        double median() {
+            return low.size() &gt; high.size() ? low.peek() : (low.peek() + (double) high.peek()) / 2;
+        }
+    }
+
+    static String runningMedians(int... xs) {
+        MedianFinder mf = new MedianFinder();
+        StringBuilder sb = new StringBuilder();
+        for (int x : xs) {
+            mf.add(x);
+            sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(String.format(java.util.Locale.ROOT, &quot;%.1f&quot;, mf.median()));
+        }
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;medians of 5 15 1 3: &quot; + runningMedians(5, 15, 1, 3));
+        System.out.println(&quot;medians of 2 3 4: &quot; + runningMedians(2, 3, 4));
+        System.out.println(&quot;medians of 1 2 3 4 5 6: &quot; + runningMedians(1, 2, 3, 4, 5, 6));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-two-heaps-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Binary heap; less(a, b) says whether a should come out before b. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Heap</span> {</span><span class="ln" data-line="3">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">less</span>) {</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span> = [];</span><span class="ln" data-line="5">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>() {</span><span class="ln" data-line="8">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="9">  }</span><span class="ln" data-line="10">  <span class="hljs-title function_">peek</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="11">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="12">  }</span><span class="ln" data-line="13">  <span class="hljs-title function_">push</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="14">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="15">    a.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="16">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt; <span class="hljs-number">0</span>; ) {</span><span class="ln" data-line="17">      <span class="hljs-keyword">const</span> p = (i - <span class="hljs-number">1</span>) &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="18">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[i], a[p])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="19">      [a[i], a[p]] = [a[p], a[i]];</span><span class="ln" data-line="20">      i = p;</span><span class="ln" data-line="21">    }</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">  <span class="hljs-title function_">pop</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="24">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="25">    <span class="hljs-keyword">const</span> top = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> last = a.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="27">    <span class="hljs-keyword">if</span> (a.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="28">      a[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="29">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; ) {</span><span class="ln" data-line="30">        <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="31">        <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="32">        <span class="hljs-keyword">let</span> m = i;</span><span class="ln" data-line="33">        <span class="hljs-keyword">if</span> (l &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[l], a[m])) m = l;</span><span class="ln" data-line="34">        <span class="hljs-keyword">if</span> (r &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[r], a[m])) m = r;</span><span class="ln" data-line="35">        <span class="hljs-keyword">if</span> (m === i) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="36">        [a[i], a[m]] = [a[m], a[i]];</span><span class="ln" data-line="37">        i = m;</span><span class="ln" data-line="38">      }</span><span class="ln" data-line="39">    }</span><span class="ln" data-line="40">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="41">  }</span><span class="ln" data-line="42">}</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MedianFinder</span> {</span><span class="ln" data-line="45">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="46">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a &gt; b); <span class="hljs-comment">// max-heap: smaller half</span></span><span class="ln" data-line="47">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a &lt; b); <span class="hljs-comment">// min-heap: larger half</span></span><span class="ln" data-line="48">  }</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50">  <span class="hljs-title function_">add</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="51">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="52">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-title function_">push</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">pop</span>()); <span class="hljs-comment">// largest of the small half moves up</span></span><span class="ln" data-line="53">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-property">size</span> &gt; <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-property">size</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">push</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-title function_">pop</span>()); <span class="hljs-comment">// keep low the same size or one bigger</span></span><span class="ln" data-line="54">  }</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56">  <span class="hljs-title function_">median</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="57">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-property">size</span> &gt; <span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-property">size</span> ? <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">peek</span>() : (<span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">peek</span>() + <span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-title function_">peek</span>()) / <span class="hljs-number">2</span>;</span><span class="ln" data-line="58">  }</span><span class="ln" data-line="59">}</span><span class="ln" data-line="60"> </span><span class="ln" data-line="61"><span class="hljs-keyword">function</span> <span class="hljs-title function_">runningMedians</span>(<span class="hljs-params">...xs</span>) {</span><span class="ln" data-line="62">  <span class="hljs-keyword">const</span> mf = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MedianFinder</span>();</span><span class="ln" data-line="63">  <span class="hljs-keyword">return</span> xs</span><span class="ln" data-line="64">    .<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">x</span>) =&gt;</span> {</span><span class="ln" data-line="65">      mf.<span class="hljs-title function_">add</span>(x);</span><span class="ln" data-line="66">      <span class="hljs-keyword">return</span> mf.<span class="hljs-title function_">median</span>().<span class="hljs-title function_">toFixed</span>(<span class="hljs-number">1</span>);</span><span class="ln" data-line="67">    })</span><span class="ln" data-line="68">    .<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="69">}</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="72">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`medians of 5 15 1 3: <span class="hljs-subst">${runningMedians(<span class="hljs-number">5</span>, <span class="hljs-number">15</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>)}</span>`</span>);</span><span class="ln" data-line="73">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`medians of 2 3 4: <span class="hljs-subst">${runningMedians(<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>)}</span>`</span>);</span><span class="ln" data-line="74">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`medians of 1 2 3 4 5 6: <span class="hljs-subst">${runningMedians(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>)}</span>`</span>);</span><span class="ln" data-line="75">}</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Binary heap; less(a, b) says whether a should come out before b. */
+class Heap {
+  constructor(less) {
+    this.a = [];
+    this.less = less;
+  }
+  get size() {
+    return this.a.length;
+  }
+  peek() {
+    return this.a[0];
+  }
+  push(x) {
+    const a = this.a;
+    a.push(x);
+    for (let i = a.length - 1; i &gt; 0; ) {
+      const p = (i - 1) &gt;&gt; 1;
+      if (!this.less(a[i], a[p])) break;
+      [a[i], a[p]] = [a[p], a[i]];
+      i = p;
+    }
+  }
+  pop() {
+    const a = this.a;
+    const top = a[0];
+    const last = a.pop();
+    if (a.length &gt; 0) {
+      a[0] = last;
+      for (let i = 0; ; ) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l &lt; a.length &amp;&amp; this.less(a[l], a[m])) m = l;
+        if (r &lt; a.length &amp;&amp; this.less(a[r], a[m])) m = r;
+        if (m === i) break;
+        [a[i], a[m]] = [a[m], a[i]];
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
+class MedianFinder {
+  constructor() {
+    this.low = new Heap((a, b) =&gt; a &gt; b); // max-heap: smaller half
+    this.high = new Heap((a, b) =&gt; a &lt; b); // min-heap: larger half
+  }
+
+  add(x) {
+    this.low.push(x);
+    this.high.push(this.low.pop()); // largest of the small half moves up
+    if (this.high.size &gt; this.low.size) this.low.push(this.high.pop()); // keep low the same size or one bigger
+  }
+
+  median() {
+    return this.low.size &gt; this.high.size ? this.low.peek() : (this.low.peek() + this.high.peek()) / 2;
+  }
+}
+
+function runningMedians(...xs) {
+  const mf = new MedianFinder();
+  return xs
+    .map((x) =&gt; {
+      mf.add(x);
+      return mf.median().toFixed(1);
+    })
+    .join(&quot; &quot;);
+}
+
+function main() {
+  console.log(`medians of 5 15 1 3: ${runningMedians(5, 15, 1, 3)}`);
+  console.log(`medians of 2 3 4: ${runningMedians(2, 3, 4)}`);
+  console.log(`medians of 1 2 3 4 5 6: ${runningMedians(1, 2, 3, 4, 5, 6)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-two-heaps-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Binary heap; less(a, b) says whether a should come out before b. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Heap</span>&lt;T&gt; {</span><span class="ln" data-line="3">  <span class="hljs-keyword">private</span> <span class="hljs-attr">a</span>: T[] = [];</span><span class="ln" data-line="4">  <span class="hljs-keyword">private</span> <span class="hljs-attr">less</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">x</span>: T, <span class="hljs-attr">y</span>: T</span>) =&gt;</span> <span class="hljs-built_in">boolean</span>;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">less</span>: (x: T, y: T) =&gt; <span class="hljs-built_in">boolean</span></span>) {</span><span class="ln" data-line="7">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="8">  }</span><span class="ln" data-line="9">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="10">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="11">  }</span><span class="ln" data-line="12">  <span class="hljs-title function_">peek</span>(): T {</span><span class="ln" data-line="13">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="14">  }</span><span class="ln" data-line="15">  <span class="hljs-title function_">push</span>(<span class="hljs-attr">x</span>: T): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="16">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="17">    a.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="18">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt; <span class="hljs-number">0</span>; ) {</span><span class="ln" data-line="19">      <span class="hljs-keyword">const</span> p = (i - <span class="hljs-number">1</span>) &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="20">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[i], a[p])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="21">      [a[i], a[p]] = [a[p], a[i]];</span><span class="ln" data-line="22">      i = p;</span><span class="ln" data-line="23">    }</span><span class="ln" data-line="24">  }</span><span class="ln" data-line="25">  <span class="hljs-title function_">pop</span>(): T {</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="27">    <span class="hljs-keyword">const</span> top = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="28">    <span class="hljs-keyword">const</span> last = a.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> T;</span><span class="ln" data-line="29">    <span class="hljs-keyword">if</span> (a.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="30">      a[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="31">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; ) {</span><span class="ln" data-line="32">        <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="33">        <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="34">        <span class="hljs-keyword">let</span> m = i;</span><span class="ln" data-line="35">        <span class="hljs-keyword">if</span> (l &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[l], a[m])) m = l;</span><span class="ln" data-line="36">        <span class="hljs-keyword">if</span> (r &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[r], a[m])) m = r;</span><span class="ln" data-line="37">        <span class="hljs-keyword">if</span> (m === i) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="38">        [a[i], a[m]] = [a[m], a[i]];</span><span class="ln" data-line="39">        i = m;</span><span class="ln" data-line="40">      }</span><span class="ln" data-line="41">    }</span><span class="ln" data-line="42">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="43">  }</span><span class="ln" data-line="44">}</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MedianFinder</span> {</span><span class="ln" data-line="47">  <span class="hljs-keyword">private</span> low = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;<span class="hljs-built_in">number</span>&gt;(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a &gt; b); <span class="hljs-comment">// max-heap: smaller half</span></span><span class="ln" data-line="48">  <span class="hljs-keyword">private</span> high = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;<span class="hljs-built_in">number</span>&gt;(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a &lt; b); <span class="hljs-comment">// min-heap: larger half</span></span><span class="ln" data-line="49"> </span><span class="ln" data-line="50">  <span class="hljs-title function_">add</span>(<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="51">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="52">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-title function_">push</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">pop</span>()); <span class="hljs-comment">// largest of the small half moves up</span></span><span class="ln" data-line="53">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-property">size</span> &gt; <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-property">size</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">push</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-title function_">pop</span>()); <span class="hljs-comment">// keep low the same size or one bigger</span></span><span class="ln" data-line="54">  }</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56">  <span class="hljs-title function_">median</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="57">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-property">size</span> &gt; <span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-property">size</span> ? <span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">peek</span>() : (<span class="hljs-variable language_">this</span>.<span class="hljs-property">low</span>.<span class="hljs-title function_">peek</span>() + <span class="hljs-variable language_">this</span>.<span class="hljs-property">high</span>.<span class="hljs-title function_">peek</span>()) / <span class="hljs-number">2</span>;</span><span class="ln" data-line="58">  }</span><span class="ln" data-line="59">}</span><span class="ln" data-line="60"> </span><span class="ln" data-line="61"><span class="hljs-keyword">function</span> <span class="hljs-title function_">runningMedians</span>(<span class="hljs-params">...<span class="hljs-attr">xs</span>: <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="62">  <span class="hljs-keyword">const</span> mf = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MedianFinder</span>();</span><span class="ln" data-line="63">  <span class="hljs-keyword">return</span> xs</span><span class="ln" data-line="64">    .<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">x</span>) =&gt;</span> {</span><span class="ln" data-line="65">      mf.<span class="hljs-title function_">add</span>(x);</span><span class="ln" data-line="66">      <span class="hljs-keyword">return</span> mf.<span class="hljs-title function_">median</span>().<span class="hljs-title function_">toFixed</span>(<span class="hljs-number">1</span>);</span><span class="ln" data-line="67">    })</span><span class="ln" data-line="68">    .<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="69">}</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="72">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`medians of 5 15 1 3: <span class="hljs-subst">${runningMedians(<span class="hljs-number">5</span>, <span class="hljs-number">15</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>)}</span>`</span>);</span><span class="ln" data-line="73">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`medians of 2 3 4: <span class="hljs-subst">${runningMedians(<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>)}</span>`</span>);</span><span class="ln" data-line="74">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`medians of 1 2 3 4 5 6: <span class="hljs-subst">${runningMedians(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>)}</span>`</span>);</span><span class="ln" data-line="75">}</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Binary heap; less(a, b) says whether a should come out before b. */
+class Heap&lt;T&gt; {
+  private a: T[] = [];
+  private less: (x: T, y: T) =&gt; boolean;
+
+  constructor(less: (x: T, y: T) =&gt; boolean) {
+    this.less = less;
+  }
+  get size(): number {
+    return this.a.length;
+  }
+  peek(): T {
+    return this.a[0];
+  }
+  push(x: T): void {
+    const a = this.a;
+    a.push(x);
+    for (let i = a.length - 1; i &gt; 0; ) {
+      const p = (i - 1) &gt;&gt; 1;
+      if (!this.less(a[i], a[p])) break;
+      [a[i], a[p]] = [a[p], a[i]];
+      i = p;
+    }
+  }
+  pop(): T {
+    const a = this.a;
+    const top = a[0];
+    const last = a.pop() as T;
+    if (a.length &gt; 0) {
+      a[0] = last;
+      for (let i = 0; ; ) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l &lt; a.length &amp;&amp; this.less(a[l], a[m])) m = l;
+        if (r &lt; a.length &amp;&amp; this.less(a[r], a[m])) m = r;
+        if (m === i) break;
+        [a[i], a[m]] = [a[m], a[i]];
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
+class MedianFinder {
+  private low = new Heap&lt;number&gt;((a, b) =&gt; a &gt; b); // max-heap: smaller half
+  private high = new Heap&lt;number&gt;((a, b) =&gt; a &lt; b); // min-heap: larger half
+
+  add(x: number): void {
+    this.low.push(x);
+    this.high.push(this.low.pop()); // largest of the small half moves up
+    if (this.high.size &gt; this.low.size) this.low.push(this.high.pop()); // keep low the same size or one bigger
+  }
+
+  median(): number {
+    return this.low.size &gt; this.high.size ? this.low.peek() : (this.low.peek() + this.high.peek()) / 2;
+  }
+}
+
+function runningMedians(...xs: number[]): string {
+  const mf = new MedianFinder();
+  return xs
+    .map((x) =&gt; {
+      mf.add(x);
+      return mf.median().toFixed(1);
+    })
+    .join(&quot; &quot;);
+}
+
+function main(): void {
+  console.log(`medians of 5 15 1 3: ${runningMedians(5, 15, 1, 3)}`);
+  console.log(`medians of 2 3 4: ${runningMedians(2, 3, 4)}`);
+  console.log(`medians of 1 2 3 4 5 6: ${runningMedians(1, 2, 3, 4, 5, 6)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-two-heaps-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> heapq</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MedianFinder</span>:</span><span class="ln" data-line="6">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="7">        <span class="hljs-variable language_">self</span>.low: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>] = []  <span class="hljs-comment"># max-heap via negatives: smaller half</span></span><span class="ln" data-line="8">        <span class="hljs-variable language_">self</span>.high: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>] = []  <span class="hljs-comment"># min-heap: larger half</span></span><span class="ln" data-line="9"> </span><span class="ln" data-line="10">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">add</span>(<span class="hljs-params">self, x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="11">        heapq.heappush(<span class="hljs-variable language_">self</span>.low, -x)</span><span class="ln" data-line="12">        heapq.heappush(<span class="hljs-variable language_">self</span>.high, -heapq.heappop(<span class="hljs-variable language_">self</span>.low))  <span class="hljs-comment"># largest of the small half moves up</span></span><span class="ln" data-line="13">        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.high) &gt; <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.low):  <span class="hljs-comment"># keep low the same size or one bigger</span></span><span class="ln" data-line="14">            heapq.heappush(<span class="hljs-variable language_">self</span>.low, -heapq.heappop(<span class="hljs-variable language_">self</span>.high))</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">median</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">float</span>:</span><span class="ln" data-line="17">        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.low) &gt; <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.high):</span><span class="ln" data-line="18">            <span class="hljs-keyword">return</span> <span class="hljs-built_in">float</span>(-<span class="hljs-variable language_">self</span>.low[<span class="hljs-number">0</span>])</span><span class="ln" data-line="19">        <span class="hljs-keyword">return</span> (-<span class="hljs-variable language_">self</span>.low[<span class="hljs-number">0</span>] + <span class="hljs-variable language_">self</span>.high[<span class="hljs-number">0</span>]) / <span class="hljs-number">2</span></span><span class="ln" data-line="20"> </span><span class="ln" data-line="21"> </span><span class="ln" data-line="22"><span class="hljs-keyword">def</span> <span class="hljs-title function_">running_medians</span>(<span class="hljs-params">*xs: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="23">    mf, out = MedianFinder(), []</span><span class="ln" data-line="24">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> xs:</span><span class="ln" data-line="25">        mf.add(x)</span><span class="ln" data-line="26">        out.append(<span class="hljs-string">f&quot;<span class="hljs-subst">{mf.median():<span class="hljs-number">.1</span>f}</span>&quot;</span>)</span><span class="ln" data-line="27">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; &quot;</span>.join(out)</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29"> </span><span class="ln" data-line="30"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="31">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;medians of 5 15 1 3: <span class="hljs-subst">{running_medians(<span class="hljs-number">5</span>, <span class="hljs-number">15</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>)}</span>&quot;</span>)</span><span class="ln" data-line="32">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;medians of 2 3 4: <span class="hljs-subst">{running_medians(<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>)}</span>&quot;</span>)</span><span class="ln" data-line="33">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;medians of 1 2 3 4 5 6: <span class="hljs-subst">{running_medians(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>)}</span>&quot;</span>)</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="37">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import heapq
+from typing import List
+
+
+class MedianFinder:
+    def __init__(self) -&gt; None:
+        self.low: List[int] = []  # max-heap via negatives: smaller half
+        self.high: List[int] = []  # min-heap: larger half
+
+    def add(self, x: int) -&gt; None:
+        heapq.heappush(self.low, -x)
+        heapq.heappush(self.high, -heapq.heappop(self.low))  # largest of the small half moves up
+        if len(self.high) &gt; len(self.low):  # keep low the same size or one bigger
+            heapq.heappush(self.low, -heapq.heappop(self.high))
+
+    def median(self) -&gt; float:
+        if len(self.low) &gt; len(self.high):
+            return float(-self.low[0])
+        return (-self.low[0] + self.high[0]) / 2
+
+
+def running_medians(*xs: int) -&gt; str:
+    mf, out = MedianFinder(), []
+    for x in xs:
+        mf.add(x)
+        out.append(f&quot;{mf.median():.1f}&quot;)
+    return &quot; &quot;.join(out)
+
+
+def main() -&gt; None:
+    print(f&quot;medians of 5 15 1 3: {running_medians(5, 15, 1, 3)}&quot;)
+    print(f&quot;medians of 2 3 4: {running_medians(2, 3, 4)}&quot;)
+    print(f&quot;medians of 1 2 3 4 5 6: {running_medians(1, 2, 3, 4, 5, 6)}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>medians of 5 15 1 3: 5.0 10.0 5.0 4.0
+medians of 2 3 4: 2.0 2.5 3.0
+medians of 1 2 3 4 5 6: 1.0 1.5 2.0 2.5 3.0 3.5</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Forgetting that Java&#39;s and Python&#39;s heaps are min-heaps; store negatives (Python) or pass a reverse comparator (Java) for the max-heap.</li><li>Letting the sizes differ by more than one.</li><li>Integer division when averaging two middle values; the median of 1 and 2 is 1.5.</li><li>Overflow when adding two large ints before dividing; add as <code>long</code> or <code>double</code>.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/find-median-from-data-stream/" rel="noopener" target="_blank">Find Median from Data Stream<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>295</td><td><span class="pill pill-hard">hard</span></td></tr><tr><td><a href="https://leetcode.com/problems/sliding-window-median/" rel="noopener" target="_blank">Sliding Window Median<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>480</td><td><span class="pill pill-hard">hard</span></td></tr><tr><td><a href="https://leetcode.com/problems/ipo/" rel="noopener" target="_blank">IPO<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>502</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/heaps/index.html">Heaps</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../top-k/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Top K elements</span></a><a class="pn pn-next" href="../k-way-merge/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">K-way merge</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

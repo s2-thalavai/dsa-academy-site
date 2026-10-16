@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sorting · DSA Academy</title>
+<meta name="description" content="Eight sorts compared side by side, with stability explained.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../index.html" aria-current="page">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Algorithms</a></li><li><span aria-current="page">Sorting</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Sorting</h1>
+  <p class="lede">Sorting puts items in order. Eight classic algorithms show nearly every trade-off you&#39;ll be asked about: time, extra memory, stability and how they behave on nearly sorted data.</p>
+  <p class="tags"><span class="pill">Technique</span> <span class="muted">18 minute read</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Sorting a hand of cards. Most people use insertion sort: pick up one card at a time and slide it into place. Merge sort is two people each sorting half the deck and then interleaving their piles. Counting sort is dealing cards into 13 piles by rank and stacking the piles.</p></aside>
+<h2 id="two-questions-to-ask-about-any-sort">Two questions to ask about any sort</h2>
+<ul>
+<li><strong>Time and space</strong>: how many comparisons or moves, and how much extra memory.
+Comparison sorts can&#39;t beat O(n log n) in the worst case, because there are
+n! possible orders and each comparison only halves the possibilities.</li>
+<li><strong>Stability</strong>: does it keep equal items in their original order? That
+matters when you sort records by one field after sorting by another, such as
+sorting orders by date and then by customer.</li>
+</ul>
+<h2 id="the-simple-on-sorts">The simple O(n²) sorts</h2>
+<ul>
+<li><strong>Bubble sort</strong> sweeps the array, swapping neighbours that are out of order.
+After pass k the k largest items are in place. Stop early if a pass makes no
+swaps.</li>
+<li><strong>Selection sort</strong> finds the smallest remaining item and swaps it into the
+next position. It always does O(n²) comparisons but only O(n) swaps.</li>
+<li><strong>Insertion sort</strong> grows a sorted prefix: take the next item and shift larger
+items right until its slot appears. On nearly sorted data each item moves only
+a little, so it&#39;s close to O(n). Real libraries switch to insertion sort for
+small pieces.</li>
+</ul>
+<h2 id="merge-sort">Merge sort</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 220" role="img" aria-label="Merge sort splitting 8 numbers into halves down to single items, then merging pairs back into sorted order"><defs></defs><rect class="dg-box" x="130" y="10" width="50" height="32" rx="6"/><text class="dg-t" x="155.0" y="26.0">38</text><rect class="dg-box" x="184" y="10" width="50" height="32" rx="6"/><text class="dg-t" x="209.0" y="26.0">27</text><rect class="dg-box" x="238" y="10" width="50" height="32" rx="6"/><text class="dg-t" x="263.0" y="26.0">43</text><rect class="dg-box" x="292" y="10" width="50" height="32" rx="6"/><text class="dg-t" x="317.0" y="26.0">3</text><rect class="dg-box" x="346" y="10" width="50" height="32" rx="6"/><text class="dg-t" x="371.0" y="26.0">9</text><rect class="dg-box" x="400" y="10" width="50" height="32" rx="6"/><text class="dg-t" x="425.0" y="26.0">82</text><rect class="dg-box" x="454" y="10" width="50" height="32" rx="6"/><text class="dg-t" x="479.0" y="26.0">10</text><rect class="dg-box" x="508" y="10" width="50" height="32" rx="6"/><text class="dg-t" x="533.0" y="26.0">5</text><text class="dg-m" x="20" y="31">input</text><rect class="dg-box" x="130" y="52" width="50" height="32" rx="6"/><text class="dg-t" x="155.0" y="68.0">38</text><rect class="dg-box" x="184" y="52" width="50" height="32" rx="6"/><text class="dg-t" x="209.0" y="68.0">27</text><rect class="dg-box" x="238" y="52" width="50" height="32" rx="6"/><text class="dg-t" x="263.0" y="68.0">43</text><rect class="dg-box" x="292" y="52" width="50" height="32" rx="6"/><text class="dg-t" x="317.0" y="68.0">3</text><rect class="dg-box" x="356" y="52" width="50" height="32" rx="6"/><text class="dg-t" x="381.0" y="68.0">9</text><rect class="dg-box" x="410" y="52" width="50" height="32" rx="6"/><text class="dg-t" x="435.0" y="68.0">82</text><rect class="dg-box" x="464" y="52" width="50" height="32" rx="6"/><text class="dg-t" x="489.0" y="68.0">10</text><rect class="dg-box" x="518" y="52" width="50" height="32" rx="6"/><text class="dg-t" x="543.0" y="68.0">5</text><text class="dg-m" x="20" y="73">split</text><rect class="dg-a" x="130" y="94" width="50" height="32" rx="6"/><text class="dg-t" x="155.0" y="110.0">27</text><rect class="dg-a" x="184" y="94" width="50" height="32" rx="6"/><text class="dg-t" x="209.0" y="110.0">38</text><rect class="dg-a" x="248" y="94" width="50" height="32" rx="6"/><text class="dg-t" x="273.0" y="110.0">3</text><rect class="dg-a" x="302" y="94" width="50" height="32" rx="6"/><text class="dg-t" x="327.0" y="110.0">43</text><rect class="dg-a" x="366" y="94" width="50" height="32" rx="6"/><text class="dg-t" x="391.0" y="110.0">9</text><rect class="dg-a" x="420" y="94" width="50" height="32" rx="6"/><text class="dg-t" x="445.0" y="110.0">82</text><rect class="dg-a" x="484" y="94" width="50" height="32" rx="6"/><text class="dg-t" x="509.0" y="110.0">5</text><rect class="dg-a" x="538" y="94" width="50" height="32" rx="6"/><text class="dg-t" x="563.0" y="110.0">10</text><text class="dg-m" x="20" y="115">merge pairs</text><rect class="dg-a" x="130" y="136" width="50" height="32" rx="6"/><text class="dg-t" x="155.0" y="152.0">3</text><rect class="dg-a" x="184" y="136" width="50" height="32" rx="6"/><text class="dg-t" x="209.0" y="152.0">27</text><rect class="dg-a" x="238" y="136" width="50" height="32" rx="6"/><text class="dg-t" x="263.0" y="152.0">38</text><rect class="dg-a" x="292" y="136" width="50" height="32" rx="6"/><text class="dg-t" x="317.0" y="152.0">43</text><rect class="dg-a" x="356" y="136" width="50" height="32" rx="6"/><text class="dg-t" x="381.0" y="152.0">5</text><rect class="dg-a" x="410" y="136" width="50" height="32" rx="6"/><text class="dg-t" x="435.0" y="152.0">9</text><rect class="dg-a" x="464" y="136" width="50" height="32" rx="6"/><text class="dg-t" x="489.0" y="152.0">10</text><rect class="dg-a" x="518" y="136" width="50" height="32" rx="6"/><text class="dg-t" x="543.0" y="152.0">82</text><text class="dg-m" x="20" y="157">merge fours</text><rect class="dg-ok" x="130" y="178" width="50" height="32" rx="6"/><text class="dg-t" x="155.0" y="194.0">3</text><rect class="dg-ok" x="184" y="178" width="50" height="32" rx="6"/><text class="dg-t" x="209.0" y="194.0">5</text><rect class="dg-ok" x="238" y="178" width="50" height="32" rx="6"/><text class="dg-t" x="263.0" y="194.0">9</text><rect class="dg-ok" x="292" y="178" width="50" height="32" rx="6"/><text class="dg-t" x="317.0" y="194.0">10</text><rect class="dg-ok" x="346" y="178" width="50" height="32" rx="6"/><text class="dg-t" x="371.0" y="194.0">27</text><rect class="dg-ok" x="400" y="178" width="50" height="32" rx="6"/><text class="dg-t" x="425.0" y="194.0">38</text><rect class="dg-ok" x="454" y="178" width="50" height="32" rx="6"/><text class="dg-t" x="479.0" y="194.0">43</text><rect class="dg-ok" x="508" y="178" width="50" height="32" rx="6"/><text class="dg-t" x="533.0" y="194.0">82</text><text class="dg-m" x="20" y="199">merge all</text></svg><figcaption>Merge sort splits until each piece has one item (already sorted), then merges neighbours. There are log₂ n levels and each level merges n items, so it's O(n log n).</figcaption></figure><p>Merging two sorted lists takes one pass: repeatedly take the smaller front
+item. Merge sort is guaranteed O(n log n) and stable, but it needs O(n) extra
+space for the merge buffer. It&#39;s also the natural choice for linked lists
+(no random access needed) and for data too big for memory.</p>
+<h2 id="quick-sort">Quick sort</h2>
+<p>Pick a <strong>pivot</strong>, then <strong>partition</strong>: move everything smaller to its left and
+everything larger to its right. The pivot is now in its final place; sort the
+two sides recursively.</p>
+<p>With good pivots each partition splits roughly in half, giving O(n log n).
+With bad pivots (always the smallest item) each split removes only one item,
+giving O(n²). A random pivot makes the bad case vanishingly unlikely. Quick sort
+runs in place and has excellent cache behaviour, which is why it&#39;s often the
+fastest in practice.</p>
+<h2 id="heap-sort">Heap sort</h2>
+<p>Build a max-heap in O(n), then repeatedly swap the root (the maximum) to the
+end of the array and sift the new root down. It&#39;s O(n log n) in every case and
+in place, but not stable and less cache-friendly than quick sort.</p>
+<h2 id="counting-and-radix-sort">Counting and radix sort</h2>
+<p>When keys are integers in a small range <code>0..k</code>, you don&#39;t need comparisons.
+<strong>Counting sort</strong> counts how many times each key appears, turns the counts into
+starting positions with a prefix sum, and places each item directly: O(n + k).</p>
+<p><strong>Radix sort</strong> sorts by one digit at a time, starting with the least
+significant, using a stable counting sort for each digit. Stability is what
+keeps earlier digit orders intact. For 32-bit integers in base 256 it takes 4
+passes regardless of n.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Bubble sort</td><td class="nowrap">O(n²), O(n) if already sorted</td><td>Repeatedly swap adjacent out-of-order pairs. Stable, in place. Mostly for teaching.</td></tr><tr><td>Selection sort</td><td class="nowrap">O(n²) always</td><td>Find the minimum of the rest, swap it to the front. In place, not stable, at most n swaps.</td></tr><tr><td>Insertion sort</td><td class="nowrap">O(n²), O(n) on nearly sorted data</td><td>Slide each item left into place. Stable, in place, fastest for small or almost-sorted arrays.</td></tr><tr><td>Merge sort</td><td class="nowrap">O(n log n) always</td><td>Split, sort halves, merge. Stable; needs O(n) extra space.</td></tr><tr><td>Quick sort</td><td class="nowrap">O(n log n) average, O(n²) worst</td><td>Partition around a pivot. In place (O(log n) stack), not stable; very fast in practice with a random pivot.</td></tr><tr><td>Heap sort</td><td class="nowrap">O(n log n) always</td><td>Heapify, then repeatedly move the max to the end. In place, not stable.</td></tr><tr><td>Counting sort</td><td class="nowrap">O(n + k)</td><td>Count occurrences of each key in a range of size k. Stable when done right; needs O(k) space.</td></tr><tr><td>Radix sort</td><td class="nowrap">O(d × (n + b))</td><td>Counting sort by each digit, least significant first; d digits in base b.</td></tr></tbody></table></div>
+<h2 id="use-when">When to use it</h2>
+<div class="two-col"><div><h3>Reach for it when</h3><ul><li>Sorting first unlocks a simpler algorithm: two pointers, merging intervals, greedy choices, binary search.</li><li>Small or nearly sorted inputs: insertion sort beats the O(n log n) sorts there.</li><li>Integer keys in a small range: counting or radix sort beat comparison sorts.</li></ul></div><div><h3>Think twice when</h3><ul><li>You only need the top k items. A heap gives O(n log k).</li><li>You only need the k-th smallest. Quickselect is O(n) on average.</li></ul></div></div>
+<h2 id="lang-notes">In your language</h2>
+<div class="lang-notes"><div class="lang-note" data-lang="java"><p class="lang-note-label">Notes for Java</p><ul>
+<li><code>Arrays.sort(int[])</code> uses dual-pivot quicksort: fast, not stable (stability doesn&#39;t matter for primitives).</li>
+<li><code>Arrays.sort(Object[])</code> and <code>Collections.sort</code> use TimSort: stable, O(n log n), O(n) on sorted runs.</li>
+<li>Sort with a comparator: <code>Arrays.sort(intervals, (a, b) -&gt; Integer.compare(a[0], b[0]))</code>. Comparators need boxed or object arrays, not <code>int[]</code>.</li>
+</ul>
+</div><div class="lang-note" data-lang="javascript"><p class="lang-note-label">Notes for JavaScript</p><ul>
+<li><code>arr.sort()</code> with no comparator sorts as strings. Always pass <code>(a, b) =&gt; a - b</code> for numbers.</li>
+<li>Since ES2019 <code>sort</code> must be stable, and V8 uses TimSort.</li>
+<li><code>toSorted()</code> (ES2023) returns a sorted copy and leaves the original alone.</li>
+</ul>
+</div><div class="lang-note" data-lang="typescript"><p class="lang-note-label">Notes for TypeScript</p><ul>
+<li>Same runtime as JavaScript. Type comparators as <code>(a: T, b: T) =&gt; number</code>.</li>
+</ul>
+</div><div class="lang-note" data-lang="python"><p class="lang-note-label">Notes for Python</p><ul>
+<li><code>sorted(xs)</code> returns a new list; <code>xs.sort()</code> sorts in place. Both are TimSort: stable, O(n log n), O(n) on already-sorted runs.</li>
+<li>Sort by key: <code>sorted(people, key=lambda p: (p.age, p.name))</code>. Because sorts are stable, you can also sort by the secondary key first and the primary key second.</li>
+</ul>
+</div><p class="muted lang-note-hint">Switch the language at the top of the page to see notes for another language.</p></div>
+<h2 id="code">Code</h2>
+<p>Every sort returns a new sorted array from <code>[5, 2, 9, 1, 5, 6, 3]</code>. The stability check sorts labelled cards by number with a stable sort (insertion) and an unstable one (selection) to show the difference.</p><figure class="codeblock" id="code-sorting" aria-label="All eight sorts on the same input, plus a stability check">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-sorting-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-sorting-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-sorting-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-sorting-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-sorting-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.Arrays;</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">bubble</span><span class="hljs-params">(<span class="hljs-type">int</span>[] in)</span> {</span><span class="ln" data-line="6">        <span class="hljs-type">int</span>[] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> in.clone();</span><span class="ln" data-line="7">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">end</span> <span class="hljs-operator">=</span> a.length - <span class="hljs-number">1</span>; end &gt; <span class="hljs-number">0</span>; end--) {</span><span class="ln" data-line="8">            <span class="hljs-type">boolean</span> <span class="hljs-variable">swapped</span> <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="9">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; end; i++) {</span><span class="ln" data-line="10">                <span class="hljs-keyword">if</span> (a[i] &gt; a[i + <span class="hljs-number">1</span>]) { swap(a, i, i + <span class="hljs-number">1</span>); swapped = <span class="hljs-literal">true</span>; }</span><span class="ln" data-line="11">            }</span><span class="ln" data-line="12">            <span class="hljs-keyword">if</span> (!swapped) <span class="hljs-keyword">break</span>; <span class="hljs-comment">// already sorted: O(n) best case</span></span><span class="ln" data-line="13">        }</span><span class="ln" data-line="14">        <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="15">    }</span><span class="ln" data-line="16"> </span><span class="ln" data-line="17">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">selection</span><span class="hljs-params">(<span class="hljs-type">int</span>[] in)</span> {</span><span class="ln" data-line="18">        <span class="hljs-type">int</span>[] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> in.clone();</span><span class="ln" data-line="19">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; a.length - <span class="hljs-number">1</span>; i++) {</span><span class="ln" data-line="20">            <span class="hljs-type">int</span> <span class="hljs-variable">min</span> <span class="hljs-operator">=</span> i;</span><span class="ln" data-line="21">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> i + <span class="hljs-number">1</span>; j &lt; a.length; j++) <span class="hljs-keyword">if</span> (a[j] &lt; a[min]) min = j;</span><span class="ln" data-line="22">            swap(a, i, min);</span><span class="ln" data-line="23">        }</span><span class="ln" data-line="24">        <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="25">    }</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">insertion</span><span class="hljs-params">(<span class="hljs-type">int</span>[] in)</span> {</span><span class="ln" data-line="28">        <span class="hljs-type">int</span>[] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> in.clone();</span><span class="ln" data-line="29">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; a.length; i++) {</span><span class="ln" data-line="30">            <span class="hljs-type">int</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> a[i], j = i - <span class="hljs-number">1</span>;</span><span class="ln" data-line="31">            <span class="hljs-keyword">while</span> (j &gt;= <span class="hljs-number">0</span> &amp;&amp; a[j] &gt; x) { a[j + <span class="hljs-number">1</span>] = a[j]; j--; } <span class="hljs-comment">// shift larger items right</span></span><span class="ln" data-line="32">            a[j + <span class="hljs-number">1</span>] = x;</span><span class="ln" data-line="33">        }</span><span class="ln" data-line="34">        <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="35">    }</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">merge</span><span class="hljs-params">(<span class="hljs-type">int</span>[] in)</span> {</span><span class="ln" data-line="38">        <span class="hljs-keyword">if</span> (in.length &lt;= <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> in.clone();</span><span class="ln" data-line="39">        <span class="hljs-type">int</span> <span class="hljs-variable">mid</span> <span class="hljs-operator">=</span> in.length / <span class="hljs-number">2</span>;</span><span class="ln" data-line="40">        <span class="hljs-type">int</span>[] <span class="hljs-variable">left</span> <span class="hljs-operator">=</span> merge(Arrays.copyOfRange(in, <span class="hljs-number">0</span>, mid)), right = merge(Arrays.copyOfRange(in, mid, in.length));</span><span class="ln" data-line="41">        <span class="hljs-type">int</span>[] <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[in.length];</span><span class="ln" data-line="42">        <span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, j = <span class="hljs-number">0</span>, k = <span class="hljs-number">0</span>;</span><span class="ln" data-line="43">        <span class="hljs-keyword">while</span> (i &lt; left.length &amp;&amp; j &lt; right.length) out[k++] = left[i] &lt;= right[j] ? left[i++] : right[j++]; <span class="hljs-comment">// &lt;= keeps it stable</span></span><span class="ln" data-line="44">        <span class="hljs-keyword">while</span> (i &lt; left.length) out[k++] = left[i++];</span><span class="ln" data-line="45">        <span class="hljs-keyword">while</span> (j &lt; right.length) out[k++] = right[j++];</span><span class="ln" data-line="46">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="47">    }</span><span class="ln" data-line="48"> </span><span class="ln" data-line="49">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">quick</span><span class="hljs-params">(<span class="hljs-type">int</span>[] in)</span> {</span><span class="ln" data-line="50">        <span class="hljs-type">int</span>[] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> in.clone();</span><span class="ln" data-line="51">        quickSort(a, <span class="hljs-number">0</span>, a.length - <span class="hljs-number">1</span>);</span><span class="ln" data-line="52">        <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="53">    }</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">quickSort</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a, <span class="hljs-type">int</span> lo, <span class="hljs-type">int</span> hi)</span> {</span><span class="ln" data-line="56">        <span class="hljs-keyword">if</span> (lo &gt;= hi) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="57">        <span class="hljs-type">int</span> <span class="hljs-variable">pivot</span> <span class="hljs-operator">=</span> a[lo + (hi - lo) / <span class="hljs-number">2</span>]; <span class="hljs-comment">// middle pivot avoids the sorted-input worst case</span></span><span class="ln" data-line="58">        <span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> lo, j = hi;</span><span class="ln" data-line="59">        <span class="hljs-keyword">while</span> (i &lt;= j) {                  <span class="hljs-comment">// Hoare-style partition</span></span><span class="ln" data-line="60">            <span class="hljs-keyword">while</span> (a[i] &lt; pivot) i++;</span><span class="ln" data-line="61">            <span class="hljs-keyword">while</span> (a[j] &gt; pivot) j--;</span><span class="ln" data-line="62">            <span class="hljs-keyword">if</span> (i &lt;= j) swap(a, i++, j--);</span><span class="ln" data-line="63">        }</span><span class="ln" data-line="64">        quickSort(a, lo, j);</span><span class="ln" data-line="65">        quickSort(a, i, hi);</span><span class="ln" data-line="66">    }</span><span class="ln" data-line="67"> </span><span class="ln" data-line="68">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">heap</span><span class="hljs-params">(<span class="hljs-type">int</span>[] in)</span> {</span><span class="ln" data-line="69">        <span class="hljs-type">int</span>[] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> in.clone();</span><span class="ln" data-line="70">        <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> a.length;</span><span class="ln" data-line="71">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> n / <span class="hljs-number">2</span> - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) siftDown(a, i, n); <span class="hljs-comment">// build a max-heap in O(n)</span></span><span class="ln" data-line="72">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">end</span> <span class="hljs-operator">=</span> n - <span class="hljs-number">1</span>; end &gt; <span class="hljs-number">0</span>; end--) {</span><span class="ln" data-line="73">            swap(a, <span class="hljs-number">0</span>, end);   <span class="hljs-comment">// move the max to its final place</span></span><span class="ln" data-line="74">            siftDown(a, <span class="hljs-number">0</span>, end);</span><span class="ln" data-line="75">        }</span><span class="ln" data-line="76">        <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="77">    }</span><span class="ln" data-line="78"> </span><span class="ln" data-line="79">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">siftDown</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a, <span class="hljs-type">int</span> i, <span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="80">        <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="81">            <span class="hljs-type">int</span> <span class="hljs-variable">l</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>, r = l + <span class="hljs-number">1</span>, big = i;</span><span class="ln" data-line="82">            <span class="hljs-keyword">if</span> (l &lt; n &amp;&amp; a[l] &gt; a[big]) big = l;</span><span class="ln" data-line="83">            <span class="hljs-keyword">if</span> (r &lt; n &amp;&amp; a[r] &gt; a[big]) big = r;</span><span class="ln" data-line="84">            <span class="hljs-keyword">if</span> (big == i) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="85">            swap(a, i, big);</span><span class="ln" data-line="86">            i = big;</span><span class="ln" data-line="87">        }</span><span class="ln" data-line="88">    }</span><span class="ln" data-line="89"> </span><span class="ln" data-line="90">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">counting</span><span class="hljs-params">(<span class="hljs-type">int</span>[] in, <span class="hljs-type">int</span> maxKey)</span> {</span><span class="ln" data-line="91">        <span class="hljs-type">int</span>[] <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[maxKey + <span class="hljs-number">1</span>];</span><span class="ln" data-line="92">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : in) count[x]++;</span><span class="ln" data-line="93">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">k</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; k &lt;= maxKey; k++) count[k] += count[k - <span class="hljs-number">1</span>]; <span class="hljs-comment">// count[k] = items with key &lt;= k</span></span><span class="ln" data-line="94">        <span class="hljs-type">int</span>[] <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[in.length];</span><span class="ln" data-line="95">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> in.length - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) out[--count[in[i]]] = in[i]; <span class="hljs-comment">// back to front keeps it stable</span></span><span class="ln" data-line="96">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="97">    }</span><span class="ln" data-line="98"> </span><span class="ln" data-line="99">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">radix</span><span class="hljs-params">(<span class="hljs-type">int</span>[] in)</span> {</span><span class="ln" data-line="100">        <span class="hljs-type">int</span>[] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> in.clone();</span><span class="ln" data-line="101">        <span class="hljs-type">int</span> <span class="hljs-variable">max</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="102">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : a) max = Math.max(max, x);</span><span class="ln" data-line="103">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">exp</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; max / exp &gt; <span class="hljs-number">0</span>; exp *= <span class="hljs-number">10</span>) {</span><span class="ln" data-line="104">            <span class="hljs-type">int</span>[] <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[<span class="hljs-number">10</span>], out = <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[a.length];</span><span class="ln" data-line="105">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : a) count[(x / exp) % <span class="hljs-number">10</span>]++;</span><span class="ln" data-line="106">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">d</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; d &lt; <span class="hljs-number">10</span>; d++) count[d] += count[d - <span class="hljs-number">1</span>];</span><span class="ln" data-line="107">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> a.length - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) out[--count[(a[i] / exp) % <span class="hljs-number">10</span>]] = a[i];</span><span class="ln" data-line="108">            a = out;</span><span class="ln" data-line="109">        }</span><span class="ln" data-line="110">        <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="111">    }</span><span class="ln" data-line="112"> </span><span class="ln" data-line="113">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">swap</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a, <span class="hljs-type">int</span> i, <span class="hljs-type">int</span> j)</span> { <span class="hljs-type">int</span> <span class="hljs-variable">t</span> <span class="hljs-operator">=</span> a[i]; a[i] = a[j]; a[j] = t; }</span><span class="ln" data-line="114"> </span><span class="ln" data-line="115">    <span class="hljs-comment">/** Cards sorted by number only; the letter shows the original order of equal numbers. */</span></span><span class="ln" data-line="116">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span>[] <span class="hljs-title function_">stableByNumber</span><span class="hljs-params">(String[] cards, <span class="hljs-type">boolean</span> stable)</span> {</span><span class="ln" data-line="117">        <span class="hljs-type">String</span>[] <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> cards.clone();</span><span class="ln" data-line="118">        <span class="hljs-keyword">if</span> (stable) { <span class="hljs-comment">// insertion sort</span></span><span class="ln" data-line="119">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; a.length; i++) {</span><span class="ln" data-line="120">                <span class="hljs-type">String</span> <span class="hljs-variable">x</span> <span class="hljs-operator">=</span> a[i];</span><span class="ln" data-line="121">                <span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> i - <span class="hljs-number">1</span>;</span><span class="ln" data-line="122">                <span class="hljs-keyword">while</span> (j &gt;= <span class="hljs-number">0</span> &amp;&amp; a[j].charAt(<span class="hljs-number">0</span>) &gt; x.charAt(<span class="hljs-number">0</span>)) { a[j + <span class="hljs-number">1</span>] = a[j]; j--; }</span><span class="ln" data-line="123">                a[j + <span class="hljs-number">1</span>] = x;</span><span class="ln" data-line="124">            }</span><span class="ln" data-line="125">        } <span class="hljs-keyword">else</span> { <span class="hljs-comment">// selection sort: the long-distance swap can jump an equal card</span></span><span class="ln" data-line="126">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; a.length - <span class="hljs-number">1</span>; i++) {</span><span class="ln" data-line="127">                <span class="hljs-type">int</span> <span class="hljs-variable">min</span> <span class="hljs-operator">=</span> i;</span><span class="ln" data-line="128">                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> i + <span class="hljs-number">1</span>; j &lt; a.length; j++) <span class="hljs-keyword">if</span> (a[j].charAt(<span class="hljs-number">0</span>) &lt; a[min].charAt(<span class="hljs-number">0</span>)) min = j;</span><span class="ln" data-line="129">                <span class="hljs-type">String</span> <span class="hljs-variable">t</span> <span class="hljs-operator">=</span> a[i]; a[i] = a[min]; a[min] = t;</span><span class="ln" data-line="130">            }</span><span class="ln" data-line="131">        }</span><span class="ln" data-line="132">        <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="133">    }</span><span class="ln" data-line="134"> </span><span class="ln" data-line="135">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">fmt</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a)</span> {</span><span class="ln" data-line="136">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="137">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : a) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(x);</span><span class="ln" data-line="138">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="139">    }</span><span class="ln" data-line="140"> </span><span class="ln" data-line="141">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="142">        <span class="hljs-type">int</span>[] <span class="hljs-variable">input</span> <span class="hljs-operator">=</span> { <span class="hljs-number">5</span>, <span class="hljs-number">2</span>, <span class="hljs-number">9</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">3</span> };</span><span class="ln" data-line="143">        System.out.println(<span class="hljs-string">&quot;input:     &quot;</span> + fmt(input));</span><span class="ln" data-line="144">        System.out.println(<span class="hljs-string">&quot;bubble:    &quot;</span> + fmt(bubble(input)));</span><span class="ln" data-line="145">        System.out.println(<span class="hljs-string">&quot;selection: &quot;</span> + fmt(selection(input)));</span><span class="ln" data-line="146">        System.out.println(<span class="hljs-string">&quot;insertion: &quot;</span> + fmt(insertion(input)));</span><span class="ln" data-line="147">        System.out.println(<span class="hljs-string">&quot;merge:     &quot;</span> + fmt(merge(input)));</span><span class="ln" data-line="148">        System.out.println(<span class="hljs-string">&quot;quick:     &quot;</span> + fmt(quick(input)));</span><span class="ln" data-line="149">        System.out.println(<span class="hljs-string">&quot;heap:      &quot;</span> + fmt(heap(input)));</span><span class="ln" data-line="150">        System.out.println(<span class="hljs-string">&quot;counting:  &quot;</span> + fmt(counting(input, <span class="hljs-number">9</span>)));</span><span class="ln" data-line="151">        System.out.println(<span class="hljs-string">&quot;radix:     &quot;</span> + fmt(radix(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">170</span>, <span class="hljs-number">45</span>, <span class="hljs-number">75</span>, <span class="hljs-number">90</span>, <span class="hljs-number">802</span>, <span class="hljs-number">24</span>, <span class="hljs-number">2</span>, <span class="hljs-number">66</span> })));</span><span class="ln" data-line="152">        <span class="hljs-type">String</span>[] <span class="hljs-variable">cards</span> <span class="hljs-operator">=</span> { <span class="hljs-string">&quot;3a&quot;</span>, <span class="hljs-string">&quot;1b&quot;</span>, <span class="hljs-string">&quot;3c&quot;</span>, <span class="hljs-string">&quot;2d&quot;</span> };</span><span class="ln" data-line="153">        System.out.println(<span class="hljs-string">&quot;stable (insertion):   &quot;</span> + String.join(<span class="hljs-string">&quot; &quot;</span>, stableByNumber(cards, <span class="hljs-literal">true</span>)));</span><span class="ln" data-line="154">        System.out.println(<span class="hljs-string">&quot;unstable (selection): &quot;</span> + String.join(<span class="hljs-string">&quot; &quot;</span>, stableByNumber(cards, <span class="hljs-literal">false</span>)));</span><span class="ln" data-line="155">    }</span><span class="ln" data-line="156">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.Arrays;
+
+public class Solution {
+
+    static int[] bubble(int[] in) {
+        int[] a = in.clone();
+        for (int end = a.length - 1; end &gt; 0; end--) {
+            boolean swapped = false;
+            for (int i = 0; i &lt; end; i++) {
+                if (a[i] &gt; a[i + 1]) { swap(a, i, i + 1); swapped = true; }
+            }
+            if (!swapped) break; // already sorted: O(n) best case
+        }
+        return a;
+    }
+
+    static int[] selection(int[] in) {
+        int[] a = in.clone();
+        for (int i = 0; i &lt; a.length - 1; i++) {
+            int min = i;
+            for (int j = i + 1; j &lt; a.length; j++) if (a[j] &lt; a[min]) min = j;
+            swap(a, i, min);
+        }
+        return a;
+    }
+
+    static int[] insertion(int[] in) {
+        int[] a = in.clone();
+        for (int i = 1; i &lt; a.length; i++) {
+            int x = a[i], j = i - 1;
+            while (j &gt;= 0 &amp;&amp; a[j] &gt; x) { a[j + 1] = a[j]; j--; } // shift larger items right
+            a[j + 1] = x;
+        }
+        return a;
+    }
+
+    static int[] merge(int[] in) {
+        if (in.length &lt;= 1) return in.clone();
+        int mid = in.length / 2;
+        int[] left = merge(Arrays.copyOfRange(in, 0, mid)), right = merge(Arrays.copyOfRange(in, mid, in.length));
+        int[] out = new int[in.length];
+        int i = 0, j = 0, k = 0;
+        while (i &lt; left.length &amp;&amp; j &lt; right.length) out[k++] = left[i] &lt;= right[j] ? left[i++] : right[j++]; // &lt;= keeps it stable
+        while (i &lt; left.length) out[k++] = left[i++];
+        while (j &lt; right.length) out[k++] = right[j++];
+        return out;
+    }
+
+    static int[] quick(int[] in) {
+        int[] a = in.clone();
+        quickSort(a, 0, a.length - 1);
+        return a;
+    }
+
+    private static void quickSort(int[] a, int lo, int hi) {
+        if (lo &gt;= hi) return;
+        int pivot = a[lo + (hi - lo) / 2]; // middle pivot avoids the sorted-input worst case
+        int i = lo, j = hi;
+        while (i &lt;= j) {                  // Hoare-style partition
+            while (a[i] &lt; pivot) i++;
+            while (a[j] &gt; pivot) j--;
+            if (i &lt;= j) swap(a, i++, j--);
+        }
+        quickSort(a, lo, j);
+        quickSort(a, i, hi);
+    }
+
+    static int[] heap(int[] in) {
+        int[] a = in.clone();
+        int n = a.length;
+        for (int i = n / 2 - 1; i &gt;= 0; i--) siftDown(a, i, n); // build a max-heap in O(n)
+        for (int end = n - 1; end &gt; 0; end--) {
+            swap(a, 0, end);   // move the max to its final place
+            siftDown(a, 0, end);
+        }
+        return a;
+    }
+
+    private static void siftDown(int[] a, int i, int n) {
+        while (true) {
+            int l = 2 * i + 1, r = l + 1, big = i;
+            if (l &lt; n &amp;&amp; a[l] &gt; a[big]) big = l;
+            if (r &lt; n &amp;&amp; a[r] &gt; a[big]) big = r;
+            if (big == i) return;
+            swap(a, i, big);
+            i = big;
+        }
+    }
+
+    static int[] counting(int[] in, int maxKey) {
+        int[] count = new int[maxKey + 1];
+        for (int x : in) count[x]++;
+        for (int k = 1; k &lt;= maxKey; k++) count[k] += count[k - 1]; // count[k] = items with key &lt;= k
+        int[] out = new int[in.length];
+        for (int i = in.length - 1; i &gt;= 0; i--) out[--count[in[i]]] = in[i]; // back to front keeps it stable
+        return out;
+    }
+
+    static int[] radix(int[] in) {
+        int[] a = in.clone();
+        int max = 0;
+        for (int x : a) max = Math.max(max, x);
+        for (int exp = 1; max / exp &gt; 0; exp *= 10) {
+            int[] count = new int[10], out = new int[a.length];
+            for (int x : a) count[(x / exp) % 10]++;
+            for (int d = 1; d &lt; 10; d++) count[d] += count[d - 1];
+            for (int i = a.length - 1; i &gt;= 0; i--) out[--count[(a[i] / exp) % 10]] = a[i];
+            a = out;
+        }
+        return a;
+    }
+
+    private static void swap(int[] a, int i, int j) { int t = a[i]; a[i] = a[j]; a[j] = t; }
+
+    /** Cards sorted by number only; the letter shows the original order of equal numbers. */
+    static String[] stableByNumber(String[] cards, boolean stable) {
+        String[] a = cards.clone();
+        if (stable) { // insertion sort
+            for (int i = 1; i &lt; a.length; i++) {
+                String x = a[i];
+                int j = i - 1;
+                while (j &gt;= 0 &amp;&amp; a[j].charAt(0) &gt; x.charAt(0)) { a[j + 1] = a[j]; j--; }
+                a[j + 1] = x;
+            }
+        } else { // selection sort: the long-distance swap can jump an equal card
+            for (int i = 0; i &lt; a.length - 1; i++) {
+                int min = i;
+                for (int j = i + 1; j &lt; a.length; j++) if (a[j].charAt(0) &lt; a[min].charAt(0)) min = j;
+                String t = a[i]; a[i] = a[min]; a[min] = t;
+            }
+        }
+        return a;
+    }
+
+    static String fmt(int[] a) {
+        StringBuilder sb = new StringBuilder();
+        for (int x : a) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(x);
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        int[] input = { 5, 2, 9, 1, 5, 6, 3 };
+        System.out.println(&quot;input:     &quot; + fmt(input));
+        System.out.println(&quot;bubble:    &quot; + fmt(bubble(input)));
+        System.out.println(&quot;selection: &quot; + fmt(selection(input)));
+        System.out.println(&quot;insertion: &quot; + fmt(insertion(input)));
+        System.out.println(&quot;merge:     &quot; + fmt(merge(input)));
+        System.out.println(&quot;quick:     &quot; + fmt(quick(input)));
+        System.out.println(&quot;heap:      &quot; + fmt(heap(input)));
+        System.out.println(&quot;counting:  &quot; + fmt(counting(input, 9)));
+        System.out.println(&quot;radix:     &quot; + fmt(radix(new int[] { 170, 45, 75, 90, 802, 24, 2, 66 })));
+        String[] cards = { &quot;3a&quot;, &quot;1b&quot;, &quot;3c&quot;, &quot;2d&quot; };
+        System.out.println(&quot;stable (insertion):   &quot; + String.join(&quot; &quot;, stableByNumber(cards, true)));
+        System.out.println(&quot;unstable (selection): &quot; + String.join(&quot; &quot;, stableByNumber(cards, false)));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-sorting-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">const</span> <span class="hljs-title function_">swap</span> = (<span class="hljs-params">a, i, j</span>) =&gt; ([a[i], a[j]] = [a[j], a[i]]);</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">function</span> <span class="hljs-title function_">bubble</span>(<span class="hljs-params">input</span>) {</span><span class="ln" data-line="4">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="5">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> end = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; end &gt; <span class="hljs-number">0</span>; end--) {</span><span class="ln" data-line="6">    <span class="hljs-keyword">let</span> swapped = <span class="hljs-literal">false</span>;</span><span class="ln" data-line="7">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; end; i++) {</span><span class="ln" data-line="8">      <span class="hljs-keyword">if</span> (a[i] &gt; a[i + <span class="hljs-number">1</span>]) {</span><span class="ln" data-line="9">        <span class="hljs-title function_">swap</span>(a, i, i + <span class="hljs-number">1</span>);</span><span class="ln" data-line="10">        swapped = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="11">      }</span><span class="ln" data-line="12">    }</span><span class="ln" data-line="13">    <span class="hljs-keyword">if</span> (!swapped) <span class="hljs-keyword">break</span>; <span class="hljs-comment">// already sorted: O(n) best case</span></span><span class="ln" data-line="14">  }</span><span class="ln" data-line="15">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="16">}</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-keyword">function</span> <span class="hljs-title function_">selection</span>(<span class="hljs-params">input</span>) {</span><span class="ln" data-line="19">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="20">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i++) {</span><span class="ln" data-line="21">    <span class="hljs-keyword">let</span> min = i;</span><span class="ln" data-line="22">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = i + <span class="hljs-number">1</span>; j &lt; a.<span class="hljs-property">length</span>; j++) <span class="hljs-keyword">if</span> (a[j] &lt; a[min]) min = j;</span><span class="ln" data-line="23">    <span class="hljs-title function_">swap</span>(a, i, min);</span><span class="ln" data-line="24">  }</span><span class="ln" data-line="25">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="26">}</span><span class="ln" data-line="27"> </span><span class="ln" data-line="28"><span class="hljs-keyword">function</span> <span class="hljs-title function_">insertion</span>(<span class="hljs-params">input, key = (x) =&gt; x</span>) {</span><span class="ln" data-line="29">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="30">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; a.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="31">    <span class="hljs-keyword">const</span> x = a[i];</span><span class="ln" data-line="32">    <span class="hljs-keyword">let</span> j = i - <span class="hljs-number">1</span>;</span><span class="ln" data-line="33">    <span class="hljs-keyword">while</span> (j &gt;= <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-title function_">key</span>(a[j]) &gt; <span class="hljs-title function_">key</span>(x)) {</span><span class="ln" data-line="34">      a[j + <span class="hljs-number">1</span>] = a[j]; <span class="hljs-comment">// shift larger items right</span></span><span class="ln" data-line="35">      j--;</span><span class="ln" data-line="36">    }</span><span class="ln" data-line="37">    a[j + <span class="hljs-number">1</span>] = x;</span><span class="ln" data-line="38">  }</span><span class="ln" data-line="39">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="40">}</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">function</span> <span class="hljs-title function_">merge</span>(<span class="hljs-params">input</span>) {</span><span class="ln" data-line="43">  <span class="hljs-keyword">if</span> (input.<span class="hljs-property">length</span> &lt;= <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> [...input];</span><span class="ln" data-line="44">  <span class="hljs-keyword">const</span> mid = input.<span class="hljs-property">length</span> &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="45">  <span class="hljs-keyword">const</span> left = <span class="hljs-title function_">merge</span>(input.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, mid));</span><span class="ln" data-line="46">  <span class="hljs-keyword">const</span> right = <span class="hljs-title function_">merge</span>(input.<span class="hljs-title function_">slice</span>(mid));</span><span class="ln" data-line="47">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="48">  <span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>;</span><span class="ln" data-line="49">  <span class="hljs-keyword">let</span> j = <span class="hljs-number">0</span>;</span><span class="ln" data-line="50">  <span class="hljs-keyword">while</span> (i &lt; left.<span class="hljs-property">length</span> &amp;&amp; j &lt; right.<span class="hljs-property">length</span>) out.<span class="hljs-title function_">push</span>(left[i] &lt;= right[j] ? left[i++] : right[j++]); <span class="hljs-comment">// &lt;= keeps it stable</span></span><span class="ln" data-line="51">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">concat</span>(left.<span class="hljs-title function_">slice</span>(i), right.<span class="hljs-title function_">slice</span>(j));</span><span class="ln" data-line="52">}</span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-keyword">function</span> <span class="hljs-title function_">quick</span>(<span class="hljs-params">input</span>) {</span><span class="ln" data-line="55">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="56">  <span class="hljs-keyword">const</span> <span class="hljs-title function_">sort</span> = (<span class="hljs-params">lo, hi</span>) =&gt; {</span><span class="ln" data-line="57">    <span class="hljs-keyword">if</span> (lo &gt;= hi) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="58">    <span class="hljs-keyword">const</span> pivot = a[lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>)]; <span class="hljs-comment">// middle pivot avoids the sorted-input worst case</span></span><span class="ln" data-line="59">    <span class="hljs-keyword">let</span> i = lo;</span><span class="ln" data-line="60">    <span class="hljs-keyword">let</span> j = hi;</span><span class="ln" data-line="61">    <span class="hljs-keyword">while</span> (i &lt;= j) {</span><span class="ln" data-line="62">      <span class="hljs-keyword">while</span> (a[i] &lt; pivot) i++;</span><span class="ln" data-line="63">      <span class="hljs-keyword">while</span> (a[j] &gt; pivot) j--;</span><span class="ln" data-line="64">      <span class="hljs-keyword">if</span> (i &lt;= j) <span class="hljs-title function_">swap</span>(a, i++, j--);</span><span class="ln" data-line="65">    }</span><span class="ln" data-line="66">    <span class="hljs-title function_">sort</span>(lo, j);</span><span class="ln" data-line="67">    <span class="hljs-title function_">sort</span>(i, hi);</span><span class="ln" data-line="68">  };</span><span class="ln" data-line="69">  <span class="hljs-title function_">sort</span>(<span class="hljs-number">0</span>, a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>);</span><span class="ln" data-line="70">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="71">}</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73"><span class="hljs-keyword">function</span> <span class="hljs-title function_">heap</span>(<span class="hljs-params">input</span>) {</span><span class="ln" data-line="74">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="75">  <span class="hljs-keyword">const</span> <span class="hljs-title function_">siftDown</span> = (<span class="hljs-params">i, n</span>) =&gt; {</span><span class="ln" data-line="76">    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="77">      <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="78">      <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="79">      <span class="hljs-keyword">let</span> big = i;</span><span class="ln" data-line="80">      <span class="hljs-keyword">if</span> (l &lt; n &amp;&amp; a[l] &gt; a[big]) big = l;</span><span class="ln" data-line="81">      <span class="hljs-keyword">if</span> (r &lt; n &amp;&amp; a[r] &gt; a[big]) big = r;</span><span class="ln" data-line="82">      <span class="hljs-keyword">if</span> (big === i) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="83">      <span class="hljs-title function_">swap</span>(a, i, big);</span><span class="ln" data-line="84">      i = big;</span><span class="ln" data-line="85">    }</span><span class="ln" data-line="86">  };</span><span class="ln" data-line="87">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = (a.<span class="hljs-property">length</span> &gt;&gt; <span class="hljs-number">1</span>) - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) <span class="hljs-title function_">siftDown</span>(i, a.<span class="hljs-property">length</span>); <span class="hljs-comment">// build a max-heap in O(n)</span></span><span class="ln" data-line="88">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> end = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; end &gt; <span class="hljs-number">0</span>; end--) {</span><span class="ln" data-line="89">    <span class="hljs-title function_">swap</span>(a, <span class="hljs-number">0</span>, end); <span class="hljs-comment">// move the max to its final place</span></span><span class="ln" data-line="90">    <span class="hljs-title function_">siftDown</span>(<span class="hljs-number">0</span>, end);</span><span class="ln" data-line="91">  }</span><span class="ln" data-line="92">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="93">}</span><span class="ln" data-line="94"> </span><span class="ln" data-line="95"><span class="hljs-keyword">function</span> <span class="hljs-title function_">counting</span>(<span class="hljs-params">input, maxKey</span>) {</span><span class="ln" data-line="96">  <span class="hljs-keyword">const</span> count = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(maxKey + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="97">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> input) count[x]++;</span><span class="ln" data-line="98">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">1</span>; k &lt;= maxKey; k++) count[k] += count[k - <span class="hljs-number">1</span>]; <span class="hljs-comment">// count[k] = items with key &lt;= k</span></span><span class="ln" data-line="99">  <span class="hljs-keyword">const</span> out = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(input.<span class="hljs-property">length</span>);</span><span class="ln" data-line="100">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = input.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) out[--count[input[i]]] = input[i]; <span class="hljs-comment">// back to front keeps it stable</span></span><span class="ln" data-line="101">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="102">}</span><span class="ln" data-line="103"> </span><span class="ln" data-line="104"><span class="hljs-keyword">function</span> <span class="hljs-title function_">radix</span>(<span class="hljs-params">input</span>) {</span><span class="ln" data-line="105">  <span class="hljs-keyword">let</span> a = [...input];</span><span class="ln" data-line="106">  <span class="hljs-keyword">const</span> max = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(...a);</span><span class="ln" data-line="107">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> exp = <span class="hljs-number">1</span>; <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(max / exp) &gt; <span class="hljs-number">0</span>; exp *= <span class="hljs-number">10</span>) {</span><span class="ln" data-line="108">    <span class="hljs-keyword">const</span> count = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(<span class="hljs-number">10</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="109">    <span class="hljs-keyword">const</span> out = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(a.<span class="hljs-property">length</span>);</span><span class="ln" data-line="110">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> a) count[<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(x / exp) % <span class="hljs-number">10</span>]++;</span><span class="ln" data-line="111">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> d = <span class="hljs-number">1</span>; d &lt; <span class="hljs-number">10</span>; d++) count[d] += count[d - <span class="hljs-number">1</span>];</span><span class="ln" data-line="112">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) out[--count[<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(a[i] / exp) % <span class="hljs-number">10</span>]] = a[i];</span><span class="ln" data-line="113">    a = out;</span><span class="ln" data-line="114">  }</span><span class="ln" data-line="115">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="116">}</span><span class="ln" data-line="117"> </span><span class="ln" data-line="118"><span class="hljs-comment">/** Selection sort by number: the long-distance swap can jump an equal card. */</span></span><span class="ln" data-line="119"><span class="hljs-keyword">function</span> <span class="hljs-title function_">selectionByNumber</span>(<span class="hljs-params">cards</span>) {</span><span class="ln" data-line="120">  <span class="hljs-keyword">const</span> a = [...cards];</span><span class="ln" data-line="121">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i++) {</span><span class="ln" data-line="122">    <span class="hljs-keyword">let</span> min = i;</span><span class="ln" data-line="123">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = i + <span class="hljs-number">1</span>; j &lt; a.<span class="hljs-property">length</span>; j++) <span class="hljs-keyword">if</span> (a[j][<span class="hljs-number">0</span>] &lt; a[min][<span class="hljs-number">0</span>]) min = j;</span><span class="ln" data-line="124">    <span class="hljs-title function_">swap</span>(a, i, min);</span><span class="ln" data-line="125">  }</span><span class="ln" data-line="126">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="127">}</span><span class="ln" data-line="128"> </span><span class="ln" data-line="129"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="130">  <span class="hljs-keyword">const</span> input = [<span class="hljs-number">5</span>, <span class="hljs-number">2</span>, <span class="hljs-number">9</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">3</span>];</span><span class="ln" data-line="131">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`input:     <span class="hljs-subst">${input.join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="132">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`bubble:    <span class="hljs-subst">${bubble(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="133">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`selection: <span class="hljs-subst">${selection(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="134">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`insertion: <span class="hljs-subst">${insertion(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="135">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`merge:     <span class="hljs-subst">${merge(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="136">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`quick:     <span class="hljs-subst">${quick(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="137">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`heap:      <span class="hljs-subst">${heap(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="138">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`counting:  <span class="hljs-subst">${counting(input, <span class="hljs-number">9</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="139">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`radix:     <span class="hljs-subst">${radix([<span class="hljs-number">170</span>, <span class="hljs-number">45</span>, <span class="hljs-number">75</span>, <span class="hljs-number">90</span>, <span class="hljs-number">802</span>, <span class="hljs-number">24</span>, <span class="hljs-number">2</span>, <span class="hljs-number">66</span>]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="140">  <span class="hljs-keyword">const</span> cards = [<span class="hljs-string">&quot;3a&quot;</span>, <span class="hljs-string">&quot;1b&quot;</span>, <span class="hljs-string">&quot;3c&quot;</span>, <span class="hljs-string">&quot;2d&quot;</span>];</span><span class="ln" data-line="141">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`stable (insertion):   <span class="hljs-subst">${insertion(cards, (c) =&gt; c[<span class="hljs-number">0</span>]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="142">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`unstable (selection): <span class="hljs-subst">${selectionByNumber(cards).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="143">}</span><span class="ln" data-line="144"> </span><span class="ln" data-line="145"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">const swap = (a, i, j) =&gt; ([a[i], a[j]] = [a[j], a[i]]);
+
+function bubble(input) {
+  const a = [...input];
+  for (let end = a.length - 1; end &gt; 0; end--) {
+    let swapped = false;
+    for (let i = 0; i &lt; end; i++) {
+      if (a[i] &gt; a[i + 1]) {
+        swap(a, i, i + 1);
+        swapped = true;
+      }
+    }
+    if (!swapped) break; // already sorted: O(n) best case
+  }
+  return a;
+}
+
+function selection(input) {
+  const a = [...input];
+  for (let i = 0; i &lt; a.length - 1; i++) {
+    let min = i;
+    for (let j = i + 1; j &lt; a.length; j++) if (a[j] &lt; a[min]) min = j;
+    swap(a, i, min);
+  }
+  return a;
+}
+
+function insertion(input, key = (x) =&gt; x) {
+  const a = [...input];
+  for (let i = 1; i &lt; a.length; i++) {
+    const x = a[i];
+    let j = i - 1;
+    while (j &gt;= 0 &amp;&amp; key(a[j]) &gt; key(x)) {
+      a[j + 1] = a[j]; // shift larger items right
+      j--;
+    }
+    a[j + 1] = x;
+  }
+  return a;
+}
+
+function merge(input) {
+  if (input.length &lt;= 1) return [...input];
+  const mid = input.length &gt;&gt; 1;
+  const left = merge(input.slice(0, mid));
+  const right = merge(input.slice(mid));
+  const out = [];
+  let i = 0;
+  let j = 0;
+  while (i &lt; left.length &amp;&amp; j &lt; right.length) out.push(left[i] &lt;= right[j] ? left[i++] : right[j++]); // &lt;= keeps it stable
+  return out.concat(left.slice(i), right.slice(j));
+}
+
+function quick(input) {
+  const a = [...input];
+  const sort = (lo, hi) =&gt; {
+    if (lo &gt;= hi) return;
+    const pivot = a[lo + ((hi - lo) &gt;&gt; 1)]; // middle pivot avoids the sorted-input worst case
+    let i = lo;
+    let j = hi;
+    while (i &lt;= j) {
+      while (a[i] &lt; pivot) i++;
+      while (a[j] &gt; pivot) j--;
+      if (i &lt;= j) swap(a, i++, j--);
+    }
+    sort(lo, j);
+    sort(i, hi);
+  };
+  sort(0, a.length - 1);
+  return a;
+}
+
+function heap(input) {
+  const a = [...input];
+  const siftDown = (i, n) =&gt; {
+    while (true) {
+      const l = 2 * i + 1;
+      const r = l + 1;
+      let big = i;
+      if (l &lt; n &amp;&amp; a[l] &gt; a[big]) big = l;
+      if (r &lt; n &amp;&amp; a[r] &gt; a[big]) big = r;
+      if (big === i) return;
+      swap(a, i, big);
+      i = big;
+    }
+  };
+  for (let i = (a.length &gt;&gt; 1) - 1; i &gt;= 0; i--) siftDown(i, a.length); // build a max-heap in O(n)
+  for (let end = a.length - 1; end &gt; 0; end--) {
+    swap(a, 0, end); // move the max to its final place
+    siftDown(0, end);
+  }
+  return a;
+}
+
+function counting(input, maxKey) {
+  const count = new Array(maxKey + 1).fill(0);
+  for (const x of input) count[x]++;
+  for (let k = 1; k &lt;= maxKey; k++) count[k] += count[k - 1]; // count[k] = items with key &lt;= k
+  const out = new Array(input.length);
+  for (let i = input.length - 1; i &gt;= 0; i--) out[--count[input[i]]] = input[i]; // back to front keeps it stable
+  return out;
+}
+
+function radix(input) {
+  let a = [...input];
+  const max = Math.max(...a);
+  for (let exp = 1; Math.floor(max / exp) &gt; 0; exp *= 10) {
+    const count = new Array(10).fill(0);
+    const out = new Array(a.length);
+    for (const x of a) count[Math.floor(x / exp) % 10]++;
+    for (let d = 1; d &lt; 10; d++) count[d] += count[d - 1];
+    for (let i = a.length - 1; i &gt;= 0; i--) out[--count[Math.floor(a[i] / exp) % 10]] = a[i];
+    a = out;
+  }
+  return a;
+}
+
+/** Selection sort by number: the long-distance swap can jump an equal card. */
+function selectionByNumber(cards) {
+  const a = [...cards];
+  for (let i = 0; i &lt; a.length - 1; i++) {
+    let min = i;
+    for (let j = i + 1; j &lt; a.length; j++) if (a[j][0] &lt; a[min][0]) min = j;
+    swap(a, i, min);
+  }
+  return a;
+}
+
+function main() {
+  const input = [5, 2, 9, 1, 5, 6, 3];
+  console.log(`input:     ${input.join(&quot; &quot;)}`);
+  console.log(`bubble:    ${bubble(input).join(&quot; &quot;)}`);
+  console.log(`selection: ${selection(input).join(&quot; &quot;)}`);
+  console.log(`insertion: ${insertion(input).join(&quot; &quot;)}`);
+  console.log(`merge:     ${merge(input).join(&quot; &quot;)}`);
+  console.log(`quick:     ${quick(input).join(&quot; &quot;)}`);
+  console.log(`heap:      ${heap(input).join(&quot; &quot;)}`);
+  console.log(`counting:  ${counting(input, 9).join(&quot; &quot;)}`);
+  console.log(`radix:     ${radix([170, 45, 75, 90, 802, 24, 2, 66]).join(&quot; &quot;)}`);
+  const cards = [&quot;3a&quot;, &quot;1b&quot;, &quot;3c&quot;, &quot;2d&quot;];
+  console.log(`stable (insertion):   ${insertion(cards, (c) =&gt; c[0]).join(&quot; &quot;)}`);
+  console.log(`unstable (selection): ${selectionByNumber(cards).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-sorting-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> swap&lt;T&gt;(<span class="hljs-attr">a</span>: T[], <span class="hljs-attr">i</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">j</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> t = a[i];</span><span class="ln" data-line="3">  a[i] = a[j];</span><span class="ln" data-line="4">  a[j] = t;</span><span class="ln" data-line="5">}</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">function</span> <span class="hljs-title function_">bubble</span>(<span class="hljs-params"><span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="8">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="9">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> end = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; end &gt; <span class="hljs-number">0</span>; end--) {</span><span class="ln" data-line="10">    <span class="hljs-keyword">let</span> swapped = <span class="hljs-literal">false</span>;</span><span class="ln" data-line="11">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; end; i++) {</span><span class="ln" data-line="12">      <span class="hljs-keyword">if</span> (a[i] &gt; a[i + <span class="hljs-number">1</span>]) {</span><span class="ln" data-line="13">        <span class="hljs-title function_">swap</span>(a, i, i + <span class="hljs-number">1</span>);</span><span class="ln" data-line="14">        swapped = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="15">      }</span><span class="ln" data-line="16">    }</span><span class="ln" data-line="17">    <span class="hljs-keyword">if</span> (!swapped) <span class="hljs-keyword">break</span>; <span class="hljs-comment">// already sorted: O(n) best case</span></span><span class="ln" data-line="18">  }</span><span class="ln" data-line="19">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="20">}</span><span class="ln" data-line="21"> </span><span class="ln" data-line="22"><span class="hljs-keyword">function</span> selection&lt;T&gt;(<span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> T[], <span class="hljs-attr">key</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">x</span>: T</span>) =&gt;</span> <span class="hljs-built_in">number</span> | <span class="hljs-built_in">string</span> = <span class="hljs-function">(<span class="hljs-params">x</span>) =&gt;</span> x <span class="hljs-keyword">as</span> <span class="hljs-built_in">unknown</span> <span class="hljs-keyword">as</span> <span class="hljs-built_in">number</span>): T[] {</span><span class="ln" data-line="23">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="24">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i++) {</span><span class="ln" data-line="25">    <span class="hljs-keyword">let</span> min = i;</span><span class="ln" data-line="26">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> j = i + <span class="hljs-number">1</span>; j &lt; a.<span class="hljs-property">length</span>; j++) <span class="hljs-keyword">if</span> (<span class="hljs-title function_">key</span>(a[j]) &lt; <span class="hljs-title function_">key</span>(a[min])) min = j;</span><span class="ln" data-line="27">    <span class="hljs-title function_">swap</span>(a, i, min); <span class="hljs-comment">// the long-distance swap is what makes selection sort unstable</span></span><span class="ln" data-line="28">  }</span><span class="ln" data-line="29">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="30">}</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"><span class="hljs-keyword">function</span> insertion&lt;T&gt;(<span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> T[], <span class="hljs-attr">key</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">x</span>: T</span>) =&gt;</span> <span class="hljs-built_in">number</span> | <span class="hljs-built_in">string</span> = <span class="hljs-function">(<span class="hljs-params">x</span>) =&gt;</span> x <span class="hljs-keyword">as</span> <span class="hljs-built_in">unknown</span> <span class="hljs-keyword">as</span> <span class="hljs-built_in">number</span>): T[] {</span><span class="ln" data-line="33">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="34">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; a.<span class="hljs-property">length</span>; i++) {</span><span class="ln" data-line="35">    <span class="hljs-keyword">const</span> x = a[i];</span><span class="ln" data-line="36">    <span class="hljs-keyword">let</span> j = i - <span class="hljs-number">1</span>;</span><span class="ln" data-line="37">    <span class="hljs-keyword">while</span> (j &gt;= <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-title function_">key</span>(a[j]) &gt; <span class="hljs-title function_">key</span>(x)) {</span><span class="ln" data-line="38">      a[j + <span class="hljs-number">1</span>] = a[j]; <span class="hljs-comment">// shift larger items right</span></span><span class="ln" data-line="39">      j--;</span><span class="ln" data-line="40">    }</span><span class="ln" data-line="41">    a[j + <span class="hljs-number">1</span>] = x;</span><span class="ln" data-line="42">  }</span><span class="ln" data-line="43">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="44">}</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">function</span> <span class="hljs-title function_">merge</span>(<span class="hljs-params"><span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="47">  <span class="hljs-keyword">if</span> (input.<span class="hljs-property">length</span> &lt;= <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> [...input];</span><span class="ln" data-line="48">  <span class="hljs-keyword">const</span> mid = input.<span class="hljs-property">length</span> &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="49">  <span class="hljs-keyword">const</span> left = <span class="hljs-title function_">merge</span>(input.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, mid));</span><span class="ln" data-line="50">  <span class="hljs-keyword">const</span> right = <span class="hljs-title function_">merge</span>(input.<span class="hljs-title function_">slice</span>(mid));</span><span class="ln" data-line="51">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="52">  <span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>;</span><span class="ln" data-line="53">  <span class="hljs-keyword">let</span> j = <span class="hljs-number">0</span>;</span><span class="ln" data-line="54">  <span class="hljs-keyword">while</span> (i &lt; left.<span class="hljs-property">length</span> &amp;&amp; j &lt; right.<span class="hljs-property">length</span>) out.<span class="hljs-title function_">push</span>(left[i] &lt;= right[j] ? left[i++] : right[j++]); <span class="hljs-comment">// &lt;= keeps it stable</span></span><span class="ln" data-line="55">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">concat</span>(left.<span class="hljs-title function_">slice</span>(i), right.<span class="hljs-title function_">slice</span>(j));</span><span class="ln" data-line="56">}</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"><span class="hljs-keyword">function</span> <span class="hljs-title function_">quick</span>(<span class="hljs-params"><span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="59">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="60">  <span class="hljs-keyword">const</span> sort = (<span class="hljs-attr">lo</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">hi</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">void</span> =&gt;</span> {</span><span class="ln" data-line="61">    <span class="hljs-keyword">if</span> (lo &gt;= hi) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="62">    <span class="hljs-keyword">const</span> pivot = a[lo + ((hi - lo) &gt;&gt; <span class="hljs-number">1</span>)]; <span class="hljs-comment">// middle pivot avoids the sorted-input worst case</span></span><span class="ln" data-line="63">    <span class="hljs-keyword">let</span> i = lo;</span><span class="ln" data-line="64">    <span class="hljs-keyword">let</span> j = hi;</span><span class="ln" data-line="65">    <span class="hljs-keyword">while</span> (i &lt;= j) {</span><span class="ln" data-line="66">      <span class="hljs-keyword">while</span> (a[i] &lt; pivot) i++;</span><span class="ln" data-line="67">      <span class="hljs-keyword">while</span> (a[j] &gt; pivot) j--;</span><span class="ln" data-line="68">      <span class="hljs-keyword">if</span> (i &lt;= j) <span class="hljs-title function_">swap</span>(a, i++, j--);</span><span class="ln" data-line="69">    }</span><span class="ln" data-line="70">    <span class="hljs-title function_">sort</span>(lo, j);</span><span class="ln" data-line="71">    <span class="hljs-title function_">sort</span>(i, hi);</span><span class="ln" data-line="72">  };</span><span class="ln" data-line="73">  <span class="hljs-title function_">sort</span>(<span class="hljs-number">0</span>, a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>);</span><span class="ln" data-line="74">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="75">}</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"><span class="hljs-keyword">function</span> <span class="hljs-title function_">heap</span>(<span class="hljs-params"><span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="78">  <span class="hljs-keyword">const</span> a = [...input];</span><span class="ln" data-line="79">  <span class="hljs-keyword">const</span> siftDown = (<span class="hljs-attr">start</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span>): <span class="hljs-function"><span class="hljs-params">void</span> =&gt;</span> {</span><span class="ln" data-line="80">    <span class="hljs-keyword">let</span> i = start;</span><span class="ln" data-line="81">    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {</span><span class="ln" data-line="82">      <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="83">      <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="84">      <span class="hljs-keyword">let</span> big = i;</span><span class="ln" data-line="85">      <span class="hljs-keyword">if</span> (l &lt; n &amp;&amp; a[l] &gt; a[big]) big = l;</span><span class="ln" data-line="86">      <span class="hljs-keyword">if</span> (r &lt; n &amp;&amp; a[r] &gt; a[big]) big = r;</span><span class="ln" data-line="87">      <span class="hljs-keyword">if</span> (big === i) <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="88">      <span class="hljs-title function_">swap</span>(a, i, big);</span><span class="ln" data-line="89">      i = big;</span><span class="ln" data-line="90">    }</span><span class="ln" data-line="91">  };</span><span class="ln" data-line="92">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = (a.<span class="hljs-property">length</span> &gt;&gt; <span class="hljs-number">1</span>) - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) <span class="hljs-title function_">siftDown</span>(i, a.<span class="hljs-property">length</span>); <span class="hljs-comment">// build a max-heap in O(n)</span></span><span class="ln" data-line="93">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> end = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; end &gt; <span class="hljs-number">0</span>; end--) {</span><span class="ln" data-line="94">    <span class="hljs-title function_">swap</span>(a, <span class="hljs-number">0</span>, end); <span class="hljs-comment">// move the max to its final place</span></span><span class="ln" data-line="95">    <span class="hljs-title function_">siftDown</span>(<span class="hljs-number">0</span>, end);</span><span class="ln" data-line="96">  }</span><span class="ln" data-line="97">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="98">}</span><span class="ln" data-line="99"> </span><span class="ln" data-line="100"><span class="hljs-keyword">function</span> <span class="hljs-title function_">counting</span>(<span class="hljs-params"><span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">maxKey</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="101">  <span class="hljs-keyword">const</span> <span class="hljs-attr">count</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(maxKey + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="102">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> input) count[x]++;</span><span class="ln" data-line="103">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = <span class="hljs-number">1</span>; k &lt;= maxKey; k++) count[k] += count[k - <span class="hljs-number">1</span>]; <span class="hljs-comment">// count[k] = items with key &lt;= k</span></span><span class="ln" data-line="104">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(input.<span class="hljs-property">length</span>);</span><span class="ln" data-line="105">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = input.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) out[--count[input[i]]] = input[i]; <span class="hljs-comment">// back to front keeps it stable</span></span><span class="ln" data-line="106">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="107">}</span><span class="ln" data-line="108"> </span><span class="ln" data-line="109"><span class="hljs-keyword">function</span> <span class="hljs-title function_">radix</span>(<span class="hljs-params"><span class="hljs-attr">input</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="110">  <span class="hljs-keyword">let</span> a = [...input];</span><span class="ln" data-line="111">  <span class="hljs-keyword">const</span> max = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(...a);</span><span class="ln" data-line="112">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> exp = <span class="hljs-number">1</span>; <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(max / exp) &gt; <span class="hljs-number">0</span>; exp *= <span class="hljs-number">10</span>) {</span><span class="ln" data-line="113">    <span class="hljs-keyword">const</span> <span class="hljs-attr">count</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(<span class="hljs-number">10</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="114">    <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(a.<span class="hljs-property">length</span>);</span><span class="ln" data-line="115">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> a) count[<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(x / exp) % <span class="hljs-number">10</span>]++;</span><span class="ln" data-line="116">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> d = <span class="hljs-number">1</span>; d &lt; <span class="hljs-number">10</span>; d++) count[d] += count[d - <span class="hljs-number">1</span>];</span><span class="ln" data-line="117">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; i--) out[--count[<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(a[i] / exp) % <span class="hljs-number">10</span>]] = a[i];</span><span class="ln" data-line="118">    a = out;</span><span class="ln" data-line="119">  }</span><span class="ln" data-line="120">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="121">}</span><span class="ln" data-line="122"> </span><span class="ln" data-line="123"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="124">  <span class="hljs-keyword">const</span> input = [<span class="hljs-number">5</span>, <span class="hljs-number">2</span>, <span class="hljs-number">9</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">3</span>];</span><span class="ln" data-line="125">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`input:     <span class="hljs-subst">${input.join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="126">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`bubble:    <span class="hljs-subst">${bubble(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="127">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`selection: <span class="hljs-subst">${selection(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="128">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`insertion: <span class="hljs-subst">${insertion(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="129">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`merge:     <span class="hljs-subst">${merge(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="130">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`quick:     <span class="hljs-subst">${quick(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="131">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`heap:      <span class="hljs-subst">${heap(input).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="132">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`counting:  <span class="hljs-subst">${counting(input, <span class="hljs-number">9</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="133">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`radix:     <span class="hljs-subst">${radix([<span class="hljs-number">170</span>, <span class="hljs-number">45</span>, <span class="hljs-number">75</span>, <span class="hljs-number">90</span>, <span class="hljs-number">802</span>, <span class="hljs-number">24</span>, <span class="hljs-number">2</span>, <span class="hljs-number">66</span>]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="134">  <span class="hljs-keyword">const</span> cards = [<span class="hljs-string">&quot;3a&quot;</span>, <span class="hljs-string">&quot;1b&quot;</span>, <span class="hljs-string">&quot;3c&quot;</span>, <span class="hljs-string">&quot;2d&quot;</span>];</span><span class="ln" data-line="135">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`stable (insertion):   <span class="hljs-subst">${insertion(cards, (c) =&gt; c[<span class="hljs-number">0</span>]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="136">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`unstable (selection): <span class="hljs-subst">${selection(cards, (c) =&gt; c[<span class="hljs-number">0</span>]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="137">}</span><span class="ln" data-line="138"> </span><span class="ln" data-line="139"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function swap&lt;T&gt;(a: T[], i: number, j: number): void {
+  const t = a[i];
+  a[i] = a[j];
+  a[j] = t;
+}
+
+function bubble(input: readonly number[]): number[] {
+  const a = [...input];
+  for (let end = a.length - 1; end &gt; 0; end--) {
+    let swapped = false;
+    for (let i = 0; i &lt; end; i++) {
+      if (a[i] &gt; a[i + 1]) {
+        swap(a, i, i + 1);
+        swapped = true;
+      }
+    }
+    if (!swapped) break; // already sorted: O(n) best case
+  }
+  return a;
+}
+
+function selection&lt;T&gt;(input: readonly T[], key: (x: T) =&gt; number | string = (x) =&gt; x as unknown as number): T[] {
+  const a = [...input];
+  for (let i = 0; i &lt; a.length - 1; i++) {
+    let min = i;
+    for (let j = i + 1; j &lt; a.length; j++) if (key(a[j]) &lt; key(a[min])) min = j;
+    swap(a, i, min); // the long-distance swap is what makes selection sort unstable
+  }
+  return a;
+}
+
+function insertion&lt;T&gt;(input: readonly T[], key: (x: T) =&gt; number | string = (x) =&gt; x as unknown as number): T[] {
+  const a = [...input];
+  for (let i = 1; i &lt; a.length; i++) {
+    const x = a[i];
+    let j = i - 1;
+    while (j &gt;= 0 &amp;&amp; key(a[j]) &gt; key(x)) {
+      a[j + 1] = a[j]; // shift larger items right
+      j--;
+    }
+    a[j + 1] = x;
+  }
+  return a;
+}
+
+function merge(input: readonly number[]): number[] {
+  if (input.length &lt;= 1) return [...input];
+  const mid = input.length &gt;&gt; 1;
+  const left = merge(input.slice(0, mid));
+  const right = merge(input.slice(mid));
+  const out: number[] = [];
+  let i = 0;
+  let j = 0;
+  while (i &lt; left.length &amp;&amp; j &lt; right.length) out.push(left[i] &lt;= right[j] ? left[i++] : right[j++]); // &lt;= keeps it stable
+  return out.concat(left.slice(i), right.slice(j));
+}
+
+function quick(input: readonly number[]): number[] {
+  const a = [...input];
+  const sort = (lo: number, hi: number): void =&gt; {
+    if (lo &gt;= hi) return;
+    const pivot = a[lo + ((hi - lo) &gt;&gt; 1)]; // middle pivot avoids the sorted-input worst case
+    let i = lo;
+    let j = hi;
+    while (i &lt;= j) {
+      while (a[i] &lt; pivot) i++;
+      while (a[j] &gt; pivot) j--;
+      if (i &lt;= j) swap(a, i++, j--);
+    }
+    sort(lo, j);
+    sort(i, hi);
+  };
+  sort(0, a.length - 1);
+  return a;
+}
+
+function heap(input: readonly number[]): number[] {
+  const a = [...input];
+  const siftDown = (start: number, n: number): void =&gt; {
+    let i = start;
+    while (true) {
+      const l = 2 * i + 1;
+      const r = l + 1;
+      let big = i;
+      if (l &lt; n &amp;&amp; a[l] &gt; a[big]) big = l;
+      if (r &lt; n &amp;&amp; a[r] &gt; a[big]) big = r;
+      if (big === i) return;
+      swap(a, i, big);
+      i = big;
+    }
+  };
+  for (let i = (a.length &gt;&gt; 1) - 1; i &gt;= 0; i--) siftDown(i, a.length); // build a max-heap in O(n)
+  for (let end = a.length - 1; end &gt; 0; end--) {
+    swap(a, 0, end); // move the max to its final place
+    siftDown(0, end);
+  }
+  return a;
+}
+
+function counting(input: readonly number[], maxKey: number): number[] {
+  const count: number[] = new Array(maxKey + 1).fill(0);
+  for (const x of input) count[x]++;
+  for (let k = 1; k &lt;= maxKey; k++) count[k] += count[k - 1]; // count[k] = items with key &lt;= k
+  const out: number[] = new Array(input.length);
+  for (let i = input.length - 1; i &gt;= 0; i--) out[--count[input[i]]] = input[i]; // back to front keeps it stable
+  return out;
+}
+
+function radix(input: readonly number[]): number[] {
+  let a = [...input];
+  const max = Math.max(...a);
+  for (let exp = 1; Math.floor(max / exp) &gt; 0; exp *= 10) {
+    const count: number[] = new Array(10).fill(0);
+    const out: number[] = new Array(a.length);
+    for (const x of a) count[Math.floor(x / exp) % 10]++;
+    for (let d = 1; d &lt; 10; d++) count[d] += count[d - 1];
+    for (let i = a.length - 1; i &gt;= 0; i--) out[--count[Math.floor(a[i] / exp) % 10]] = a[i];
+    a = out;
+  }
+  return a;
+}
+
+function main(): void {
+  const input = [5, 2, 9, 1, 5, 6, 3];
+  console.log(`input:     ${input.join(&quot; &quot;)}`);
+  console.log(`bubble:    ${bubble(input).join(&quot; &quot;)}`);
+  console.log(`selection: ${selection(input).join(&quot; &quot;)}`);
+  console.log(`insertion: ${insertion(input).join(&quot; &quot;)}`);
+  console.log(`merge:     ${merge(input).join(&quot; &quot;)}`);
+  console.log(`quick:     ${quick(input).join(&quot; &quot;)}`);
+  console.log(`heap:      ${heap(input).join(&quot; &quot;)}`);
+  console.log(`counting:  ${counting(input, 9).join(&quot; &quot;)}`);
+  console.log(`radix:     ${radix([170, 45, 75, 90, 802, 24, 2, 66]).join(&quot; &quot;)}`);
+  const cards = [&quot;3a&quot;, &quot;1b&quot;, &quot;3c&quot;, &quot;2d&quot;];
+  console.log(`stable (insertion):   ${insertion(cards, (c) =&gt; c[0]).join(&quot; &quot;)}`);
+  console.log(`unstable (selection): ${selection(cards, (c) =&gt; c[0]).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-sorting-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Callable</span>, <span class="hljs-type">List</span>, TypeVar</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">T = TypeVar(<span class="hljs-string">&quot;T&quot;</span>)</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"><span class="hljs-keyword">def</span> <span class="hljs-title function_">bubble</span>(<span class="hljs-params">xs: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="7">    a = <span class="hljs-built_in">list</span>(xs)</span><span class="ln" data-line="8">    <span class="hljs-keyword">for</span> end <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(a) - <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">1</span>):</span><span class="ln" data-line="9">        swapped = <span class="hljs-literal">False</span></span><span class="ln" data-line="10">        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(end):</span><span class="ln" data-line="11">            <span class="hljs-keyword">if</span> a[i] &gt; a[i + <span class="hljs-number">1</span>]:</span><span class="ln" data-line="12">                a[i], a[i + <span class="hljs-number">1</span>] = a[i + <span class="hljs-number">1</span>], a[i]</span><span class="ln" data-line="13">                swapped = <span class="hljs-literal">True</span></span><span class="ln" data-line="14">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> swapped:  <span class="hljs-comment"># already sorted: O(n) best case</span></span><span class="ln" data-line="15">            <span class="hljs-keyword">break</span></span><span class="ln" data-line="16">    <span class="hljs-keyword">return</span> a</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"><span class="hljs-keyword">def</span> <span class="hljs-title function_">selection</span>(<span class="hljs-params">xs: <span class="hljs-type">List</span>[T], key: <span class="hljs-type">Callable</span>[[T], <span class="hljs-built_in">object</span>] = <span class="hljs-keyword">lambda</span> x: x</span>) -&gt; <span class="hljs-type">List</span>[T]:</span><span class="ln" data-line="20">    a = <span class="hljs-built_in">list</span>(xs)</span><span class="ln" data-line="21">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(a) - <span class="hljs-number">1</span>):</span><span class="ln" data-line="22">        m = i</span><span class="ln" data-line="23">        <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(i + <span class="hljs-number">1</span>, <span class="hljs-built_in">len</span>(a)):</span><span class="ln" data-line="24">            <span class="hljs-keyword">if</span> key(a[j]) &lt; key(a[m]):</span><span class="ln" data-line="25">                m = j</span><span class="ln" data-line="26">        a[i], a[m] = a[m], a[i]  <span class="hljs-comment"># the long-distance swap is what makes selection sort unstable</span></span><span class="ln" data-line="27">    <span class="hljs-keyword">return</span> a</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29"> </span><span class="ln" data-line="30"><span class="hljs-keyword">def</span> <span class="hljs-title function_">insertion</span>(<span class="hljs-params">xs: <span class="hljs-type">List</span>[T], key: <span class="hljs-type">Callable</span>[[T], <span class="hljs-built_in">object</span>] = <span class="hljs-keyword">lambda</span> x: x</span>) -&gt; <span class="hljs-type">List</span>[T]:</span><span class="ln" data-line="31">    a = <span class="hljs-built_in">list</span>(xs)</span><span class="ln" data-line="32">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-built_in">len</span>(a)):</span><span class="ln" data-line="33">        x, j = a[i], i - <span class="hljs-number">1</span></span><span class="ln" data-line="34">        <span class="hljs-keyword">while</span> j &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> key(a[j]) &gt; key(x):</span><span class="ln" data-line="35">            a[j + <span class="hljs-number">1</span>] = a[j]  <span class="hljs-comment"># shift larger items right</span></span><span class="ln" data-line="36">            j -= <span class="hljs-number">1</span></span><span class="ln" data-line="37">        a[j + <span class="hljs-number">1</span>] = x</span><span class="ln" data-line="38">    <span class="hljs-keyword">return</span> a</span><span class="ln" data-line="39"> </span><span class="ln" data-line="40"> </span><span class="ln" data-line="41"><span class="hljs-keyword">def</span> <span class="hljs-title function_">merge</span>(<span class="hljs-params">xs: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="42">    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(xs) &lt;= <span class="hljs-number">1</span>:</span><span class="ln" data-line="43">        <span class="hljs-keyword">return</span> <span class="hljs-built_in">list</span>(xs)</span><span class="ln" data-line="44">    mid = <span class="hljs-built_in">len</span>(xs) // <span class="hljs-number">2</span></span><span class="ln" data-line="45">    left, right = merge(xs[:mid]), merge(xs[mid:])</span><span class="ln" data-line="46">    out, i, j = [], <span class="hljs-number">0</span>, <span class="hljs-number">0</span></span><span class="ln" data-line="47">    <span class="hljs-keyword">while</span> i &lt; <span class="hljs-built_in">len</span>(left) <span class="hljs-keyword">and</span> j &lt; <span class="hljs-built_in">len</span>(right):</span><span class="ln" data-line="48">        <span class="hljs-keyword">if</span> left[i] &lt;= right[j]:  <span class="hljs-comment"># &lt;= keeps it stable</span></span><span class="ln" data-line="49">            out.append(left[i]); i += <span class="hljs-number">1</span></span><span class="ln" data-line="50">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="51">            out.append(right[j]); j += <span class="hljs-number">1</span></span><span class="ln" data-line="52">    <span class="hljs-keyword">return</span> out + left[i:] + right[j:]</span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"> </span><span class="ln" data-line="55"><span class="hljs-keyword">def</span> <span class="hljs-title function_">quick</span>(<span class="hljs-params">xs: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="56">    a = <span class="hljs-built_in">list</span>(xs)</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">sort</span>(<span class="hljs-params">lo: <span class="hljs-built_in">int</span>, hi: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="59">        <span class="hljs-keyword">if</span> lo &gt;= hi:</span><span class="ln" data-line="60">            <span class="hljs-keyword">return</span></span><span class="ln" data-line="61">        pivot = a[lo + (hi - lo) // <span class="hljs-number">2</span>]  <span class="hljs-comment"># middle pivot avoids the sorted-input worst case</span></span><span class="ln" data-line="62">        i, j = lo, hi</span><span class="ln" data-line="63">        <span class="hljs-keyword">while</span> i &lt;= j:</span><span class="ln" data-line="64">            <span class="hljs-keyword">while</span> a[i] &lt; pivot:</span><span class="ln" data-line="65">                i += <span class="hljs-number">1</span></span><span class="ln" data-line="66">            <span class="hljs-keyword">while</span> a[j] &gt; pivot:</span><span class="ln" data-line="67">                j -= <span class="hljs-number">1</span></span><span class="ln" data-line="68">            <span class="hljs-keyword">if</span> i &lt;= j:</span><span class="ln" data-line="69">                a[i], a[j] = a[j], a[i]</span><span class="ln" data-line="70">                i, j = i + <span class="hljs-number">1</span>, j - <span class="hljs-number">1</span></span><span class="ln" data-line="71">        sort(lo, j)</span><span class="ln" data-line="72">        sort(i, hi)</span><span class="ln" data-line="73"> </span><span class="ln" data-line="74">    sort(<span class="hljs-number">0</span>, <span class="hljs-built_in">len</span>(a) - <span class="hljs-number">1</span>)</span><span class="ln" data-line="75">    <span class="hljs-keyword">return</span> a</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"> </span><span class="ln" data-line="78"><span class="hljs-keyword">def</span> <span class="hljs-title function_">heap</span>(<span class="hljs-params">xs: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="79">    a = <span class="hljs-built_in">list</span>(xs)</span><span class="ln" data-line="80"> </span><span class="ln" data-line="81">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">sift_down</span>(<span class="hljs-params">i: <span class="hljs-built_in">int</span>, n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="82">        <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:</span><span class="ln" data-line="83">            l, r, big = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>, <span class="hljs-number">2</span> * i + <span class="hljs-number">2</span>, i</span><span class="ln" data-line="84">            <span class="hljs-keyword">if</span> l &lt; n <span class="hljs-keyword">and</span> a[l] &gt; a[big]:</span><span class="ln" data-line="85">                big = l</span><span class="ln" data-line="86">            <span class="hljs-keyword">if</span> r &lt; n <span class="hljs-keyword">and</span> a[r] &gt; a[big]:</span><span class="ln" data-line="87">                big = r</span><span class="ln" data-line="88">            <span class="hljs-keyword">if</span> big == i:</span><span class="ln" data-line="89">                <span class="hljs-keyword">return</span></span><span class="ln" data-line="90">            a[i], a[big] = a[big], a[i]</span><span class="ln" data-line="91">            i = big</span><span class="ln" data-line="92"> </span><span class="ln" data-line="93">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(a) // <span class="hljs-number">2</span> - <span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):  <span class="hljs-comment"># build a max-heap in O(n)</span></span><span class="ln" data-line="94">        sift_down(i, <span class="hljs-built_in">len</span>(a))</span><span class="ln" data-line="95">    <span class="hljs-keyword">for</span> end <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(a) - <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">1</span>):</span><span class="ln" data-line="96">        a[<span class="hljs-number">0</span>], a[end] = a[end], a[<span class="hljs-number">0</span>]  <span class="hljs-comment"># move the max to its final place</span></span><span class="ln" data-line="97">        sift_down(<span class="hljs-number">0</span>, end)</span><span class="ln" data-line="98">    <span class="hljs-keyword">return</span> a</span><span class="ln" data-line="99"> </span><span class="ln" data-line="100"> </span><span class="ln" data-line="101"><span class="hljs-keyword">def</span> <span class="hljs-title function_">counting</span>(<span class="hljs-params">xs: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], max_key: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="102">    count = [<span class="hljs-number">0</span>] * (max_key + <span class="hljs-number">1</span>)</span><span class="ln" data-line="103">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> xs:</span><span class="ln" data-line="104">        count[x] += <span class="hljs-number">1</span></span><span class="ln" data-line="105">    <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, max_key + <span class="hljs-number">1</span>):</span><span class="ln" data-line="106">        count[k] += count[k - <span class="hljs-number">1</span>]  <span class="hljs-comment"># count[k] = items with key &lt;= k</span></span><span class="ln" data-line="107">    out = [<span class="hljs-number">0</span>] * <span class="hljs-built_in">len</span>(xs)</span><span class="ln" data-line="108">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">reversed</span>(xs):  <span class="hljs-comment"># back to front keeps it stable</span></span><span class="ln" data-line="109">        count[x] -= <span class="hljs-number">1</span></span><span class="ln" data-line="110">        out[count[x]] = x</span><span class="ln" data-line="111">    <span class="hljs-keyword">return</span> out</span><span class="ln" data-line="112"> </span><span class="ln" data-line="113"> </span><span class="ln" data-line="114"><span class="hljs-keyword">def</span> <span class="hljs-title function_">radix</span>(<span class="hljs-params">xs: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="115">    a, exp = <span class="hljs-built_in">list</span>(xs), <span class="hljs-number">1</span></span><span class="ln" data-line="116">    <span class="hljs-keyword">while</span> <span class="hljs-built_in">max</span>(a) // exp &gt; <span class="hljs-number">0</span>:</span><span class="ln" data-line="117">        count = [<span class="hljs-number">0</span>] * <span class="hljs-number">10</span></span><span class="ln" data-line="118">        <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> a:</span><span class="ln" data-line="119">            count[(x // exp) % <span class="hljs-number">10</span>] += <span class="hljs-number">1</span></span><span class="ln" data-line="120">        <span class="hljs-keyword">for</span> d <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-number">10</span>):</span><span class="ln" data-line="121">            count[d] += count[d - <span class="hljs-number">1</span>]</span><span class="ln" data-line="122">        out = [<span class="hljs-number">0</span>] * <span class="hljs-built_in">len</span>(a)</span><span class="ln" data-line="123">        <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">reversed</span>(a):</span><span class="ln" data-line="124">            count[(x // exp) % <span class="hljs-number">10</span>] -= <span class="hljs-number">1</span></span><span class="ln" data-line="125">            out[count[(x // exp) % <span class="hljs-number">10</span>]] = x</span><span class="ln" data-line="126">        a, exp = out, exp * <span class="hljs-number">10</span></span><span class="ln" data-line="127">    <span class="hljs-keyword">return</span> a</span><span class="ln" data-line="128"> </span><span class="ln" data-line="129"> </span><span class="ln" data-line="130"><span class="hljs-keyword">def</span> <span class="hljs-title function_">fmt</span>(<span class="hljs-params">a: <span class="hljs-type">List</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="131">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; &quot;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, a))</span><span class="ln" data-line="132"> </span><span class="ln" data-line="133"> </span><span class="ln" data-line="134"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="135">    data = [<span class="hljs-number">5</span>, <span class="hljs-number">2</span>, <span class="hljs-number">9</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">3</span>]</span><span class="ln" data-line="136">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;input:     <span class="hljs-subst">{fmt(data)}</span>&quot;</span>)</span><span class="ln" data-line="137">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;bubble:    <span class="hljs-subst">{fmt(bubble(data))}</span>&quot;</span>)</span><span class="ln" data-line="138">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;selection: <span class="hljs-subst">{fmt(selection(data))}</span>&quot;</span>)</span><span class="ln" data-line="139">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;insertion: <span class="hljs-subst">{fmt(insertion(data))}</span>&quot;</span>)</span><span class="ln" data-line="140">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;merge:     <span class="hljs-subst">{fmt(merge(data))}</span>&quot;</span>)</span><span class="ln" data-line="141">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;quick:     <span class="hljs-subst">{fmt(quick(data))}</span>&quot;</span>)</span><span class="ln" data-line="142">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;heap:      <span class="hljs-subst">{fmt(heap(data))}</span>&quot;</span>)</span><span class="ln" data-line="143">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;counting:  <span class="hljs-subst">{fmt(counting(data, <span class="hljs-number">9</span>))}</span>&quot;</span>)</span><span class="ln" data-line="144">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;radix:     <span class="hljs-subst">{fmt(radix([<span class="hljs-number">170</span>, <span class="hljs-number">45</span>, <span class="hljs-number">75</span>, <span class="hljs-number">90</span>, <span class="hljs-number">802</span>, <span class="hljs-number">24</span>, <span class="hljs-number">2</span>, <span class="hljs-number">66</span>]))}</span>&quot;</span>)</span><span class="ln" data-line="145">    cards = [<span class="hljs-string">&quot;3a&quot;</span>, <span class="hljs-string">&quot;1b&quot;</span>, <span class="hljs-string">&quot;3c&quot;</span>, <span class="hljs-string">&quot;2d&quot;</span>]</span><span class="ln" data-line="146">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;stable (insertion):   <span class="hljs-subst">{fmt(insertion(cards, key=<span class="hljs-keyword">lambda</span> c: c[<span class="hljs-number">0</span>]))}</span>&quot;</span>)</span><span class="ln" data-line="147">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;unstable (selection): <span class="hljs-subst">{fmt(selection(cards, key=<span class="hljs-keyword">lambda</span> c: c[<span class="hljs-number">0</span>]))}</span>&quot;</span>)</span><span class="ln" data-line="148"> </span><span class="ln" data-line="149"> </span><span class="ln" data-line="150"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="151">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import Callable, List, TypeVar
+
+T = TypeVar(&quot;T&quot;)
+
+
+def bubble(xs: List[int]) -&gt; List[int]:
+    a = list(xs)
+    for end in range(len(a) - 1, 0, -1):
+        swapped = False
+        for i in range(end):
+            if a[i] &gt; a[i + 1]:
+                a[i], a[i + 1] = a[i + 1], a[i]
+                swapped = True
+        if not swapped:  # already sorted: O(n) best case
+            break
+    return a
+
+
+def selection(xs: List[T], key: Callable[[T], object] = lambda x: x) -&gt; List[T]:
+    a = list(xs)
+    for i in range(len(a) - 1):
+        m = i
+        for j in range(i + 1, len(a)):
+            if key(a[j]) &lt; key(a[m]):
+                m = j
+        a[i], a[m] = a[m], a[i]  # the long-distance swap is what makes selection sort unstable
+    return a
+
+
+def insertion(xs: List[T], key: Callable[[T], object] = lambda x: x) -&gt; List[T]:
+    a = list(xs)
+    for i in range(1, len(a)):
+        x, j = a[i], i - 1
+        while j &gt;= 0 and key(a[j]) &gt; key(x):
+            a[j + 1] = a[j]  # shift larger items right
+            j -= 1
+        a[j + 1] = x
+    return a
+
+
+def merge(xs: List[int]) -&gt; List[int]:
+    if len(xs) &lt;= 1:
+        return list(xs)
+    mid = len(xs) // 2
+    left, right = merge(xs[:mid]), merge(xs[mid:])
+    out, i, j = [], 0, 0
+    while i &lt; len(left) and j &lt; len(right):
+        if left[i] &lt;= right[j]:  # &lt;= keeps it stable
+            out.append(left[i]); i += 1
+        else:
+            out.append(right[j]); j += 1
+    return out + left[i:] + right[j:]
+
+
+def quick(xs: List[int]) -&gt; List[int]:
+    a = list(xs)
+
+    def sort(lo: int, hi: int) -&gt; None:
+        if lo &gt;= hi:
+            return
+        pivot = a[lo + (hi - lo) // 2]  # middle pivot avoids the sorted-input worst case
+        i, j = lo, hi
+        while i &lt;= j:
+            while a[i] &lt; pivot:
+                i += 1
+            while a[j] &gt; pivot:
+                j -= 1
+            if i &lt;= j:
+                a[i], a[j] = a[j], a[i]
+                i, j = i + 1, j - 1
+        sort(lo, j)
+        sort(i, hi)
+
+    sort(0, len(a) - 1)
+    return a
+
+
+def heap(xs: List[int]) -&gt; List[int]:
+    a = list(xs)
+
+    def sift_down(i: int, n: int) -&gt; None:
+        while True:
+            l, r, big = 2 * i + 1, 2 * i + 2, i
+            if l &lt; n and a[l] &gt; a[big]:
+                big = l
+            if r &lt; n and a[r] &gt; a[big]:
+                big = r
+            if big == i:
+                return
+            a[i], a[big] = a[big], a[i]
+            i = big
+
+    for i in range(len(a) // 2 - 1, -1, -1):  # build a max-heap in O(n)
+        sift_down(i, len(a))
+    for end in range(len(a) - 1, 0, -1):
+        a[0], a[end] = a[end], a[0]  # move the max to its final place
+        sift_down(0, end)
+    return a
+
+
+def counting(xs: List[int], max_key: int) -&gt; List[int]:
+    count = [0] * (max_key + 1)
+    for x in xs:
+        count[x] += 1
+    for k in range(1, max_key + 1):
+        count[k] += count[k - 1]  # count[k] = items with key &lt;= k
+    out = [0] * len(xs)
+    for x in reversed(xs):  # back to front keeps it stable
+        count[x] -= 1
+        out[count[x]] = x
+    return out
+
+
+def radix(xs: List[int]) -&gt; List[int]:
+    a, exp = list(xs), 1
+    while max(a) // exp &gt; 0:
+        count = [0] * 10
+        for x in a:
+            count[(x // exp) % 10] += 1
+        for d in range(1, 10):
+            count[d] += count[d - 1]
+        out = [0] * len(a)
+        for x in reversed(a):
+            count[(x // exp) % 10] -= 1
+            out[count[(x // exp) % 10]] = x
+        a, exp = out, exp * 10
+    return a
+
+
+def fmt(a: List) -&gt; str:
+    return &quot; &quot;.join(map(str, a))
+
+
+def main() -&gt; None:
+    data = [5, 2, 9, 1, 5, 6, 3]
+    print(f&quot;input:     {fmt(data)}&quot;)
+    print(f&quot;bubble:    {fmt(bubble(data))}&quot;)
+    print(f&quot;selection: {fmt(selection(data))}&quot;)
+    print(f&quot;insertion: {fmt(insertion(data))}&quot;)
+    print(f&quot;merge:     {fmt(merge(data))}&quot;)
+    print(f&quot;quick:     {fmt(quick(data))}&quot;)
+    print(f&quot;heap:      {fmt(heap(data))}&quot;)
+    print(f&quot;counting:  {fmt(counting(data, 9))}&quot;)
+    print(f&quot;radix:     {fmt(radix([170, 45, 75, 90, 802, 24, 2, 66]))}&quot;)
+    cards = [&quot;3a&quot;, &quot;1b&quot;, &quot;3c&quot;, &quot;2d&quot;]
+    print(f&quot;stable (insertion):   {fmt(insertion(cards, key=lambda c: c[0]))}&quot;)
+    print(f&quot;unstable (selection): {fmt(selection(cards, key=lambda c: c[0]))}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>input:     5 2 9 1 5 6 3
+bubble:    1 2 3 5 5 6 9
+selection: 1 2 3 5 5 6 9
+insertion: 1 2 3 5 5 6 9
+merge:     1 2 3 5 5 6 9
+quick:     1 2 3 5 5 6 9
+heap:      1 2 3 5 5 6 9
+counting:  1 2 3 5 5 6 9
+radix:     2 24 45 66 75 90 170 802
+stable (insertion):   1b 2d 3a 3c
+unstable (selection): 1b 2d 3c 3a</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Sorting numbers in JavaScript without a comparator.</li><li>Writing <code>return a - b</code> comparators in Java for values that can overflow <code>int</code>.</li><li>Picking the first or last element as the quicksort pivot on sorted input, which hits the O(n²) worst case.</li><li>Assuming a sort is stable when the language doesn&#39;t promise it.</li><li>Sorting inside a loop when sorting once outside would do.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/sort-an-array/" rel="noopener" target="_blank">Sort an Array<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Implement merge sort or heap sort.</span></td><td>912</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/sort-colors/" rel="noopener" target="_blank">Sort Colors<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Three-way partition.</span></td><td>75</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/merge-sorted-array/" rel="noopener" target="_blank">Merge Sorted Array<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>88</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/insertion-sort-list/" rel="noopener" target="_blank">Insertion Sort List<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>147</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/sort-list/" rel="noopener" target="_blank">Sort List<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Merge sort on a linked list.</span></td><td>148</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" rel="noopener" target="_blank">Kth Largest Element in an Array<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Quickselect.</span></td><td>215</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Used by <a href="../../patterns/merge-intervals/index.html">Merge intervals</a>, <a href="../../patterns/greedy/index.html">Greedy</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../searching/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Searching</span></a><a class="pn pn-next" href="../divide-and-conquer/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Divide and conquer</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

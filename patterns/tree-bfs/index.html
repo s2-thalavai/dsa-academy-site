@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tree BFS · DSA Academy</title>
+<meta name="description" content="Level by level with a queue.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Tree BFS</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Tree BFS</h1>
+  <p class="lede">Breadth-first search visits a tree level by level with a queue. Processing one whole level per loop iteration makes level-based questions direct: averages, right side views, zigzags and the minimum depth.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Reading a family tree generation by generation: grandparents first, then all their children, then all the grandchildren, before moving down again.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>The question mentions <strong>levels</strong>, rows, depth order, or what&#39;s visible from one side.</li>
+<li>The <strong>minimum</strong> depth or the nearest leaf: BFS finds it without exploring the whole tree.</li>
+<li>Connecting nodes on the same level, or serialising a tree row by row.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">queue = [root]
+while queue not empty:
+    size = queue.length                   ← nodes on this level
+    for i in 0..size − 1:
+        node = dequeue
+        process node (i tells you its position in the level)
+        enqueue node.left and node.right if present
+    finish the level
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>The key line is taking <code>size = queue.length</code> <strong>before</strong> the inner loop. At
+that moment the queue holds exactly the current level, and the children
+added during the loop belong to the next one.</p>
+<p>With levels separated:</p>
+<ul>
+<li><strong>Right side view</strong>: the last node of each level.</li>
+<li><strong>Zigzag</strong>: reverse every other level (or insert at the front of the level&#39;s
+list on odd levels).</li>
+<li><strong>Average of levels</strong>: sum and divide by <code>size</code>.</li>
+<li><strong>Minimum depth</strong>: the first leaf you meet ends the search.</li>
+</ul>
+<p>DFS can answer most of these too, by passing the depth down, but BFS keeps the
+level order natural and can stop early.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Level-order traversal</td><td class="nowrap">O(n) time</td><td>Each node is enqueued and dequeued once.</td></tr><tr><td>Queue size</td><td class="nowrap">O(w) space</td><td>w is the widest level; up to n / 2 in a full tree.</td></tr><tr><td>Minimum depth</td><td class="nowrap">O(n) worst case</td><td>Often far less: BFS stops at the first leaf.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Every function uses the same &quot;take the level size, then process exactly that many nodes&quot; loop.</p><figure class="codeblock" id="code-tree-bfs" aria-label="Level order, zigzag, right side view, level averages and minimum depth">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-tree-bfs-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-tree-bfs-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-tree-bfs-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-tree-bfs-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-tree-bfs-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayDeque;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.Collections;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TreeNode</span> {</span><span class="ln" data-line="9">        <span class="hljs-type">int</span> val;</span><span class="ln" data-line="10">        TreeNode left, right;</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12">        TreeNode(<span class="hljs-type">int</span> val) { <span class="hljs-built_in">this</span>.val = val; }</span><span class="ln" data-line="13">    }</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15">    <span class="hljs-comment">/** Builds a tree from level order, with null for a missing child (LeetCode&#x27;s format). */</span></span><span class="ln" data-line="16">    <span class="hljs-keyword">static</span> <span class="hljs-type">TreeNode</span> <span class="hljs-title function_">build</span><span class="hljs-params">(Integer... vals)</span> {</span><span class="ln" data-line="17">        <span class="hljs-keyword">if</span> (vals.length == <span class="hljs-number">0</span> || vals[<span class="hljs-number">0</span>] == <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;</span><span class="ln" data-line="18">        <span class="hljs-type">TreeNode</span> <span class="hljs-variable">root</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeNode</span>(vals[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="19">        java.util.<span class="hljs-type">ArrayDeque</span>&lt;TreeNode&gt; <span class="hljs-variable">queue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">java</span>.util.ArrayDeque&lt;&gt;();</span><span class="ln" data-line="20">        queue.add(root);</span><span class="ln" data-line="21">        <span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;</span><span class="ln" data-line="22">        <span class="hljs-keyword">while</span> (i &lt; vals.length) {</span><span class="ln" data-line="23">            <span class="hljs-type">TreeNode</span> <span class="hljs-variable">node</span> <span class="hljs-operator">=</span> queue.poll();</span><span class="ln" data-line="24">            <span class="hljs-keyword">if</span> (i &lt; vals.length &amp;&amp; vals[i] != <span class="hljs-literal">null</span>) { node.left = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeNode</span>(vals[i]); queue.add(node.left); }</span><span class="ln" data-line="25">            i++;</span><span class="ln" data-line="26">            <span class="hljs-keyword">if</span> (i &lt; vals.length &amp;&amp; vals[i] != <span class="hljs-literal">null</span>) { node.right = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeNode</span>(vals[i]); queue.add(node.right); }</span><span class="ln" data-line="27">            i++;</span><span class="ln" data-line="28">        }</span><span class="ln" data-line="29">        <span class="hljs-keyword">return</span> root;</span><span class="ln" data-line="30">    }</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-title function_">levels</span><span class="hljs-params">(TreeNode root)</span> {</span><span class="ln" data-line="33">        <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="34">        <span class="hljs-type">ArrayDeque</span>&lt;TreeNode&gt; <span class="hljs-variable">queue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;();</span><span class="ln" data-line="35">        <span class="hljs-keyword">if</span> (root != <span class="hljs-literal">null</span>) queue.add(root);</span><span class="ln" data-line="36">        <span class="hljs-keyword">while</span> (!queue.isEmpty()) {</span><span class="ln" data-line="37">            <span class="hljs-type">int</span> <span class="hljs-variable">size</span> <span class="hljs-operator">=</span> queue.size(); <span class="hljs-comment">// nodes on this level</span></span><span class="ln" data-line="38">            <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">level</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="39">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; size; i++) {</span><span class="ln" data-line="40">                <span class="hljs-type">TreeNode</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> queue.poll();</span><span class="ln" data-line="41">                level.add(n.val);</span><span class="ln" data-line="42">                <span class="hljs-keyword">if</span> (n.left != <span class="hljs-literal">null</span>) queue.add(n.left);</span><span class="ln" data-line="43">                <span class="hljs-keyword">if</span> (n.right != <span class="hljs-literal">null</span>) queue.add(n.right);</span><span class="ln" data-line="44">            }</span><span class="ln" data-line="45">            out.add(level);</span><span class="ln" data-line="46">        }</span><span class="ln" data-line="47">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="48">    }</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-title function_">zigzag</span><span class="hljs-params">(TreeNode root)</span> {</span><span class="ln" data-line="51">        <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> levels(root);</span><span class="ln" data-line="52">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt; out.size(); i += <span class="hljs-number">2</span>) Collections.reverse(out.get(i));</span><span class="ln" data-line="53">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="54">    }</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-title function_">rightView</span><span class="hljs-params">(TreeNode root)</span> {</span><span class="ln" data-line="57">        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="58">        <span class="hljs-keyword">for</span> (List&lt;Integer&gt; level : levels(root)) out.add(level.get(level.size() - <span class="hljs-number">1</span>));</span><span class="ln" data-line="59">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="60">    }</span><span class="ln" data-line="61"> </span><span class="ln" data-line="62">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Double&gt; <span class="hljs-title function_">averages</span><span class="hljs-params">(TreeNode root)</span> {</span><span class="ln" data-line="63">        <span class="hljs-type">List</span>&lt;Double&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="64">        <span class="hljs-keyword">for</span> (List&lt;Integer&gt; level : levels(root)) {</span><span class="ln" data-line="65">            <span class="hljs-type">long</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="66">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : level) sum += v;</span><span class="ln" data-line="67">            out.add((<span class="hljs-type">double</span>) sum / level.size());</span><span class="ln" data-line="68">        }</span><span class="ln" data-line="69">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="70">    }</span><span class="ln" data-line="71"> </span><span class="ln" data-line="72">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">minDepth</span><span class="hljs-params">(TreeNode root)</span> {</span><span class="ln" data-line="73">        <span class="hljs-keyword">if</span> (root == <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="74">        <span class="hljs-type">ArrayDeque</span>&lt;TreeNode&gt; <span class="hljs-variable">queue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;();</span><span class="ln" data-line="75">        queue.add(root);</span><span class="ln" data-line="76">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">depth</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; ; depth++) {</span><span class="ln" data-line="77">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">size</span> <span class="hljs-operator">=</span> queue.size(); size &gt; <span class="hljs-number">0</span>; size--) {</span><span class="ln" data-line="78">                <span class="hljs-type">TreeNode</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> queue.poll();</span><span class="ln" data-line="79">                <span class="hljs-keyword">if</span> (n.left == <span class="hljs-literal">null</span> &amp;&amp; n.right == <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> depth; <span class="hljs-comment">// first leaf: done</span></span><span class="ln" data-line="80">                <span class="hljs-keyword">if</span> (n.left != <span class="hljs-literal">null</span>) queue.add(n.left);</span><span class="ln" data-line="81">                <span class="hljs-keyword">if</span> (n.right != <span class="hljs-literal">null</span>) queue.add(n.right);</span><span class="ln" data-line="82">            }</span><span class="ln" data-line="83">        }</span><span class="ln" data-line="84">    }</span><span class="ln" data-line="85"> </span><span class="ln" data-line="86">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">fmt</span><span class="hljs-params">(List&lt;List&lt;Integer&gt;&gt; levels)</span> {</span><span class="ln" data-line="87">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="88">        <span class="hljs-keyword">for</span> (List&lt;Integer&gt; l : levels) {</span><span class="ln" data-line="89">            <span class="hljs-keyword">if</span> (sb.length() &gt; <span class="hljs-number">0</span>) sb.append(<span class="hljs-string">&quot; | &quot;</span>);</span><span class="ln" data-line="90">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; l.size(); i++) sb.append(i &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(l.get(i));</span><span class="ln" data-line="91">        }</span><span class="ln" data-line="92">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="93">    }</span><span class="ln" data-line="94"> </span><span class="ln" data-line="95">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="96">        <span class="hljs-type">TreeNode</span> <span class="hljs-variable">t</span> <span class="hljs-operator">=</span> build(<span class="hljs-number">3</span>, <span class="hljs-number">9</span>, <span class="hljs-number">20</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-number">15</span>, <span class="hljs-number">7</span>);</span><span class="ln" data-line="97">        System.out.println(<span class="hljs-string">&quot;levels: &quot;</span> + fmt(levels(t)));</span><span class="ln" data-line="98">        System.out.println(<span class="hljs-string">&quot;zigzag: &quot;</span> + fmt(zigzag(t)));</span><span class="ln" data-line="99">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">rv</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="100">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : rightView(t)) rv.append(rv.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(v);</span><span class="ln" data-line="101">        System.out.println(<span class="hljs-string">&quot;right side view: &quot;</span> + rv);</span><span class="ln" data-line="102">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">av</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="103">        <span class="hljs-keyword">for</span> (<span class="hljs-type">double</span> a : averages(t)) av.append(av.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(String.format(java.util.Locale.ROOT, <span class="hljs-string">&quot;%.1f&quot;</span>, a));</span><span class="ln" data-line="104">        System.out.println(<span class="hljs-string">&quot;level averages: &quot;</span> + av);</span><span class="ln" data-line="105">        System.out.println(<span class="hljs-string">&quot;min depth: &quot;</span> + minDepth(t) + <span class="hljs-string">&quot;, min depth of [2,null,3,null,4]: &quot;</span> + minDepth(build(<span class="hljs-number">2</span>, <span class="hljs-literal">null</span>, <span class="hljs-number">3</span>, <span class="hljs-literal">null</span>, <span class="hljs-number">4</span>)));</span><span class="ln" data-line="106">    }</span><span class="ln" data-line="107">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class Solution {
+
+    static class TreeNode {
+        int val;
+        TreeNode left, right;
+
+        TreeNode(int val) { this.val = val; }
+    }
+
+    /** Builds a tree from level order, with null for a missing child (LeetCode&#39;s format). */
+    static TreeNode build(Integer... vals) {
+        if (vals.length == 0 || vals[0] == null) return null;
+        TreeNode root = new TreeNode(vals[0]);
+        java.util.ArrayDeque&lt;TreeNode&gt; queue = new java.util.ArrayDeque&lt;&gt;();
+        queue.add(root);
+        int i = 1;
+        while (i &lt; vals.length) {
+            TreeNode node = queue.poll();
+            if (i &lt; vals.length &amp;&amp; vals[i] != null) { node.left = new TreeNode(vals[i]); queue.add(node.left); }
+            i++;
+            if (i &lt; vals.length &amp;&amp; vals[i] != null) { node.right = new TreeNode(vals[i]); queue.add(node.right); }
+            i++;
+        }
+        return root;
+    }
+
+    static List&lt;List&lt;Integer&gt;&gt; levels(TreeNode root) {
+        List&lt;List&lt;Integer&gt;&gt; out = new ArrayList&lt;&gt;();
+        ArrayDeque&lt;TreeNode&gt; queue = new ArrayDeque&lt;&gt;();
+        if (root != null) queue.add(root);
+        while (!queue.isEmpty()) {
+            int size = queue.size(); // nodes on this level
+            List&lt;Integer&gt; level = new ArrayList&lt;&gt;();
+            for (int i = 0; i &lt; size; i++) {
+                TreeNode n = queue.poll();
+                level.add(n.val);
+                if (n.left != null) queue.add(n.left);
+                if (n.right != null) queue.add(n.right);
+            }
+            out.add(level);
+        }
+        return out;
+    }
+
+    static List&lt;List&lt;Integer&gt;&gt; zigzag(TreeNode root) {
+        List&lt;List&lt;Integer&gt;&gt; out = levels(root);
+        for (int i = 1; i &lt; out.size(); i += 2) Collections.reverse(out.get(i));
+        return out;
+    }
+
+    static List&lt;Integer&gt; rightView(TreeNode root) {
+        List&lt;Integer&gt; out = new ArrayList&lt;&gt;();
+        for (List&lt;Integer&gt; level : levels(root)) out.add(level.get(level.size() - 1));
+        return out;
+    }
+
+    static List&lt;Double&gt; averages(TreeNode root) {
+        List&lt;Double&gt; out = new ArrayList&lt;&gt;();
+        for (List&lt;Integer&gt; level : levels(root)) {
+            long sum = 0;
+            for (int v : level) sum += v;
+            out.add((double) sum / level.size());
+        }
+        return out;
+    }
+
+    static int minDepth(TreeNode root) {
+        if (root == null) return 0;
+        ArrayDeque&lt;TreeNode&gt; queue = new ArrayDeque&lt;&gt;();
+        queue.add(root);
+        for (int depth = 1; ; depth++) {
+            for (int size = queue.size(); size &gt; 0; size--) {
+                TreeNode n = queue.poll();
+                if (n.left == null &amp;&amp; n.right == null) return depth; // first leaf: done
+                if (n.left != null) queue.add(n.left);
+                if (n.right != null) queue.add(n.right);
+            }
+        }
+    }
+
+    static String fmt(List&lt;List&lt;Integer&gt;&gt; levels) {
+        StringBuilder sb = new StringBuilder();
+        for (List&lt;Integer&gt; l : levels) {
+            if (sb.length() &gt; 0) sb.append(&quot; | &quot;);
+            for (int i = 0; i &lt; l.size(); i++) sb.append(i &gt; 0 ? &quot; &quot; : &quot;&quot;).append(l.get(i));
+        }
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        TreeNode t = build(3, 9, 20, null, null, 15, 7);
+        System.out.println(&quot;levels: &quot; + fmt(levels(t)));
+        System.out.println(&quot;zigzag: &quot; + fmt(zigzag(t)));
+        StringBuilder rv = new StringBuilder();
+        for (int v : rightView(t)) rv.append(rv.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(v);
+        System.out.println(&quot;right side view: &quot; + rv);
+        StringBuilder av = new StringBuilder();
+        for (double a : averages(t)) av.append(av.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(String.format(java.util.Locale.ROOT, &quot;%.1f&quot;, a));
+        System.out.println(&quot;level averages: &quot; + av);
+        System.out.println(&quot;min depth: &quot; + minDepth(t) + &quot;, min depth of [2,null,3,null,4]: &quot; + minDepth(build(2, null, 3, null, 4)));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-tree-bfs-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">class</span> <span class="hljs-title class_">TreeNode</span> {</span><span class="ln" data-line="2">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">val</span>) {</span><span class="ln" data-line="3">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">val</span> = val;</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">left</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="5">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">right</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">}</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-comment">/** Builds a tree from level order, with null for a missing child (LeetCode&#x27;s format). */</span></span><span class="ln" data-line="10"><span class="hljs-keyword">function</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">vals</span>) {</span><span class="ln" data-line="11">  <span class="hljs-keyword">if</span> (vals.<span class="hljs-property">length</span> === <span class="hljs-number">0</span> || vals[<span class="hljs-number">0</span>] === <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;</span><span class="ln" data-line="12">  <span class="hljs-keyword">const</span> root = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeNode</span>(vals[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="13">  <span class="hljs-keyword">const</span> queue = [root];</span><span class="ln" data-line="14">  <span class="hljs-keyword">let</span> head = <span class="hljs-number">0</span>;</span><span class="ln" data-line="15">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; vals.<span class="hljs-property">length</span>; i += <span class="hljs-number">2</span>) {</span><span class="ln" data-line="16">    <span class="hljs-keyword">const</span> node = queue[head++];</span><span class="ln" data-line="17">    <span class="hljs-keyword">if</span> (vals[i] !== <span class="hljs-literal">null</span>) queue.<span class="hljs-title function_">push</span>((node.<span class="hljs-property">left</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeNode</span>(vals[i])));</span><span class="ln" data-line="18">    <span class="hljs-keyword">if</span> (i + <span class="hljs-number">1</span> &lt; vals.<span class="hljs-property">length</span> &amp;&amp; vals[i + <span class="hljs-number">1</span>] !== <span class="hljs-literal">null</span>) queue.<span class="hljs-title function_">push</span>((node.<span class="hljs-property">right</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeNode</span>(vals[i + <span class="hljs-number">1</span>])));</span><span class="ln" data-line="19">  }</span><span class="ln" data-line="20">  <span class="hljs-keyword">return</span> root;</span><span class="ln" data-line="21">}</span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"><span class="hljs-keyword">function</span> <span class="hljs-title function_">levels</span>(<span class="hljs-params">root</span>) {</span><span class="ln" data-line="24">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="25">  <span class="hljs-keyword">let</span> level = root === <span class="hljs-literal">null</span> ? [] : [root];</span><span class="ln" data-line="26">  <span class="hljs-keyword">while</span> (level.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="27">    out.<span class="hljs-title function_">push</span>(level.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">n</span>) =&gt;</span> n.<span class="hljs-property">val</span>));</span><span class="ln" data-line="28">    <span class="hljs-keyword">const</span> next = []; <span class="hljs-comment">// the next level, built while reading this one</span></span><span class="ln" data-line="29">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> level) {</span><span class="ln" data-line="30">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">left</span> !== <span class="hljs-literal">null</span>) next.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">left</span>);</span><span class="ln" data-line="31">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">right</span> !== <span class="hljs-literal">null</span>) next.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">right</span>);</span><span class="ln" data-line="32">    }</span><span class="ln" data-line="33">    level = next;</span><span class="ln" data-line="34">  }</span><span class="ln" data-line="35">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="36">}</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"><span class="hljs-keyword">const</span> <span class="hljs-title function_">zigzag</span> = (<span class="hljs-params">root</span>) =&gt; <span class="hljs-title function_">levels</span>(root).<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">l, i</span>) =&gt;</span> (i % <span class="hljs-number">2</span> === <span class="hljs-number">1</span> ? [...l].<span class="hljs-title function_">reverse</span>() : l));</span><span class="ln" data-line="39"><span class="hljs-keyword">const</span> <span class="hljs-title function_">rightView</span> = (<span class="hljs-params">root</span>) =&gt; <span class="hljs-title function_">levels</span>(root).<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">l</span>) =&gt;</span> l[l.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="40"><span class="hljs-keyword">const</span> <span class="hljs-title function_">averages</span> = (<span class="hljs-params">root</span>) =&gt; <span class="hljs-title function_">levels</span>(root).<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">l</span>) =&gt;</span> l.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, v</span>) =&gt;</span> s + v, <span class="hljs-number">0</span>) / l.<span class="hljs-property">length</span>);</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minDepth</span>(<span class="hljs-params">root</span>) {</span><span class="ln" data-line="43">  <span class="hljs-keyword">if</span> (root === <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="44">  <span class="hljs-keyword">let</span> level = [root];</span><span class="ln" data-line="45">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> depth = <span class="hljs-number">1</span>; ; depth++) {</span><span class="ln" data-line="46">    <span class="hljs-keyword">const</span> next = [];</span><span class="ln" data-line="47">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> level) {</span><span class="ln" data-line="48">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">left</span> === <span class="hljs-literal">null</span> &amp;&amp; n.<span class="hljs-property">right</span> === <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> depth; <span class="hljs-comment">// first leaf: done</span></span><span class="ln" data-line="49">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">left</span> !== <span class="hljs-literal">null</span>) next.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">left</span>);</span><span class="ln" data-line="50">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">right</span> !== <span class="hljs-literal">null</span>) next.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">right</span>);</span><span class="ln" data-line="51">    }</span><span class="ln" data-line="52">    level = next;</span><span class="ln" data-line="53">  }</span><span class="ln" data-line="54">}</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56"><span class="hljs-keyword">const</span> <span class="hljs-title function_">fmt</span> = (<span class="hljs-params">ls</span>) =&gt; ls.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">l</span>) =&gt;</span> l.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>)).<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; | &quot;</span>);</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="59">  <span class="hljs-keyword">const</span> t = <span class="hljs-title function_">build</span>([<span class="hljs-number">3</span>, <span class="hljs-number">9</span>, <span class="hljs-number">20</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-number">15</span>, <span class="hljs-number">7</span>]);</span><span class="ln" data-line="60">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`levels: <span class="hljs-subst">${fmt(levels(t))}</span>`</span>);</span><span class="ln" data-line="61">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`zigzag: <span class="hljs-subst">${fmt(zigzag(t))}</span>`</span>);</span><span class="ln" data-line="62">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`right side view: <span class="hljs-subst">${rightView(t).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="63">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`level averages: <span class="hljs-subst">${averages(t).map((a) =&gt; a.toFixed(<span class="hljs-number">1</span>)).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="64">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`min depth: <span class="hljs-subst">${minDepth(t)}</span>, min depth of [2,null,3,null,4]: <span class="hljs-subst">${minDepth(build([<span class="hljs-number">2</span>, <span class="hljs-literal">null</span>, <span class="hljs-number">3</span>, <span class="hljs-literal">null</span>, <span class="hljs-number">4</span>]))}</span>`</span>);</span><span class="ln" data-line="65">}</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">class TreeNode {
+  constructor(val) {
+    this.val = val;
+    this.left = null;
+    this.right = null;
+  }
+}
+
+/** Builds a tree from level order, with null for a missing child (LeetCode&#39;s format). */
+function build(vals) {
+  if (vals.length === 0 || vals[0] === null) return null;
+  const root = new TreeNode(vals[0]);
+  const queue = [root];
+  let head = 0;
+  for (let i = 1; i &lt; vals.length; i += 2) {
+    const node = queue[head++];
+    if (vals[i] !== null) queue.push((node.left = new TreeNode(vals[i])));
+    if (i + 1 &lt; vals.length &amp;&amp; vals[i + 1] !== null) queue.push((node.right = new TreeNode(vals[i + 1])));
+  }
+  return root;
+}
+
+function levels(root) {
+  const out = [];
+  let level = root === null ? [] : [root];
+  while (level.length &gt; 0) {
+    out.push(level.map((n) =&gt; n.val));
+    const next = []; // the next level, built while reading this one
+    for (const n of level) {
+      if (n.left !== null) next.push(n.left);
+      if (n.right !== null) next.push(n.right);
+    }
+    level = next;
+  }
+  return out;
+}
+
+const zigzag = (root) =&gt; levels(root).map((l, i) =&gt; (i % 2 === 1 ? [...l].reverse() : l));
+const rightView = (root) =&gt; levels(root).map((l) =&gt; l[l.length - 1]);
+const averages = (root) =&gt; levels(root).map((l) =&gt; l.reduce((s, v) =&gt; s + v, 0) / l.length);
+
+function minDepth(root) {
+  if (root === null) return 0;
+  let level = [root];
+  for (let depth = 1; ; depth++) {
+    const next = [];
+    for (const n of level) {
+      if (n.left === null &amp;&amp; n.right === null) return depth; // first leaf: done
+      if (n.left !== null) next.push(n.left);
+      if (n.right !== null) next.push(n.right);
+    }
+    level = next;
+  }
+}
+
+const fmt = (ls) =&gt; ls.map((l) =&gt; l.join(&quot; &quot;)).join(&quot; | &quot;);
+
+function main() {
+  const t = build([3, 9, 20, null, null, 15, 7]);
+  console.log(`levels: ${fmt(levels(t))}`);
+  console.log(`zigzag: ${fmt(zigzag(t))}`);
+  console.log(`right side view: ${rightView(t).join(&quot; &quot;)}`);
+  console.log(`level averages: ${averages(t).map((a) =&gt; a.toFixed(1)).join(&quot; &quot;)}`);
+  console.log(`min depth: ${minDepth(t)}, min depth of [2,null,3,null,4]: ${minDepth(build([2, null, 3, null, 4]))}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-tree-bfs-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">class</span> <span class="hljs-title class_">TreeNode</span> {</span><span class="ln" data-line="2">  <span class="hljs-attr">val</span>: <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="3">  <span class="hljs-attr">left</span>: <span class="hljs-title class_">TreeNode</span> | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="4">  <span class="hljs-attr">right</span>: <span class="hljs-title class_">TreeNode</span> | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">val</span>: <span class="hljs-built_in">number</span></span>) {</span><span class="ln" data-line="7">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">val</span> = val;</span><span class="ln" data-line="8">  }</span><span class="ln" data-line="9">}</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"><span class="hljs-comment">/** Builds a tree from level order, with null for a missing child (LeetCode&#x27;s format). */</span></span><span class="ln" data-line="12"><span class="hljs-keyword">function</span> <span class="hljs-title function_">build</span>(<span class="hljs-params"><span class="hljs-attr">vals</span>: (<span class="hljs-built_in">number</span> | <span class="hljs-literal">null</span>)[]</span>): <span class="hljs-title class_">TreeNode</span> | <span class="hljs-literal">null</span> {</span><span class="ln" data-line="13">  <span class="hljs-keyword">if</span> (vals.<span class="hljs-property">length</span> === <span class="hljs-number">0</span> || vals[<span class="hljs-number">0</span>] === <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;</span><span class="ln" data-line="14">  <span class="hljs-keyword">const</span> root = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeNode</span>(vals[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="15">  <span class="hljs-keyword">const</span> <span class="hljs-attr">queue</span>: <span class="hljs-title class_">TreeNode</span>[] = [root];</span><span class="ln" data-line="16">  <span class="hljs-keyword">let</span> head = <span class="hljs-number">0</span>;</span><span class="ln" data-line="17">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">1</span>; i &lt; vals.<span class="hljs-property">length</span>; i += <span class="hljs-number">2</span>) {</span><span class="ln" data-line="18">    <span class="hljs-keyword">const</span> node = queue[head++];</span><span class="ln" data-line="19">    <span class="hljs-keyword">const</span> l = vals[i];</span><span class="ln" data-line="20">    <span class="hljs-keyword">const</span> r = i + <span class="hljs-number">1</span> &lt; vals.<span class="hljs-property">length</span> ? vals[i + <span class="hljs-number">1</span>] : <span class="hljs-literal">null</span>;</span><span class="ln" data-line="21">    <span class="hljs-keyword">if</span> (l !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="22">      node.<span class="hljs-property">left</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeNode</span>(l);</span><span class="ln" data-line="23">      queue.<span class="hljs-title function_">push</span>(node.<span class="hljs-property">left</span>);</span><span class="ln" data-line="24">    }</span><span class="ln" data-line="25">    <span class="hljs-keyword">if</span> (r !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="26">      node.<span class="hljs-property">right</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TreeNode</span>(r);</span><span class="ln" data-line="27">      queue.<span class="hljs-title function_">push</span>(node.<span class="hljs-property">right</span>);</span><span class="ln" data-line="28">    }</span><span class="ln" data-line="29">  }</span><span class="ln" data-line="30">  <span class="hljs-keyword">return</span> root;</span><span class="ln" data-line="31">}</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"><span class="hljs-keyword">function</span> <span class="hljs-title function_">levels</span>(<span class="hljs-params"><span class="hljs-attr">root</span>: <span class="hljs-title class_">TreeNode</span> | <span class="hljs-literal">null</span></span>): <span class="hljs-built_in">number</span>[][] {</span><span class="ln" data-line="34">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[][] = [];</span><span class="ln" data-line="35">  <span class="hljs-keyword">let</span> <span class="hljs-attr">level</span>: <span class="hljs-title class_">TreeNode</span>[] = root === <span class="hljs-literal">null</span> ? [] : [root];</span><span class="ln" data-line="36">  <span class="hljs-keyword">while</span> (level.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="37">    out.<span class="hljs-title function_">push</span>(level.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">n</span>) =&gt;</span> n.<span class="hljs-property">val</span>));</span><span class="ln" data-line="38">    <span class="hljs-keyword">const</span> <span class="hljs-attr">next</span>: <span class="hljs-title class_">TreeNode</span>[] = []; <span class="hljs-comment">// the next level, built while reading this one</span></span><span class="ln" data-line="39">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> level) {</span><span class="ln" data-line="40">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">left</span> !== <span class="hljs-literal">null</span>) next.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">left</span>);</span><span class="ln" data-line="41">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">right</span> !== <span class="hljs-literal">null</span>) next.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">right</span>);</span><span class="ln" data-line="42">    }</span><span class="ln" data-line="43">    level = next;</span><span class="ln" data-line="44">  }</span><span class="ln" data-line="45">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="46">}</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"><span class="hljs-keyword">const</span> zigzag = (<span class="hljs-attr">root</span>: <span class="hljs-title class_">TreeNode</span> | <span class="hljs-literal">null</span>): <span class="hljs-built_in">number</span>[][] =&gt; <span class="hljs-title function_">levels</span>(root).<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">l, i</span>) =&gt;</span> (i % <span class="hljs-number">2</span> === <span class="hljs-number">1</span> ? [...l].<span class="hljs-title function_">reverse</span>() : l));</span><span class="ln" data-line="49"><span class="hljs-keyword">const</span> rightView = (<span class="hljs-attr">root</span>: <span class="hljs-title class_">TreeNode</span> | <span class="hljs-literal">null</span>): <span class="hljs-built_in">number</span>[] =&gt; <span class="hljs-title function_">levels</span>(root).<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">l</span>) =&gt;</span> l[l.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="50"><span class="hljs-keyword">const</span> averages = (<span class="hljs-attr">root</span>: <span class="hljs-title class_">TreeNode</span> | <span class="hljs-literal">null</span>): <span class="hljs-built_in">number</span>[] =&gt; <span class="hljs-title function_">levels</span>(root).<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">l</span>) =&gt;</span> l.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">s, v</span>) =&gt;</span> s + v, <span class="hljs-number">0</span>) / l.<span class="hljs-property">length</span>);</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minDepth</span>(<span class="hljs-params"><span class="hljs-attr">root</span>: <span class="hljs-title class_">TreeNode</span> | <span class="hljs-literal">null</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="53">  <span class="hljs-keyword">if</span> (root === <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="54">  <span class="hljs-keyword">let</span> <span class="hljs-attr">level</span>: <span class="hljs-title class_">TreeNode</span>[] = [root];</span><span class="ln" data-line="55">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> depth = <span class="hljs-number">1</span>; ; depth++) {</span><span class="ln" data-line="56">    <span class="hljs-keyword">const</span> <span class="hljs-attr">next</span>: <span class="hljs-title class_">TreeNode</span>[] = [];</span><span class="ln" data-line="57">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> level) {</span><span class="ln" data-line="58">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">left</span> === <span class="hljs-literal">null</span> &amp;&amp; n.<span class="hljs-property">right</span> === <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> depth; <span class="hljs-comment">// first leaf: done</span></span><span class="ln" data-line="59">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">left</span> !== <span class="hljs-literal">null</span>) next.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">left</span>);</span><span class="ln" data-line="60">      <span class="hljs-keyword">if</span> (n.<span class="hljs-property">right</span> !== <span class="hljs-literal">null</span>) next.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">right</span>);</span><span class="ln" data-line="61">    }</span><span class="ln" data-line="62">    level = next;</span><span class="ln" data-line="63">  }</span><span class="ln" data-line="64">}</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66"><span class="hljs-keyword">const</span> fmt = (<span class="hljs-attr">ls</span>: <span class="hljs-built_in">number</span>[][]): <span class="hljs-function"><span class="hljs-params">string</span> =&gt;</span> ls.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">l</span>) =&gt;</span> l.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>)).<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; | &quot;</span>);</span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="69">  <span class="hljs-keyword">const</span> t = <span class="hljs-title function_">build</span>([<span class="hljs-number">3</span>, <span class="hljs-number">9</span>, <span class="hljs-number">20</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-number">15</span>, <span class="hljs-number">7</span>]);</span><span class="ln" data-line="70">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`levels: <span class="hljs-subst">${fmt(levels(t))}</span>`</span>);</span><span class="ln" data-line="71">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`zigzag: <span class="hljs-subst">${fmt(zigzag(t))}</span>`</span>);</span><span class="ln" data-line="72">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`right side view: <span class="hljs-subst">${rightView(t).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="73">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`level averages: <span class="hljs-subst">${averages(t).map((a) =&gt; a.toFixed(<span class="hljs-number">1</span>)).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="74">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`min depth: <span class="hljs-subst">${minDepth(t)}</span>, min depth of [2,null,3,null,4]: <span class="hljs-subst">${minDepth(build([<span class="hljs-number">2</span>, <span class="hljs-literal">null</span>, <span class="hljs-number">3</span>, <span class="hljs-literal">null</span>, <span class="hljs-number">4</span>]))}</span>`</span>);</span><span class="ln" data-line="75">}</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">class TreeNode {
+  val: number;
+  left: TreeNode | null = null;
+  right: TreeNode | null = null;
+
+  constructor(val: number) {
+    this.val = val;
+  }
+}
+
+/** Builds a tree from level order, with null for a missing child (LeetCode&#39;s format). */
+function build(vals: (number | null)[]): TreeNode | null {
+  if (vals.length === 0 || vals[0] === null) return null;
+  const root = new TreeNode(vals[0]);
+  const queue: TreeNode[] = [root];
+  let head = 0;
+  for (let i = 1; i &lt; vals.length; i += 2) {
+    const node = queue[head++];
+    const l = vals[i];
+    const r = i + 1 &lt; vals.length ? vals[i + 1] : null;
+    if (l !== null) {
+      node.left = new TreeNode(l);
+      queue.push(node.left);
+    }
+    if (r !== null) {
+      node.right = new TreeNode(r);
+      queue.push(node.right);
+    }
+  }
+  return root;
+}
+
+function levels(root: TreeNode | null): number[][] {
+  const out: number[][] = [];
+  let level: TreeNode[] = root === null ? [] : [root];
+  while (level.length &gt; 0) {
+    out.push(level.map((n) =&gt; n.val));
+    const next: TreeNode[] = []; // the next level, built while reading this one
+    for (const n of level) {
+      if (n.left !== null) next.push(n.left);
+      if (n.right !== null) next.push(n.right);
+    }
+    level = next;
+  }
+  return out;
+}
+
+const zigzag = (root: TreeNode | null): number[][] =&gt; levels(root).map((l, i) =&gt; (i % 2 === 1 ? [...l].reverse() : l));
+const rightView = (root: TreeNode | null): number[] =&gt; levels(root).map((l) =&gt; l[l.length - 1]);
+const averages = (root: TreeNode | null): number[] =&gt; levels(root).map((l) =&gt; l.reduce((s, v) =&gt; s + v, 0) / l.length);
+
+function minDepth(root: TreeNode | null): number {
+  if (root === null) return 0;
+  let level: TreeNode[] = [root];
+  for (let depth = 1; ; depth++) {
+    const next: TreeNode[] = [];
+    for (const n of level) {
+      if (n.left === null &amp;&amp; n.right === null) return depth; // first leaf: done
+      if (n.left !== null) next.push(n.left);
+      if (n.right !== null) next.push(n.right);
+    }
+    level = next;
+  }
+}
+
+const fmt = (ls: number[][]): string =&gt; ls.map((l) =&gt; l.join(&quot; &quot;)).join(&quot; | &quot;);
+
+function main(): void {
+  const t = build([3, 9, 20, null, null, 15, 7]);
+  console.log(`levels: ${fmt(levels(t))}`);
+  console.log(`zigzag: ${fmt(zigzag(t))}`);
+  console.log(`right side view: ${rightView(t).join(&quot; &quot;)}`);
+  console.log(`level averages: ${averages(t).map((a) =&gt; a.toFixed(1)).join(&quot; &quot;)}`);
+  console.log(`min depth: ${minDepth(t)}, min depth of [2,null,3,null,4]: ${minDepth(build([2, null, 3, null, 4]))}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-tree-bfs-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">class</span> <span class="hljs-title class_">TreeNode</span>:</span><span class="ln" data-line="6">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, val: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="7">        <span class="hljs-variable language_">self</span>.val = val</span><span class="ln" data-line="8">        <span class="hljs-variable language_">self</span>.left: <span class="hljs-type">Optional</span>[<span class="hljs-string">&quot;TreeNode&quot;</span>] = <span class="hljs-literal">None</span></span><span class="ln" data-line="9">        <span class="hljs-variable language_">self</span>.right: <span class="hljs-type">Optional</span>[<span class="hljs-string">&quot;TreeNode&quot;</span>] = <span class="hljs-literal">None</span></span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"><span class="hljs-keyword">def</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">vals: <span class="hljs-type">List</span>[<span class="hljs-type">Optional</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-type">Optional</span>[TreeNode]:</span><span class="ln" data-line="13">    <span class="hljs-string">&quot;&quot;&quot;Builds a tree from level order, with None for a missing child (LeetCode&#x27;s format).&quot;&quot;&quot;</span></span><span class="ln" data-line="14">    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> vals <span class="hljs-keyword">or</span> vals[<span class="hljs-number">0</span>] <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="15">        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span></span><span class="ln" data-line="16">    root = TreeNode(vals[<span class="hljs-number">0</span>])</span><span class="ln" data-line="17">    queue, i = deque([root]), <span class="hljs-number">1</span></span><span class="ln" data-line="18">    <span class="hljs-keyword">while</span> i &lt; <span class="hljs-built_in">len</span>(vals):</span><span class="ln" data-line="19">        node = queue.popleft()</span><span class="ln" data-line="20">        <span class="hljs-keyword">if</span> vals[i] <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="21">            node.left = TreeNode(vals[i])</span><span class="ln" data-line="22">            queue.append(node.left)</span><span class="ln" data-line="23">        i += <span class="hljs-number">1</span></span><span class="ln" data-line="24">        <span class="hljs-keyword">if</span> i &lt; <span class="hljs-built_in">len</span>(vals) <span class="hljs-keyword">and</span> vals[i] <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="25">            node.right = TreeNode(vals[i])</span><span class="ln" data-line="26">            queue.append(node.right)</span><span class="ln" data-line="27">        i += <span class="hljs-number">1</span></span><span class="ln" data-line="28">    <span class="hljs-keyword">return</span> root</span><span class="ln" data-line="29"> </span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"><span class="hljs-keyword">def</span> <span class="hljs-title function_">levels</span>(<span class="hljs-params">root: <span class="hljs-type">Optional</span>[TreeNode]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]:</span><span class="ln" data-line="32">    out, queue = [], deque([root] <span class="hljs-keyword">if</span> root <span class="hljs-keyword">else</span> [])</span><span class="ln" data-line="33">    <span class="hljs-keyword">while</span> queue:</span><span class="ln" data-line="34">        level = []</span><span class="ln" data-line="35">        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(queue)):  <span class="hljs-comment"># nodes on this level</span></span><span class="ln" data-line="36">            n = queue.popleft()</span><span class="ln" data-line="37">            level.append(n.val)</span><span class="ln" data-line="38">            <span class="hljs-keyword">if</span> n.left:</span><span class="ln" data-line="39">                queue.append(n.left)</span><span class="ln" data-line="40">            <span class="hljs-keyword">if</span> n.right:</span><span class="ln" data-line="41">                queue.append(n.right)</span><span class="ln" data-line="42">        out.append(level)</span><span class="ln" data-line="43">    <span class="hljs-keyword">return</span> out</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">def</span> <span class="hljs-title function_">zigzag</span>(<span class="hljs-params">root: <span class="hljs-type">Optional</span>[TreeNode]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]:</span><span class="ln" data-line="47">    <span class="hljs-keyword">return</span> [l[::-<span class="hljs-number">1</span>] <span class="hljs-keyword">if</span> i % <span class="hljs-number">2</span> <span class="hljs-keyword">else</span> l <span class="hljs-keyword">for</span> i, l <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(levels(root))]</span><span class="ln" data-line="48"> </span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"><span class="hljs-keyword">def</span> <span class="hljs-title function_">right_view</span>(<span class="hljs-params">root: <span class="hljs-type">Optional</span>[TreeNode]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="51">    <span class="hljs-keyword">return</span> [l[-<span class="hljs-number">1</span>] <span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span> levels(root)]</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"> </span><span class="ln" data-line="54"><span class="hljs-keyword">def</span> <span class="hljs-title function_">averages</span>(<span class="hljs-params">root: <span class="hljs-type">Optional</span>[TreeNode]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">float</span>]:</span><span class="ln" data-line="55">    <span class="hljs-keyword">return</span> [<span class="hljs-built_in">sum</span>(l) / <span class="hljs-built_in">len</span>(l) <span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span> levels(root)]</span><span class="ln" data-line="56"> </span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"><span class="hljs-keyword">def</span> <span class="hljs-title function_">min_depth</span>(<span class="hljs-params">root: <span class="hljs-type">Optional</span>[TreeNode]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="59">    <span class="hljs-keyword">if</span> root <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="60">        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span></span><span class="ln" data-line="61">    queue, depth = deque([root]), <span class="hljs-number">1</span></span><span class="ln" data-line="62">    <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:</span><span class="ln" data-line="63">        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(queue)):</span><span class="ln" data-line="64">            n = queue.popleft()</span><span class="ln" data-line="65">            <span class="hljs-keyword">if</span> n.left <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> n.right <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:  <span class="hljs-comment"># first leaf: done</span></span><span class="ln" data-line="66">                <span class="hljs-keyword">return</span> depth</span><span class="ln" data-line="67">            <span class="hljs-keyword">if</span> n.left:</span><span class="ln" data-line="68">                queue.append(n.left)</span><span class="ln" data-line="69">            <span class="hljs-keyword">if</span> n.right:</span><span class="ln" data-line="70">                queue.append(n.right)</span><span class="ln" data-line="71">        depth += <span class="hljs-number">1</span></span><span class="ln" data-line="72"> </span><span class="ln" data-line="73"> </span><span class="ln" data-line="74"><span class="hljs-keyword">def</span> <span class="hljs-title function_">fmt</span>(<span class="hljs-params">ls: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="75">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; | &quot;</span>.join(<span class="hljs-string">&quot; &quot;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, l)) <span class="hljs-keyword">for</span> l <span class="hljs-keyword">in</span> ls)</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"> </span><span class="ln" data-line="78"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="79">    t = build([<span class="hljs-number">3</span>, <span class="hljs-number">9</span>, <span class="hljs-number">20</span>, <span class="hljs-literal">None</span>, <span class="hljs-literal">None</span>, <span class="hljs-number">15</span>, <span class="hljs-number">7</span>])</span><span class="ln" data-line="80">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;levels: <span class="hljs-subst">{fmt(levels(t))}</span>&quot;</span>)</span><span class="ln" data-line="81">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;zigzag: <span class="hljs-subst">{fmt(zigzag(t))}</span>&quot;</span>)</span><span class="ln" data-line="82">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;right side view: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, right_view(t)))}</span>&quot;</span>)</span><span class="ln" data-line="83">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;level averages: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-string">f&#x27;<span class="hljs-subst">{a:<span class="hljs-number">.1</span>f}</span>&#x27;</span> <span class="hljs-keyword">for</span> a <span class="hljs-keyword">in</span> averages(t))}</span>&quot;</span>)</span><span class="ln" data-line="84">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;min depth: <span class="hljs-subst">{min_depth(t)}</span>, min depth of [2,null,3,null,4]: <span class="hljs-subst">{min_depth(build([<span class="hljs-number">2</span>, <span class="hljs-literal">None</span>, <span class="hljs-number">3</span>, <span class="hljs-literal">None</span>, <span class="hljs-number">4</span>]))}</span>&quot;</span>)</span><span class="ln" data-line="85"> </span><span class="ln" data-line="86"> </span><span class="ln" data-line="87"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="88">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from collections import deque
+from typing import List, Optional
+
+
+class TreeNode:
+    def __init__(self, val: int) -&gt; None:
+        self.val = val
+        self.left: Optional[&quot;TreeNode&quot;] = None
+        self.right: Optional[&quot;TreeNode&quot;] = None
+
+
+def build(vals: List[Optional[int]]) -&gt; Optional[TreeNode]:
+    &quot;&quot;&quot;Builds a tree from level order, with None for a missing child (LeetCode&#39;s format).&quot;&quot;&quot;
+    if not vals or vals[0] is None:
+        return None
+    root = TreeNode(vals[0])
+    queue, i = deque([root]), 1
+    while i &lt; len(vals):
+        node = queue.popleft()
+        if vals[i] is not None:
+            node.left = TreeNode(vals[i])
+            queue.append(node.left)
+        i += 1
+        if i &lt; len(vals) and vals[i] is not None:
+            node.right = TreeNode(vals[i])
+            queue.append(node.right)
+        i += 1
+    return root
+
+
+def levels(root: Optional[TreeNode]) -&gt; List[List[int]]:
+    out, queue = [], deque([root] if root else [])
+    while queue:
+        level = []
+        for _ in range(len(queue)):  # nodes on this level
+            n = queue.popleft()
+            level.append(n.val)
+            if n.left:
+                queue.append(n.left)
+            if n.right:
+                queue.append(n.right)
+        out.append(level)
+    return out
+
+
+def zigzag(root: Optional[TreeNode]) -&gt; List[List[int]]:
+    return [l[::-1] if i % 2 else l for i, l in enumerate(levels(root))]
+
+
+def right_view(root: Optional[TreeNode]) -&gt; List[int]:
+    return [l[-1] for l in levels(root)]
+
+
+def averages(root: Optional[TreeNode]) -&gt; List[float]:
+    return [sum(l) / len(l) for l in levels(root)]
+
+
+def min_depth(root: Optional[TreeNode]) -&gt; int:
+    if root is None:
+        return 0
+    queue, depth = deque([root]), 1
+    while True:
+        for _ in range(len(queue)):
+            n = queue.popleft()
+            if n.left is None and n.right is None:  # first leaf: done
+                return depth
+            if n.left:
+                queue.append(n.left)
+            if n.right:
+                queue.append(n.right)
+        depth += 1
+
+
+def fmt(ls: List[List[int]]) -&gt; str:
+    return &quot; | &quot;.join(&quot; &quot;.join(map(str, l)) for l in ls)
+
+
+def main() -&gt; None:
+    t = build([3, 9, 20, None, None, 15, 7])
+    print(f&quot;levels: {fmt(levels(t))}&quot;)
+    print(f&quot;zigzag: {fmt(zigzag(t))}&quot;)
+    print(f&quot;right side view: {&#39; &#39;.join(map(str, right_view(t)))}&quot;)
+    print(f&quot;level averages: {&#39; &#39;.join(f&#39;{a:.1f}&#39; for a in averages(t))}&quot;)
+    print(f&quot;min depth: {min_depth(t)}, min depth of [2,null,3,null,4]: {min_depth(build([2, None, 3, None, 4]))}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>levels: 3 | 9 20 | 15 7
+zigzag: 3 | 20 9 | 15 7
+right side view: 3 20 7
+level averages: 3.0 14.5 11.0
+min depth: 2, min depth of [2,null,3,null,4]: 3</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Reading <code>queue.length</code> inside the loop condition while the loop is adding children.</li><li>Using <code>shift()</code> in JavaScript on a big queue (O(n) each). Keep a head index or build the next level in a new array.</li><li>Enqueuing null children, then dereferencing them.</li><li>Using DFS for minimum depth and forgetting that a node with one child isn&#39;t a leaf.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/average-of-levels-in-binary-tree/" rel="noopener" target="_blank">Average of Levels in Binary Tree<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>637</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/minimum-depth-of-binary-tree/" rel="noopener" target="_blank">Minimum Depth of Binary Tree<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>111</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" rel="noopener" target="_blank">Binary Tree Level Order Traversal<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>102</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/binary-tree-right-side-view/" rel="noopener" target="_blank">Binary Tree Right Side View<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>199</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/" rel="noopener" target="_blank">Binary Tree Zigzag Level Order Traversal<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>103</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/serialize-and-deserialize-binary-tree/" rel="noopener" target="_blank">Serialize and Deserialize Binary Tree<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>297</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/trees/index.html">Trees</a>, <a href="../../data-structures/queues/index.html">Queues</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../tree-dfs/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Tree DFS</span></a><a class="pn pn-next" href="../graph-bfs-dfs/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Graph BFS and DFS</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

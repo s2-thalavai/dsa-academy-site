@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interval DP · DSA Academy</title>
+<meta name="description" content="Solve every subrange, shortest first.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Interval DP</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Interval DP</h1>
+  <p class="lede">Interval DP solves a problem for every contiguous range [i, j], building long ranges from shorter ones. It fits problems where the last action splits a range into two independent sides.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Cutting a long sausage into pieces at marked points, where each cut costs the length of the piece you&#39;re cutting. Whichever cut you make last splits the problem into a left piece and a right piece, each solved the same way.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>The input is a sequence and the operation <strong>merges, splits or removes</strong> something inside a range.</li>
+<li>The cost of an action depends on its neighbours, which change as elements are removed (burst balloons).</li>
+<li>Palindromes over substrings: count them, find the longest, partition with fewest cuts.</li>
+<li>n is up to a few hundred, which allows O(n³).</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">for length from 1 to n:
+    for i from 0 to n − length:
+        j = i + length − 1
+        dp[i][j] = best over split points k in [i, j] of
+                   dp[i][k − 1] + dp[k + 1][j] + cost(i, j, k)
+answer = dp[0][n − 1]
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 170" role="img" aria-label="The interval DP table is filled diagonal by diagonal: single elements first, then pairs, then longer ranges"><defs></defs><rect class="dg-ok" x="30" y="20" width="42" height="24" rx="6"/><text class="dg-s" x="51.0" y="32.0">0,0</text><rect class="dg-a" x="76" y="20" width="42" height="24" rx="6"/><text class="dg-s" x="97.0" y="32.0">0,1</text><rect class="dg-box" x="122" y="20" width="42" height="24" rx="6"/><text class="dg-s" x="143.0" y="32.0">0,2</text><rect class="dg-box" x="168" y="20" width="42" height="24" rx="6"/><text class="dg-s" x="189.0" y="32.0">0,3</text><rect class="dg-ghost" x="214" y="20" width="42" height="24" rx="6"/><text class="dg-s" x="235.0" y="32.0">0,4</text><rect class="dg-ok" x="76" y="48" width="42" height="24" rx="6"/><text class="dg-s" x="97.0" y="60.0">1,1</text><rect class="dg-a" x="122" y="48" width="42" height="24" rx="6"/><text class="dg-s" x="143.0" y="60.0">1,2</text><rect class="dg-box" x="168" y="48" width="42" height="24" rx="6"/><text class="dg-s" x="189.0" y="60.0">1,3</text><rect class="dg-box" x="214" y="48" width="42" height="24" rx="6"/><text class="dg-s" x="235.0" y="60.0">1,4</text><rect class="dg-ok" x="122" y="76" width="42" height="24" rx="6"/><text class="dg-s" x="143.0" y="88.0">2,2</text><rect class="dg-a" x="168" y="76" width="42" height="24" rx="6"/><text class="dg-s" x="189.0" y="88.0">2,3</text><rect class="dg-box" x="214" y="76" width="42" height="24" rx="6"/><text class="dg-s" x="235.0" y="88.0">2,4</text><rect class="dg-ok" x="168" y="104" width="42" height="24" rx="6"/><text class="dg-s" x="189.0" y="116.0">3,3</text><rect class="dg-a" x="214" y="104" width="42" height="24" rx="6"/><text class="dg-s" x="235.0" y="116.0">3,4</text><rect class="dg-ok" x="214" y="132" width="42" height="24" rx="6"/><text class="dg-s" x="235.0" y="144.0">4,4</text><text class="dg-m" x="290" y="34">length 1: base cases</text><text class="dg-m" x="290" y="58">length 2: built from length 1</text><text class="dg-m" x="290" y="82">length 3 … and so on</text><text class="dg-lbl" x="290" y="140">answer: the top-right cell [0, n − 1]</text></svg><figcaption>Interval DP solves every subrange <code>[i, j]</code>, shortest first. A range of length L only reads ranges shorter than L, which are already done.</figcaption></figure><p>The trick in many interval problems is to choose the <strong>last</strong> action in the
+range, not the first. In burst balloons, the first balloon you burst changes
+everyone&#39;s neighbours, which makes subproblems depend on each other. But if
+balloon <code>k</code> is the <strong>last</strong> one burst in <code>(i, j)</code>, its neighbours at that moment
+are exactly <code>i</code> and <code>j</code>, and the two sides <code>(i, k)</code> and <code>(k, j)</code> are independent.</p>
+<p>Palindrome problems are interval DP with a simple transition:
+<code>s[i..j]</code> is a palindrome when <code>s[i] == s[j]</code> and <code>s[i + 1..j − 1]</code> is one.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>General interval DP</td><td class="nowrap">O(n³) time, O(n²) space</td><td>O(n²) ranges × O(n) split points.</td></tr><tr><td>Palindromic substrings table</td><td class="nowrap">O(n²)</td><td>Each range checks its inner range in O(1).</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Every table is filled by increasing range length, so each cell only reads cells already computed.</p><figure class="codeblock" id="code-interval-dp" aria-label="Palindromic substrings, longest palindrome, cutting a stick and bursting balloons">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-interval-dp-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-interval-dp-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-interval-dp-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-interval-dp-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-interval-dp-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.Arrays;</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5">    <span class="hljs-comment">/** isPal[i][j] for every substring, filled by length. Returns {count, bestStart, bestLength}. */</span></span><span class="ln" data-line="6">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">palindromes</span><span class="hljs-params">(String s)</span> {</span><span class="ln" data-line="7">        <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> s.length(), count = <span class="hljs-number">0</span>, bestStart = <span class="hljs-number">0</span>, bestLen = <span class="hljs-number">0</span>;</span><span class="ln" data-line="8">        <span class="hljs-type">boolean</span>[][] <span class="hljs-variable">isPal</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">boolean</span>[n][n];</span><span class="ln" data-line="9">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">len</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; len &lt;= n; len++)</span><span class="ln" data-line="10">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i + len - <span class="hljs-number">1</span> &lt; n; i++) {</span><span class="ln" data-line="11">                <span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> i + len - <span class="hljs-number">1</span>;</span><span class="ln" data-line="12">                isPal[i][j] = s.charAt(i) == s.charAt(j) &amp;&amp; (len &lt;= <span class="hljs-number">2</span> || isPal[i + <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="13">                <span class="hljs-keyword">if</span> (isPal[i][j]) {</span><span class="ln" data-line="14">                    count++;</span><span class="ln" data-line="15">                    <span class="hljs-keyword">if</span> (len &gt; bestLen) { bestLen = len; bestStart = i; }</span><span class="ln" data-line="16">                }</span><span class="ln" data-line="17">            }</span><span class="ln" data-line="18">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { count, bestStart, bestLen };</span><span class="ln" data-line="19">    }</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">minCostCut</span><span class="hljs-params">(<span class="hljs-type">int</span> n, <span class="hljs-type">int</span>[] cuts)</span> {</span><span class="ln" data-line="22">        <span class="hljs-type">int</span>[] <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[cuts.length + <span class="hljs-number">2</span>]; <span class="hljs-comment">// include both ends of the stick</span></span><span class="ln" data-line="23">        c[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="24">        c[c.length - <span class="hljs-number">1</span>] = n;</span><span class="ln" data-line="25">        <span class="hljs-type">int</span>[] <span class="hljs-variable">sorted</span> <span class="hljs-operator">=</span> cuts.clone();</span><span class="ln" data-line="26">        Arrays.sort(sorted);</span><span class="ln" data-line="27">        System.arraycopy(sorted, <span class="hljs-number">0</span>, c, <span class="hljs-number">1</span>, sorted.length);</span><span class="ln" data-line="28">        <span class="hljs-type">int</span> <span class="hljs-variable">m</span> <span class="hljs-operator">=</span> c.length;</span><span class="ln" data-line="29">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">dp</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[m][m]; <span class="hljs-comment">// dp[i][j] = cost to make every cut strictly between c[i] and c[j]</span></span><span class="ln" data-line="30">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">len</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span>; len &lt; m; len++)</span><span class="ln" data-line="31">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i + len &lt; m; i++) {</span><span class="ln" data-line="32">                <span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> i + len;</span><span class="ln" data-line="33">                dp[i][j] = Integer.MAX_VALUE;</span><span class="ln" data-line="34">                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">k</span> <span class="hljs-operator">=</span> i + <span class="hljs-number">1</span>; k &lt; j; k++) dp[i][j] = Math.min(dp[i][j], dp[i][k] + dp[k][j] + c[j] - c[i]);</span><span class="ln" data-line="35">            }</span><span class="ln" data-line="36">        <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][m - <span class="hljs-number">1</span>];</span><span class="ln" data-line="37">    }</span><span class="ln" data-line="38"> </span><span class="ln" data-line="39">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">maxCoins</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="40">        <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> nums.length + <span class="hljs-number">2</span>;</span><span class="ln" data-line="41">        <span class="hljs-type">int</span>[] <span class="hljs-variable">v</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n];</span><span class="ln" data-line="42">        v[<span class="hljs-number">0</span>] = v[n - <span class="hljs-number">1</span>] = <span class="hljs-number">1</span>; <span class="hljs-comment">// padding balloons worth 1</span></span><span class="ln" data-line="43">        System.arraycopy(nums, <span class="hljs-number">0</span>, v, <span class="hljs-number">1</span>, nums.length);</span><span class="ln" data-line="44">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">dp</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n][n]; <span class="hljs-comment">// dp[i][j] = best coins from balloons strictly between i and j</span></span><span class="ln" data-line="45">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">len</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span>; len &lt; n; len++)</span><span class="ln" data-line="46">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i + len &lt; n; i++) {</span><span class="ln" data-line="47">                <span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> i + len;</span><span class="ln" data-line="48">                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">k</span> <span class="hljs-operator">=</span> i + <span class="hljs-number">1</span>; k &lt; j; k++) <span class="hljs-comment">// k is the LAST balloon burst in (i, j)</span></span><span class="ln" data-line="49">                    dp[i][j] = Math.max(dp[i][j], dp[i][k] + dp[k][j] + v[i] * v[k] * v[j]);</span><span class="ln" data-line="50">            }</span><span class="ln" data-line="51">        <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][n - <span class="hljs-number">1</span>];</span><span class="ln" data-line="52">    }</span><span class="ln" data-line="53"> </span><span class="ln" data-line="54">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="55">        System.out.println(<span class="hljs-string">&quot;palindromic substrings in aaa: &quot;</span> + palindromes(<span class="hljs-string">&quot;aaa&quot;</span>)[<span class="hljs-number">0</span>] + <span class="hljs-string">&quot;, in abc: &quot;</span> + palindromes(<span class="hljs-string">&quot;abc&quot;</span>)[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="56">        <span class="hljs-type">int</span>[] <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> palindromes(<span class="hljs-string">&quot;babad&quot;</span>);</span><span class="ln" data-line="57">        System.out.println(<span class="hljs-string">&quot;longest palindrome in babad: &quot;</span> + <span class="hljs-string">&quot;babad&quot;</span>.substring(p[<span class="hljs-number">1</span>], p[<span class="hljs-number">1</span>] + p[<span class="hljs-number">2</span>]));</span><span class="ln" data-line="58">        System.out.println(<span class="hljs-string">&quot;min cost to cut a stick of 7 at 1 3 4 5: &quot;</span> + minCostCut(<span class="hljs-number">7</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span> }));</span><span class="ln" data-line="59">        System.out.println(<span class="hljs-string">&quot;burst balloons 3 1 5 8: &quot;</span> + maxCoins(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">8</span> }));</span><span class="ln" data-line="60">    }</span><span class="ln" data-line="61">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.Arrays;
+
+public class Solution {
+
+    /** isPal[i][j] for every substring, filled by length. Returns {count, bestStart, bestLength}. */
+    static int[] palindromes(String s) {
+        int n = s.length(), count = 0, bestStart = 0, bestLen = 0;
+        boolean[][] isPal = new boolean[n][n];
+        for (int len = 1; len &lt;= n; len++)
+            for (int i = 0; i + len - 1 &lt; n; i++) {
+                int j = i + len - 1;
+                isPal[i][j] = s.charAt(i) == s.charAt(j) &amp;&amp; (len &lt;= 2 || isPal[i + 1][j - 1]);
+                if (isPal[i][j]) {
+                    count++;
+                    if (len &gt; bestLen) { bestLen = len; bestStart = i; }
+                }
+            }
+        return new int[] { count, bestStart, bestLen };
+    }
+
+    static int minCostCut(int n, int[] cuts) {
+        int[] c = new int[cuts.length + 2]; // include both ends of the stick
+        c[0] = 0;
+        c[c.length - 1] = n;
+        int[] sorted = cuts.clone();
+        Arrays.sort(sorted);
+        System.arraycopy(sorted, 0, c, 1, sorted.length);
+        int m = c.length;
+        int[][] dp = new int[m][m]; // dp[i][j] = cost to make every cut strictly between c[i] and c[j]
+        for (int len = 2; len &lt; m; len++)
+            for (int i = 0; i + len &lt; m; i++) {
+                int j = i + len;
+                dp[i][j] = Integer.MAX_VALUE;
+                for (int k = i + 1; k &lt; j; k++) dp[i][j] = Math.min(dp[i][j], dp[i][k] + dp[k][j] + c[j] - c[i]);
+            }
+        return dp[0][m - 1];
+    }
+
+    static int maxCoins(int[] nums) {
+        int n = nums.length + 2;
+        int[] v = new int[n];
+        v[0] = v[n - 1] = 1; // padding balloons worth 1
+        System.arraycopy(nums, 0, v, 1, nums.length);
+        int[][] dp = new int[n][n]; // dp[i][j] = best coins from balloons strictly between i and j
+        for (int len = 2; len &lt; n; len++)
+            for (int i = 0; i + len &lt; n; i++) {
+                int j = i + len;
+                for (int k = i + 1; k &lt; j; k++) // k is the LAST balloon burst in (i, j)
+                    dp[i][j] = Math.max(dp[i][j], dp[i][k] + dp[k][j] + v[i] * v[k] * v[j]);
+            }
+        return dp[0][n - 1];
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;palindromic substrings in aaa: &quot; + palindromes(&quot;aaa&quot;)[0] + &quot;, in abc: &quot; + palindromes(&quot;abc&quot;)[0]);
+        int[] p = palindromes(&quot;babad&quot;);
+        System.out.println(&quot;longest palindrome in babad: &quot; + &quot;babad&quot;.substring(p[1], p[1] + p[2]));
+        System.out.println(&quot;min cost to cut a stick of 7 at 1 3 4 5: &quot; + minCostCut(7, new int[] { 1, 3, 4, 5 }));
+        System.out.println(&quot;burst balloons 3 1 5 8: &quot; + maxCoins(new int[] { 3, 1, 5, 8 }));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-interval-dp-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** isPal[i][j] for every substring, filled by length. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">palindromes</span>(<span class="hljs-params">s</span>) {</span><span class="ln" data-line="3">  <span class="hljs-keyword">const</span> n = s.<span class="hljs-property">length</span>;</span><span class="ln" data-line="4">  <span class="hljs-keyword">const</span> isPal = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>));</span><span class="ln" data-line="5">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="6">  <span class="hljs-keyword">let</span> bestStart = <span class="hljs-number">0</span>;</span><span class="ln" data-line="7">  <span class="hljs-keyword">let</span> bestLen = <span class="hljs-number">0</span>;</span><span class="ln" data-line="8">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> len = <span class="hljs-number">1</span>; len &lt;= n; len++) {</span><span class="ln" data-line="9">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i + len - <span class="hljs-number">1</span> &lt; n; i++) {</span><span class="ln" data-line="10">      <span class="hljs-keyword">const</span> j = i + len - <span class="hljs-number">1</span>;</span><span class="ln" data-line="11">      isPal[i][j] = s[i] === s[j] &amp;&amp; (len &lt;= <span class="hljs-number">2</span> || isPal[i + <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="12">      <span class="hljs-keyword">if</span> (isPal[i][j]) {</span><span class="ln" data-line="13">        count++;</span><span class="ln" data-line="14">        <span class="hljs-keyword">if</span> (len &gt; bestLen) [bestLen, bestStart] = [len, i];</span><span class="ln" data-line="15">      }</span><span class="ln" data-line="16">    }</span><span class="ln" data-line="17">  }</span><span class="ln" data-line="18">  <span class="hljs-keyword">return</span> { count, <span class="hljs-attr">longest</span>: s.<span class="hljs-title function_">slice</span>(bestStart, bestStart + bestLen) };</span><span class="ln" data-line="19">}</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minCostCut</span>(<span class="hljs-params">n, cuts</span>) {</span><span class="ln" data-line="22">  <span class="hljs-keyword">const</span> c = [<span class="hljs-number">0</span>, ...[...cuts].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a - b), n]; <span class="hljs-comment">// include both ends of the stick</span></span><span class="ln" data-line="23">  <span class="hljs-keyword">const</span> m = c.<span class="hljs-property">length</span>;</span><span class="ln" data-line="24">  <span class="hljs-keyword">const</span> dp = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: m }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(m).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>)); <span class="hljs-comment">// cost for cuts strictly between c[i] and c[j]</span></span><span class="ln" data-line="25">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> len = <span class="hljs-number">2</span>; len &lt; m; len++) {</span><span class="ln" data-line="26">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i + len &lt; m; i++) {</span><span class="ln" data-line="27">      <span class="hljs-keyword">const</span> j = i + len;</span><span class="ln" data-line="28">      dp[i][j] = <span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="29">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = i + <span class="hljs-number">1</span>; k &lt; j; k++) dp[i][j] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(dp[i][j], dp[i][k] + dp[k][j] + c[j] - c[i]);</span><span class="ln" data-line="30">    }</span><span class="ln" data-line="31">  }</span><span class="ln" data-line="32">  <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][m - <span class="hljs-number">1</span>];</span><span class="ln" data-line="33">}</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxCoins</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="36">  <span class="hljs-keyword">const</span> v = [<span class="hljs-number">1</span>, ...nums, <span class="hljs-number">1</span>]; <span class="hljs-comment">// padding balloons worth 1</span></span><span class="ln" data-line="37">  <span class="hljs-keyword">const</span> n = v.<span class="hljs-property">length</span>;</span><span class="ln" data-line="38">  <span class="hljs-keyword">const</span> dp = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>)); <span class="hljs-comment">// best coins strictly between i and j</span></span><span class="ln" data-line="39">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> len = <span class="hljs-number">2</span>; len &lt; n; len++) {</span><span class="ln" data-line="40">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i + len &lt; n; i++) {</span><span class="ln" data-line="41">      <span class="hljs-keyword">const</span> j = i + len;</span><span class="ln" data-line="42">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = i + <span class="hljs-number">1</span>; k &lt; j; k++) dp[i][j] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(dp[i][j], dp[i][k] + dp[k][j] + v[i] * v[k] * v[j]); <span class="hljs-comment">// k bursts last</span></span><span class="ln" data-line="43">    }</span><span class="ln" data-line="44">  }</span><span class="ln" data-line="45">  <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][n - <span class="hljs-number">1</span>];</span><span class="ln" data-line="46">}</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="49">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`palindromic substrings in aaa: <span class="hljs-subst">${palindromes(<span class="hljs-string">&quot;aaa&quot;</span>).count}</span>, in abc: <span class="hljs-subst">${palindromes(<span class="hljs-string">&quot;abc&quot;</span>).count}</span>`</span>);</span><span class="ln" data-line="50">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`longest palindrome in babad: <span class="hljs-subst">${palindromes(<span class="hljs-string">&quot;babad&quot;</span>).longest}</span>`</span>);</span><span class="ln" data-line="51">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`min cost to cut a stick of 7 at 1 3 4 5: <span class="hljs-subst">${minCostCut(<span class="hljs-number">7</span>, [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>])}</span>`</span>);</span><span class="ln" data-line="52">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`burst balloons 3 1 5 8: <span class="hljs-subst">${maxCoins([<span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">8</span>])}</span>`</span>);</span><span class="ln" data-line="53">}</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** isPal[i][j] for every substring, filled by length. */
+function palindromes(s) {
+  const n = s.length;
+  const isPal = Array.from({ length: n }, () =&gt; new Array(n).fill(false));
+  let count = 0;
+  let bestStart = 0;
+  let bestLen = 0;
+  for (let len = 1; len &lt;= n; len++) {
+    for (let i = 0; i + len - 1 &lt; n; i++) {
+      const j = i + len - 1;
+      isPal[i][j] = s[i] === s[j] &amp;&amp; (len &lt;= 2 || isPal[i + 1][j - 1]);
+      if (isPal[i][j]) {
+        count++;
+        if (len &gt; bestLen) [bestLen, bestStart] = [len, i];
+      }
+    }
+  }
+  return { count, longest: s.slice(bestStart, bestStart + bestLen) };
+}
+
+function minCostCut(n, cuts) {
+  const c = [0, ...[...cuts].sort((a, b) =&gt; a - b), n]; // include both ends of the stick
+  const m = c.length;
+  const dp = Array.from({ length: m }, () =&gt; new Array(m).fill(0)); // cost for cuts strictly between c[i] and c[j]
+  for (let len = 2; len &lt; m; len++) {
+    for (let i = 0; i + len &lt; m; i++) {
+      const j = i + len;
+      dp[i][j] = Infinity;
+      for (let k = i + 1; k &lt; j; k++) dp[i][j] = Math.min(dp[i][j], dp[i][k] + dp[k][j] + c[j] - c[i]);
+    }
+  }
+  return dp[0][m - 1];
+}
+
+function maxCoins(nums) {
+  const v = [1, ...nums, 1]; // padding balloons worth 1
+  const n = v.length;
+  const dp = Array.from({ length: n }, () =&gt; new Array(n).fill(0)); // best coins strictly between i and j
+  for (let len = 2; len &lt; n; len++) {
+    for (let i = 0; i + len &lt; n; i++) {
+      const j = i + len;
+      for (let k = i + 1; k &lt; j; k++) dp[i][j] = Math.max(dp[i][j], dp[i][k] + dp[k][j] + v[i] * v[k] * v[j]); // k bursts last
+    }
+  }
+  return dp[0][n - 1];
+}
+
+function main() {
+  console.log(`palindromic substrings in aaa: ${palindromes(&quot;aaa&quot;).count}, in abc: ${palindromes(&quot;abc&quot;).count}`);
+  console.log(`longest palindrome in babad: ${palindromes(&quot;babad&quot;).longest}`);
+  console.log(`min cost to cut a stick of 7 at 1 3 4 5: ${minCostCut(7, [1, 3, 4, 5])}`);
+  console.log(`burst balloons 3 1 5 8: ${maxCoins([3, 1, 5, 8])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-interval-dp-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** isPal[i][j] for every substring, filled by length. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">function</span> <span class="hljs-title function_">palindromes</span>(<span class="hljs-params"><span class="hljs-attr">s</span>: <span class="hljs-built_in">string</span></span>): { <span class="hljs-attr">count</span>: <span class="hljs-built_in">number</span>; <span class="hljs-attr">longest</span>: <span class="hljs-built_in">string</span> } {</span><span class="ln" data-line="3">  <span class="hljs-keyword">const</span> n = s.<span class="hljs-property">length</span>;</span><span class="ln" data-line="4">  <span class="hljs-keyword">const</span> <span class="hljs-attr">isPal</span>: <span class="hljs-built_in">boolean</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>));</span><span class="ln" data-line="5">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="6">  <span class="hljs-keyword">let</span> bestStart = <span class="hljs-number">0</span>;</span><span class="ln" data-line="7">  <span class="hljs-keyword">let</span> bestLen = <span class="hljs-number">0</span>;</span><span class="ln" data-line="8">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> len = <span class="hljs-number">1</span>; len &lt;= n; len++) {</span><span class="ln" data-line="9">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i + len - <span class="hljs-number">1</span> &lt; n; i++) {</span><span class="ln" data-line="10">      <span class="hljs-keyword">const</span> j = i + len - <span class="hljs-number">1</span>;</span><span class="ln" data-line="11">      isPal[i][j] = s[i] === s[j] &amp;&amp; (len &lt;= <span class="hljs-number">2</span> || isPal[i + <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>]);</span><span class="ln" data-line="12">      <span class="hljs-keyword">if</span> (isPal[i][j]) {</span><span class="ln" data-line="13">        count++;</span><span class="ln" data-line="14">        <span class="hljs-keyword">if</span> (len &gt; bestLen) [bestLen, bestStart] = [len, i];</span><span class="ln" data-line="15">      }</span><span class="ln" data-line="16">    }</span><span class="ln" data-line="17">  }</span><span class="ln" data-line="18">  <span class="hljs-keyword">return</span> { count, <span class="hljs-attr">longest</span>: s.<span class="hljs-title function_">slice</span>(bestStart, bestStart + bestLen) };</span><span class="ln" data-line="19">}</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minCostCut</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">cuts</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="22">  <span class="hljs-keyword">const</span> c = [<span class="hljs-number">0</span>, ...[...cuts].<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a - b), n]; <span class="hljs-comment">// include both ends of the stick</span></span><span class="ln" data-line="23">  <span class="hljs-keyword">const</span> m = c.<span class="hljs-property">length</span>;</span><span class="ln" data-line="24">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dp</span>: <span class="hljs-built_in">number</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: m }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(m).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>)); <span class="hljs-comment">// cost for cuts strictly between c[i] and c[j]</span></span><span class="ln" data-line="25">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> len = <span class="hljs-number">2</span>; len &lt; m; len++) {</span><span class="ln" data-line="26">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i + len &lt; m; i++) {</span><span class="ln" data-line="27">      <span class="hljs-keyword">const</span> j = i + len;</span><span class="ln" data-line="28">      dp[i][j] = <span class="hljs-title class_">Infinity</span>;</span><span class="ln" data-line="29">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = i + <span class="hljs-number">1</span>; k &lt; j; k++) dp[i][j] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(dp[i][j], dp[i][k] + dp[k][j] + c[j] - c[i]);</span><span class="ln" data-line="30">    }</span><span class="ln" data-line="31">  }</span><span class="ln" data-line="32">  <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][m - <span class="hljs-number">1</span>];</span><span class="ln" data-line="33">}</span><span class="ln" data-line="34"> </span><span class="ln" data-line="35"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxCoins</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="36">  <span class="hljs-keyword">const</span> v = [<span class="hljs-number">1</span>, ...nums, <span class="hljs-number">1</span>]; <span class="hljs-comment">// padding balloons worth 1</span></span><span class="ln" data-line="37">  <span class="hljs-keyword">const</span> n = v.<span class="hljs-property">length</span>;</span><span class="ln" data-line="38">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dp</span>: <span class="hljs-built_in">number</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>)); <span class="hljs-comment">// best coins strictly between i and j</span></span><span class="ln" data-line="39">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> len = <span class="hljs-number">2</span>; len &lt; n; len++) {</span><span class="ln" data-line="40">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i + len &lt; n; i++) {</span><span class="ln" data-line="41">      <span class="hljs-keyword">const</span> j = i + len;</span><span class="ln" data-line="42">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> k = i + <span class="hljs-number">1</span>; k &lt; j; k++) dp[i][j] = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(dp[i][j], dp[i][k] + dp[k][j] + v[i] * v[k] * v[j]); <span class="hljs-comment">// k bursts last</span></span><span class="ln" data-line="43">    }</span><span class="ln" data-line="44">  }</span><span class="ln" data-line="45">  <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][n - <span class="hljs-number">1</span>];</span><span class="ln" data-line="46">}</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="49">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`palindromic substrings in aaa: <span class="hljs-subst">${palindromes(<span class="hljs-string">&quot;aaa&quot;</span>).count}</span>, in abc: <span class="hljs-subst">${palindromes(<span class="hljs-string">&quot;abc&quot;</span>).count}</span>`</span>);</span><span class="ln" data-line="50">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`longest palindrome in babad: <span class="hljs-subst">${palindromes(<span class="hljs-string">&quot;babad&quot;</span>).longest}</span>`</span>);</span><span class="ln" data-line="51">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`min cost to cut a stick of 7 at 1 3 4 5: <span class="hljs-subst">${minCostCut(<span class="hljs-number">7</span>, [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>])}</span>`</span>);</span><span class="ln" data-line="52">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`burst balloons 3 1 5 8: <span class="hljs-subst">${maxCoins([<span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">8</span>])}</span>`</span>);</span><span class="ln" data-line="53">}</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** isPal[i][j] for every substring, filled by length. */
+function palindromes(s: string): { count: number; longest: string } {
+  const n = s.length;
+  const isPal: boolean[][] = Array.from({ length: n }, () =&gt; new Array(n).fill(false));
+  let count = 0;
+  let bestStart = 0;
+  let bestLen = 0;
+  for (let len = 1; len &lt;= n; len++) {
+    for (let i = 0; i + len - 1 &lt; n; i++) {
+      const j = i + len - 1;
+      isPal[i][j] = s[i] === s[j] &amp;&amp; (len &lt;= 2 || isPal[i + 1][j - 1]);
+      if (isPal[i][j]) {
+        count++;
+        if (len &gt; bestLen) [bestLen, bestStart] = [len, i];
+      }
+    }
+  }
+  return { count, longest: s.slice(bestStart, bestStart + bestLen) };
+}
+
+function minCostCut(n: number, cuts: readonly number[]): number {
+  const c = [0, ...[...cuts].sort((a, b) =&gt; a - b), n]; // include both ends of the stick
+  const m = c.length;
+  const dp: number[][] = Array.from({ length: m }, () =&gt; new Array(m).fill(0)); // cost for cuts strictly between c[i] and c[j]
+  for (let len = 2; len &lt; m; len++) {
+    for (let i = 0; i + len &lt; m; i++) {
+      const j = i + len;
+      dp[i][j] = Infinity;
+      for (let k = i + 1; k &lt; j; k++) dp[i][j] = Math.min(dp[i][j], dp[i][k] + dp[k][j] + c[j] - c[i]);
+    }
+  }
+  return dp[0][m - 1];
+}
+
+function maxCoins(nums: readonly number[]): number {
+  const v = [1, ...nums, 1]; // padding balloons worth 1
+  const n = v.length;
+  const dp: number[][] = Array.from({ length: n }, () =&gt; new Array(n).fill(0)); // best coins strictly between i and j
+  for (let len = 2; len &lt; n; len++) {
+    for (let i = 0; i + len &lt; n; i++) {
+      const j = i + len;
+      for (let k = i + 1; k &lt; j; k++) dp[i][j] = Math.max(dp[i][j], dp[i][k] + dp[k][j] + v[i] * v[k] * v[j]); // k bursts last
+    }
+  }
+  return dp[0][n - 1];
+}
+
+function main(): void {
+  console.log(`palindromic substrings in aaa: ${palindromes(&quot;aaa&quot;).count}, in abc: ${palindromes(&quot;abc&quot;).count}`);
+  console.log(`longest palindrome in babad: ${palindromes(&quot;babad&quot;).longest}`);
+  console.log(`min cost to cut a stick of 7 at 1 3 4 5: ${minCostCut(7, [1, 3, 4, 5])}`);
+  console.log(`burst balloons 3 1 5 8: ${maxCoins([3, 1, 5, 8])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-interval-dp-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Tuple</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">def</span> <span class="hljs-title function_">palindromes</span>(<span class="hljs-params">s: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-type">Tuple</span>[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">str</span>]:</span><span class="ln" data-line="5">    <span class="hljs-string">&quot;&quot;&quot;is_pal[i][j] for every substring, filled by length. Returns (count, longest).&quot;&quot;&quot;</span></span><span class="ln" data-line="6">    n = <span class="hljs-built_in">len</span>(s)</span><span class="ln" data-line="7">    is_pal = [[<span class="hljs-literal">False</span>] * n <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n)]</span><span class="ln" data-line="8">    count, best_start, best_len = <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span></span><span class="ln" data-line="9">    <span class="hljs-keyword">for</span> length <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, n + <span class="hljs-number">1</span>):</span><span class="ln" data-line="10">        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n - length + <span class="hljs-number">1</span>):</span><span class="ln" data-line="11">            j = i + length - <span class="hljs-number">1</span></span><span class="ln" data-line="12">            is_pal[i][j] = s[i] == s[j] <span class="hljs-keyword">and</span> (length &lt;= <span class="hljs-number">2</span> <span class="hljs-keyword">or</span> is_pal[i + <span class="hljs-number">1</span>][j - <span class="hljs-number">1</span>])</span><span class="ln" data-line="13">            <span class="hljs-keyword">if</span> is_pal[i][j]:</span><span class="ln" data-line="14">                count += <span class="hljs-number">1</span></span><span class="ln" data-line="15">                <span class="hljs-keyword">if</span> length &gt; best_len:</span><span class="ln" data-line="16">                    best_len, best_start = length, i</span><span class="ln" data-line="17">    <span class="hljs-keyword">return</span> count, s[best_start:best_start + best_len]</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">def</span> <span class="hljs-title function_">min_cost_cut</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span>, cuts: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="21">    c = [<span class="hljs-number">0</span>] + <span class="hljs-built_in">sorted</span>(cuts) + [n]  <span class="hljs-comment"># include both ends of the stick</span></span><span class="ln" data-line="22">    m = <span class="hljs-built_in">len</span>(c)</span><span class="ln" data-line="23">    dp = [[<span class="hljs-number">0</span>] * m <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(m)]  <span class="hljs-comment"># cost for cuts strictly between c[i] and c[j]</span></span><span class="ln" data-line="24">    <span class="hljs-keyword">for</span> length <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>, m):</span><span class="ln" data-line="25">        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(m - length):</span><span class="ln" data-line="26">            j = i + length</span><span class="ln" data-line="27">            dp[i][j] = <span class="hljs-built_in">min</span>(dp[i][k] + dp[k][j] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(i + <span class="hljs-number">1</span>, j)) + c[j] - c[i]</span><span class="ln" data-line="28">    <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][m - <span class="hljs-number">1</span>]</span><span class="ln" data-line="29"> </span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"><span class="hljs-keyword">def</span> <span class="hljs-title function_">max_coins</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="32">    v = [<span class="hljs-number">1</span>] + nums + [<span class="hljs-number">1</span>]  <span class="hljs-comment"># padding balloons worth 1</span></span><span class="ln" data-line="33">    n = <span class="hljs-built_in">len</span>(v)</span><span class="ln" data-line="34">    dp = [[<span class="hljs-number">0</span>] * n <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n)]  <span class="hljs-comment"># best coins strictly between i and j</span></span><span class="ln" data-line="35">    <span class="hljs-keyword">for</span> length <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>, n):</span><span class="ln" data-line="36">        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n - length):</span><span class="ln" data-line="37">            j = i + length</span><span class="ln" data-line="38">            dp[i][j] = <span class="hljs-built_in">max</span>(dp[i][k] + dp[k][j] + v[i] * v[k] * v[j] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(i + <span class="hljs-number">1</span>, j))  <span class="hljs-comment"># k bursts last</span></span><span class="ln" data-line="39">    <span class="hljs-keyword">return</span> dp[<span class="hljs-number">0</span>][n - <span class="hljs-number">1</span>]</span><span class="ln" data-line="40"> </span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="43">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;palindromic substrings in aaa: <span class="hljs-subst">{palindromes(<span class="hljs-string">&#x27;aaa&#x27;</span>)[<span class="hljs-number">0</span>]}</span>, in abc: <span class="hljs-subst">{palindromes(<span class="hljs-string">&#x27;abc&#x27;</span>)[<span class="hljs-number">0</span>]}</span>&quot;</span>)</span><span class="ln" data-line="44">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;longest palindrome in babad: <span class="hljs-subst">{palindromes(<span class="hljs-string">&#x27;babad&#x27;</span>)[<span class="hljs-number">1</span>]}</span>&quot;</span>)</span><span class="ln" data-line="45">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;min cost to cut a stick of 7 at 1 3 4 5: <span class="hljs-subst">{min_cost_cut(<span class="hljs-number">7</span>, [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>])}</span>&quot;</span>)</span><span class="ln" data-line="46">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;burst balloons 3 1 5 8: <span class="hljs-subst">{max_coins([<span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">8</span>])}</span>&quot;</span>)</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"> </span><span class="ln" data-line="49"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="50">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List, Tuple
+
+
+def palindromes(s: str) -&gt; Tuple[int, str]:
+    &quot;&quot;&quot;is_pal[i][j] for every substring, filled by length. Returns (count, longest).&quot;&quot;&quot;
+    n = len(s)
+    is_pal = [[False] * n for _ in range(n)]
+    count, best_start, best_len = 0, 0, 0
+    for length in range(1, n + 1):
+        for i in range(n - length + 1):
+            j = i + length - 1
+            is_pal[i][j] = s[i] == s[j] and (length &lt;= 2 or is_pal[i + 1][j - 1])
+            if is_pal[i][j]:
+                count += 1
+                if length &gt; best_len:
+                    best_len, best_start = length, i
+    return count, s[best_start:best_start + best_len]
+
+
+def min_cost_cut(n: int, cuts: List[int]) -&gt; int:
+    c = [0] + sorted(cuts) + [n]  # include both ends of the stick
+    m = len(c)
+    dp = [[0] * m for _ in range(m)]  # cost for cuts strictly between c[i] and c[j]
+    for length in range(2, m):
+        for i in range(m - length):
+            j = i + length
+            dp[i][j] = min(dp[i][k] + dp[k][j] for k in range(i + 1, j)) + c[j] - c[i]
+    return dp[0][m - 1]
+
+
+def max_coins(nums: List[int]) -&gt; int:
+    v = [1] + nums + [1]  # padding balloons worth 1
+    n = len(v)
+    dp = [[0] * n for _ in range(n)]  # best coins strictly between i and j
+    for length in range(2, n):
+        for i in range(n - length):
+            j = i + length
+            dp[i][j] = max(dp[i][k] + dp[k][j] + v[i] * v[k] * v[j] for k in range(i + 1, j))  # k bursts last
+    return dp[0][n - 1]
+
+
+def main() -&gt; None:
+    print(f&quot;palindromic substrings in aaa: {palindromes(&#39;aaa&#39;)[0]}, in abc: {palindromes(&#39;abc&#39;)[0]}&quot;)
+    print(f&quot;longest palindrome in babad: {palindromes(&#39;babad&#39;)[1]}&quot;)
+    print(f&quot;min cost to cut a stick of 7 at 1 3 4 5: {min_cost_cut(7, [1, 3, 4, 5])}&quot;)
+    print(f&quot;burst balloons 3 1 5 8: {max_coins([3, 1, 5, 8])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>palindromic substrings in aaa: 6, in abc: 3
+longest palindrome in babad: bab
+min cost to cut a stick of 7 at 1 3 4 5: 16
+burst balloons 3 1 5 8: 167</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Iterating <code>i</code> and <code>j</code> in plain nested loops instead of by length, so a range reads unfinished subranges.</li><li>Choosing the first action instead of the last, which makes the subproblems depend on each other.</li><li>Forgetting to pad the array (burst balloons adds a 1 at each end) or to include the stick ends among the cut points.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/palindromic-substrings/" rel="noopener" target="_blank">Palindromic Substrings<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>647</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/longest-palindromic-substring/" rel="noopener" target="_blank">Longest Palindromic Substring<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>5</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/minimum-score-triangulation-of-polygon/" rel="noopener" target="_blank">Minimum Score Triangulation of Polygon<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>1039</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/minimum-cost-to-cut-a-stick/" rel="noopener" target="_blank">Minimum Cost to Cut a Stick<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>1547</td><td><span class="pill pill-hard">hard</span></td></tr><tr><td><a href="https://leetcode.com/problems/burst-balloons/" rel="noopener" target="_blank">Burst Balloons<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>312</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../algorithms/dynamic-programming/index.html">Dynamic programming</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../knapsack/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Knapsack</span></a><a class="pn pn-next" href="../greedy/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Greedy</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

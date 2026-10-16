@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fast and slow pointers · DSA Academy</title>
+<meta name="description" content="Two speeds detect cycles and find middles.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Fast and slow pointers</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Fast and slow pointers</h1>
+  <p class="lede">Two pointers walk the same sequence at different speeds, usually one step and two steps. If there&#39;s a loop, the fast one catches the slow one; if not, the fast one reaching the end means the slow one is at the middle.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Two runners on a track. On a straight road the faster runner just gets further ahead. On a circular track the faster runner eventually comes up behind the slower one and laps them. Meeting proves the track is a loop.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Detect a <strong>cycle</strong> in a linked list or in a sequence defined by <code>next = f(current)</code>.</li>
+<li>Find the <strong>middle</strong> of a linked list in one pass, or the k-th node from the end.</li>
+<li>O(1) extra space is required, so a visited set isn&#39;t allowed.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">slow = head, fast = head
+while fast and fast.next:
+    slow = slow.next
+    fast = fast.next.next
+    if slow == fast: there is a cycle
+when fast reaches the end, slow is at the middle
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 170" role="img" aria-label="A linked list whose tail points back into the middle, with a slow pointer moving one step and a fast pointer two steps"><defs><marker id="ah2-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker><marker id="ah2-dg-head-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head-r" d="M0 0L10 5L0 10z"/></marker></defs><circle class="dg-box" cx="80" cy="80" r="22"/><text class="dg-t" x="80" y="80">3</text><path class="dg-line" d="M104 80 L156 80" marker-end="url(#ah2-dg-head)"/><circle class="dg-a" cx="180" cy="80" r="22"/><text class="dg-t" x="180" y="80">2</text><path class="dg-line" d="M204 80 L256 80" marker-end="url(#ah2-dg-head)"/><circle class="dg-box" cx="280" cy="80" r="22"/><text class="dg-t" x="280" y="80">0</text><path class="dg-line" d="M304 80 L356 80" marker-end="url(#ah2-dg-head)"/><circle class="dg-box" cx="380" cy="80" r="22"/><text class="dg-t" x="380" y="80">-4</text><path class="dg-line-r" d="M402 98 C 402 150, 180 150, 180 104" marker-end="url(#ah2-dg-head-r)"/><text class="dg-m dg-mid" x="290" y="158">tail points back to node 2</text><text class="dg-s" x="80" y="34">head</text><text class="dg-m" x="500" y="60">slow: 1 step</text><text class="dg-m" x="500" y="84">fast: 2 steps</text><text class="dg-m" x="500" y="108">entrance: node 2</text></svg><figcaption>If there's a cycle, the fast pointer laps the slow one and they meet inside it. Restarting one pointer at the head and moving both one step at a time makes them meet at the cycle's entrance.</figcaption></figure><p>Inside a cycle, the gap between fast and slow shrinks by one each step, so they
+must meet within one lap. To find where the cycle <strong>starts</strong>, move one pointer
+back to the head and advance both one step at a time; the distances work out so
+that they meet exactly at the entrance (Floyd&#39;s algorithm).</p>
+<p>The same idea works on anything with a &quot;next&quot; function: in Happy Number,
+<code>next(n)</code> is the sum of the squares of n&#39;s digits, and in Find the Duplicate
+Number, <code>next(i) = nums[i]</code>.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Cycle detection</td><td class="nowrap">O(n) time, O(1) space</td><td>The fast pointer meets the slow one within one extra lap.</td></tr><tr><td>Find the cycle&#39;s start</td><td class="nowrap">O(n)</td><td>A second phase of at most n steps.</td></tr><tr><td>Middle of a list</td><td class="nowrap">O(n)</td><td>Fast covers the list in n / 2 steps.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>The cycle list from the diagram is built by pointing the tail back at node 2.</p><figure class="codeblock" id="code-fast-slow-pointers" aria-label="Middle node, cycle detection and entrance, happy numbers and the duplicate number">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-fast-slow-pointers-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-fast-slow-pointers-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-fast-slow-pointers-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-fast-slow-pointers-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-fast-slow-pointers-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ListNode</span> {</span><span class="ln" data-line="4">        <span class="hljs-type">int</span> val;</span><span class="ln" data-line="5">        ListNode next;</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7">        ListNode(<span class="hljs-type">int</span> val) { <span class="hljs-built_in">this</span>.val = val; }</span><span class="ln" data-line="8">    }</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10">    <span class="hljs-keyword">static</span> <span class="hljs-type">ListNode</span> <span class="hljs-title function_">build</span><span class="hljs-params">(<span class="hljs-type">int</span>... vals)</span> {</span><span class="ln" data-line="11">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">dummy</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>), t = dummy;</span><span class="ln" data-line="12">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : vals) { t.next = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(v); t = t.next; }</span><span class="ln" data-line="13">        <span class="hljs-keyword">return</span> dummy.next;</span><span class="ln" data-line="14">    }</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">    <span class="hljs-comment">/** Second middle for even lengths. */</span></span><span class="ln" data-line="17">    <span class="hljs-keyword">static</span> <span class="hljs-type">ListNode</span> <span class="hljs-title function_">middle</span><span class="hljs-params">(ListNode head)</span> {</span><span class="ln" data-line="18">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">slow</span> <span class="hljs-operator">=</span> head, fast = head;</span><span class="ln" data-line="19">        <span class="hljs-keyword">while</span> (fast != <span class="hljs-literal">null</span> &amp;&amp; fast.next != <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="20">            slow = slow.next;</span><span class="ln" data-line="21">            fast = fast.next.next;</span><span class="ln" data-line="22">        }</span><span class="ln" data-line="23">        <span class="hljs-keyword">return</span> slow;</span><span class="ln" data-line="24">    }</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26">    <span class="hljs-comment">/** Returns the node where the cycle begins, or null if there&#x27;s no cycle. */</span></span><span class="ln" data-line="27">    <span class="hljs-keyword">static</span> <span class="hljs-type">ListNode</span> <span class="hljs-title function_">cycleStart</span><span class="hljs-params">(ListNode head)</span> {</span><span class="ln" data-line="28">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">slow</span> <span class="hljs-operator">=</span> head, fast = head;</span><span class="ln" data-line="29">        <span class="hljs-keyword">while</span> (fast != <span class="hljs-literal">null</span> &amp;&amp; fast.next != <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="30">            slow = slow.next;</span><span class="ln" data-line="31">            fast = fast.next.next;</span><span class="ln" data-line="32">            <span class="hljs-keyword">if</span> (slow == fast) { <span class="hljs-comment">// same node, not just same value</span></span><span class="ln" data-line="33">                <span class="hljs-type">ListNode</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> head;</span><span class="ln" data-line="34">                <span class="hljs-keyword">while</span> (p != slow) { p = p.next; slow = slow.next; } <span class="hljs-comment">// both move one step: meet at the entrance</span></span><span class="ln" data-line="35">                <span class="hljs-keyword">return</span> p;</span><span class="ln" data-line="36">            }</span><span class="ln" data-line="37">        }</span><span class="ln" data-line="38">        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;</span><span class="ln" data-line="39">    }</span><span class="ln" data-line="40"> </span><span class="ln" data-line="41">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">digitSquareSum</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="42">        <span class="hljs-type">int</span> <span class="hljs-variable">s</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="43">        <span class="hljs-keyword">while</span> (n &gt; <span class="hljs-number">0</span>) { s += (n % <span class="hljs-number">10</span>) * (n % <span class="hljs-number">10</span>); n /= <span class="hljs-number">10</span>; }</span><span class="ln" data-line="44">        <span class="hljs-keyword">return</span> s;</span><span class="ln" data-line="45">    }</span><span class="ln" data-line="46"> </span><span class="ln" data-line="47">    <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isHappy</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="48">        <span class="hljs-type">int</span> <span class="hljs-variable">slow</span> <span class="hljs-operator">=</span> n, fast = digitSquareSum(n);</span><span class="ln" data-line="49">        <span class="hljs-keyword">while</span> (fast != <span class="hljs-number">1</span> &amp;&amp; slow != fast) {</span><span class="ln" data-line="50">            slow = digitSquareSum(slow);</span><span class="ln" data-line="51">            fast = digitSquareSum(digitSquareSum(fast));</span><span class="ln" data-line="52">        }</span><span class="ln" data-line="53">        <span class="hljs-keyword">return</span> fast == <span class="hljs-number">1</span>;</span><span class="ln" data-line="54">    }</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56">    <span class="hljs-comment">/** nums has n + 1 values in 1..n; treat i -&gt; nums[i] as a linked list. */</span></span><span class="ln" data-line="57">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">findDuplicate</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="58">        <span class="hljs-type">int</span> <span class="hljs-variable">slow</span> <span class="hljs-operator">=</span> nums[<span class="hljs-number">0</span>], fast = nums[<span class="hljs-number">0</span>];</span><span class="ln" data-line="59">        <span class="hljs-keyword">do</span> { slow = nums[slow]; fast = nums[nums[fast]]; } <span class="hljs-keyword">while</span> (slow != fast);</span><span class="ln" data-line="60">        slow = nums[<span class="hljs-number">0</span>];</span><span class="ln" data-line="61">        <span class="hljs-keyword">while</span> (slow != fast) { slow = nums[slow]; fast = nums[fast]; }</span><span class="ln" data-line="62">        <span class="hljs-keyword">return</span> slow;</span><span class="ln" data-line="63">    }</span><span class="ln" data-line="64"> </span><span class="ln" data-line="65">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="66">        System.out.println(<span class="hljs-string">&quot;middle of 1..5: &quot;</span> + middle(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>)).val + <span class="hljs-string">&quot;, middle of 1..6: &quot;</span> + middle(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>)).val);</span><span class="ln" data-line="67">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">withCycle</span> <span class="hljs-operator">=</span> build(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">4</span>);</span><span class="ln" data-line="68">        withCycle.next.next.next.next = withCycle.next; <span class="hljs-comment">// tail -&gt; node with value 2</span></span><span class="ln" data-line="69">        <span class="hljs-type">ListNode</span> <span class="hljs-variable">start</span> <span class="hljs-operator">=</span> cycleStart(withCycle);</span><span class="ln" data-line="70">        System.out.println(<span class="hljs-string">&quot;cycle in 3 2 0 -4 (tail to index 1): &quot;</span> + (start != <span class="hljs-literal">null</span>) + <span class="hljs-string">&quot;, entrance value &quot;</span> + start.val);</span><span class="ln" data-line="71">        System.out.println(<span class="hljs-string">&quot;cycle in 1 2 3: &quot;</span> + (cycleStart(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)) != <span class="hljs-literal">null</span>));</span><span class="ln" data-line="72">        System.out.println(<span class="hljs-string">&quot;isHappy(19) = &quot;</span> + isHappy(<span class="hljs-number">19</span>) + <span class="hljs-string">&quot;, isHappy(2) = &quot;</span> + isHappy(<span class="hljs-number">2</span>));</span><span class="ln" data-line="73">        System.out.println(<span class="hljs-string">&quot;findDuplicate(1 3 4 2 2) = &quot;</span> + findDuplicate(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span> }));</span><span class="ln" data-line="74">    }</span><span class="ln" data-line="75">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">public class Solution {
+
+    static class ListNode {
+        int val;
+        ListNode next;
+
+        ListNode(int val) { this.val = val; }
+    }
+
+    static ListNode build(int... vals) {
+        ListNode dummy = new ListNode(0), t = dummy;
+        for (int v : vals) { t.next = new ListNode(v); t = t.next; }
+        return dummy.next;
+    }
+
+    /** Second middle for even lengths. */
+    static ListNode middle(ListNode head) {
+        ListNode slow = head, fast = head;
+        while (fast != null &amp;&amp; fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        return slow;
+    }
+
+    /** Returns the node where the cycle begins, or null if there&#39;s no cycle. */
+    static ListNode cycleStart(ListNode head) {
+        ListNode slow = head, fast = head;
+        while (fast != null &amp;&amp; fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            if (slow == fast) { // same node, not just same value
+                ListNode p = head;
+                while (p != slow) { p = p.next; slow = slow.next; } // both move one step: meet at the entrance
+                return p;
+            }
+        }
+        return null;
+    }
+
+    static int digitSquareSum(int n) {
+        int s = 0;
+        while (n &gt; 0) { s += (n % 10) * (n % 10); n /= 10; }
+        return s;
+    }
+
+    static boolean isHappy(int n) {
+        int slow = n, fast = digitSquareSum(n);
+        while (fast != 1 &amp;&amp; slow != fast) {
+            slow = digitSquareSum(slow);
+            fast = digitSquareSum(digitSquareSum(fast));
+        }
+        return fast == 1;
+    }
+
+    /** nums has n + 1 values in 1..n; treat i -&gt; nums[i] as a linked list. */
+    static int findDuplicate(int[] nums) {
+        int slow = nums[0], fast = nums[0];
+        do { slow = nums[slow]; fast = nums[nums[fast]]; } while (slow != fast);
+        slow = nums[0];
+        while (slow != fast) { slow = nums[slow]; fast = nums[fast]; }
+        return slow;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;middle of 1..5: &quot; + middle(build(1, 2, 3, 4, 5)).val + &quot;, middle of 1..6: &quot; + middle(build(1, 2, 3, 4, 5, 6)).val);
+        ListNode withCycle = build(3, 2, 0, -4);
+        withCycle.next.next.next.next = withCycle.next; // tail -&gt; node with value 2
+        ListNode start = cycleStart(withCycle);
+        System.out.println(&quot;cycle in 3 2 0 -4 (tail to index 1): &quot; + (start != null) + &quot;, entrance value &quot; + start.val);
+        System.out.println(&quot;cycle in 1 2 3: &quot; + (cycleStart(build(1, 2, 3)) != null));
+        System.out.println(&quot;isHappy(19) = &quot; + isHappy(19) + &quot;, isHappy(2) = &quot; + isHappy(2));
+        System.out.println(&quot;findDuplicate(1 3 4 2 2) = &quot; + findDuplicate(new int[] { 1, 3, 4, 2, 2 }));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-fast-slow-pointers-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ListNode</span> {</span><span class="ln" data-line="2">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">val</span>) {</span><span class="ln" data-line="3">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">val</span> = val;</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">next</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="5">  }</span><span class="ln" data-line="6">}</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">function</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">...vals</span>) {</span><span class="ln" data-line="9">  <span class="hljs-keyword">const</span> dummy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="10">  <span class="hljs-keyword">let</span> t = dummy;</span><span class="ln" data-line="11">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> vals) t = t.<span class="hljs-property">next</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(v);</span><span class="ln" data-line="12">  <span class="hljs-keyword">return</span> dummy.<span class="hljs-property">next</span>;</span><span class="ln" data-line="13">}</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-comment">/** Second middle for even lengths. */</span></span><span class="ln" data-line="16"><span class="hljs-keyword">function</span> <span class="hljs-title function_">middle</span>(<span class="hljs-params">head</span>) {</span><span class="ln" data-line="17">  <span class="hljs-keyword">let</span> slow = head;</span><span class="ln" data-line="18">  <span class="hljs-keyword">let</span> fast = head;</span><span class="ln" data-line="19">  <span class="hljs-keyword">while</span> (fast !== <span class="hljs-literal">null</span> &amp;&amp; fast.<span class="hljs-property">next</span> !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="20">    slow = slow.<span class="hljs-property">next</span>;</span><span class="ln" data-line="21">    fast = fast.<span class="hljs-property">next</span>.<span class="hljs-property">next</span>;</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">  <span class="hljs-keyword">return</span> slow;</span><span class="ln" data-line="24">}</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"><span class="hljs-comment">/** Returns the node where the cycle begins, or null if there&#x27;s no cycle. */</span></span><span class="ln" data-line="27"><span class="hljs-keyword">function</span> <span class="hljs-title function_">cycleStart</span>(<span class="hljs-params">head</span>) {</span><span class="ln" data-line="28">  <span class="hljs-keyword">let</span> slow = head;</span><span class="ln" data-line="29">  <span class="hljs-keyword">let</span> fast = head;</span><span class="ln" data-line="30">  <span class="hljs-keyword">while</span> (fast !== <span class="hljs-literal">null</span> &amp;&amp; fast.<span class="hljs-property">next</span> !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="31">    slow = slow.<span class="hljs-property">next</span>;</span><span class="ln" data-line="32">    fast = fast.<span class="hljs-property">next</span>.<span class="hljs-property">next</span>;</span><span class="ln" data-line="33">    <span class="hljs-keyword">if</span> (slow === fast) {</span><span class="ln" data-line="34">      <span class="hljs-keyword">let</span> p = head; <span class="hljs-comment">// both move one step: meet at the entrance</span></span><span class="ln" data-line="35">      <span class="hljs-keyword">while</span> (p !== slow) {</span><span class="ln" data-line="36">        p = p.<span class="hljs-property">next</span>;</span><span class="ln" data-line="37">        slow = slow.<span class="hljs-property">next</span>;</span><span class="ln" data-line="38">      }</span><span class="ln" data-line="39">      <span class="hljs-keyword">return</span> p;</span><span class="ln" data-line="40">    }</span><span class="ln" data-line="41">  }</span><span class="ln" data-line="42">  <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;</span><span class="ln" data-line="43">}</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"><span class="hljs-keyword">function</span> <span class="hljs-title function_">digitSquareSum</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="46">  <span class="hljs-keyword">let</span> s = <span class="hljs-number">0</span>;</span><span class="ln" data-line="47">  <span class="hljs-keyword">for</span> (; n &gt; <span class="hljs-number">0</span>; n = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(n / <span class="hljs-number">10</span>)) s += (n % <span class="hljs-number">10</span>) ** <span class="hljs-number">2</span>;</span><span class="ln" data-line="48">  <span class="hljs-keyword">return</span> s;</span><span class="ln" data-line="49">}</span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"><span class="hljs-keyword">function</span> <span class="hljs-title function_">isHappy</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="52">  <span class="hljs-keyword">let</span> slow = n;</span><span class="ln" data-line="53">  <span class="hljs-keyword">let</span> fast = <span class="hljs-title function_">digitSquareSum</span>(n);</span><span class="ln" data-line="54">  <span class="hljs-keyword">while</span> (fast !== <span class="hljs-number">1</span> &amp;&amp; slow !== fast) {</span><span class="ln" data-line="55">    slow = <span class="hljs-title function_">digitSquareSum</span>(slow);</span><span class="ln" data-line="56">    fast = <span class="hljs-title function_">digitSquareSum</span>(<span class="hljs-title function_">digitSquareSum</span>(fast));</span><span class="ln" data-line="57">  }</span><span class="ln" data-line="58">  <span class="hljs-keyword">return</span> fast === <span class="hljs-number">1</span>;</span><span class="ln" data-line="59">}</span><span class="ln" data-line="60"> </span><span class="ln" data-line="61"><span class="hljs-comment">/** nums has n + 1 values in 1..n; treat i -&gt; nums[i] as a linked list. */</span></span><span class="ln" data-line="62"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findDuplicate</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="63">  <span class="hljs-keyword">let</span> slow = nums[<span class="hljs-number">0</span>];</span><span class="ln" data-line="64">  <span class="hljs-keyword">let</span> fast = nums[<span class="hljs-number">0</span>];</span><span class="ln" data-line="65">  <span class="hljs-keyword">do</span> {</span><span class="ln" data-line="66">    slow = nums[slow];</span><span class="ln" data-line="67">    fast = nums[nums[fast]];</span><span class="ln" data-line="68">  } <span class="hljs-keyword">while</span> (slow !== fast);</span><span class="ln" data-line="69">  slow = nums[<span class="hljs-number">0</span>];</span><span class="ln" data-line="70">  <span class="hljs-keyword">while</span> (slow !== fast) {</span><span class="ln" data-line="71">    slow = nums[slow];</span><span class="ln" data-line="72">    fast = nums[fast];</span><span class="ln" data-line="73">  }</span><span class="ln" data-line="74">  <span class="hljs-keyword">return</span> slow;</span><span class="ln" data-line="75">}</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="78">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`middle of 1..5: <span class="hljs-subst">${middle(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>)).val}</span>, middle of 1..6: <span class="hljs-subst">${middle(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>)).val}</span>`</span>);</span><span class="ln" data-line="79">  <span class="hljs-keyword">const</span> withCycle = <span class="hljs-title function_">build</span>(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">4</span>);</span><span class="ln" data-line="80">  withCycle.<span class="hljs-property">next</span>.<span class="hljs-property">next</span>.<span class="hljs-property">next</span>.<span class="hljs-property">next</span> = withCycle.<span class="hljs-property">next</span>; <span class="hljs-comment">// tail -&gt; node with value 2</span></span><span class="ln" data-line="81">  <span class="hljs-keyword">const</span> start = <span class="hljs-title function_">cycleStart</span>(withCycle);</span><span class="ln" data-line="82">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`cycle in 3 2 0 -4 (tail to index 1): <span class="hljs-subst">${start !== <span class="hljs-literal">null</span>}</span>, entrance value <span class="hljs-subst">${start.val}</span>`</span>);</span><span class="ln" data-line="83">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`cycle in 1 2 3: <span class="hljs-subst">${cycleStart(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)) !== <span class="hljs-literal">null</span>}</span>`</span>);</span><span class="ln" data-line="84">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`isHappy(19) = <span class="hljs-subst">${isHappy(<span class="hljs-number">19</span>)}</span>, isHappy(2) = <span class="hljs-subst">${isHappy(<span class="hljs-number">2</span>)}</span>`</span>);</span><span class="ln" data-line="85">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`findDuplicate(1 3 4 2 2) = <span class="hljs-subst">${findDuplicate([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="86">}</span><span class="ln" data-line="87"> </span><span class="ln" data-line="88"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">class ListNode {
+  constructor(val) {
+    this.val = val;
+    this.next = null;
+  }
+}
+
+function build(...vals) {
+  const dummy = new ListNode(0);
+  let t = dummy;
+  for (const v of vals) t = t.next = new ListNode(v);
+  return dummy.next;
+}
+
+/** Second middle for even lengths. */
+function middle(head) {
+  let slow = head;
+  let fast = head;
+  while (fast !== null &amp;&amp; fast.next !== null) {
+    slow = slow.next;
+    fast = fast.next.next;
+  }
+  return slow;
+}
+
+/** Returns the node where the cycle begins, or null if there&#39;s no cycle. */
+function cycleStart(head) {
+  let slow = head;
+  let fast = head;
+  while (fast !== null &amp;&amp; fast.next !== null) {
+    slow = slow.next;
+    fast = fast.next.next;
+    if (slow === fast) {
+      let p = head; // both move one step: meet at the entrance
+      while (p !== slow) {
+        p = p.next;
+        slow = slow.next;
+      }
+      return p;
+    }
+  }
+  return null;
+}
+
+function digitSquareSum(n) {
+  let s = 0;
+  for (; n &gt; 0; n = Math.floor(n / 10)) s += (n % 10) ** 2;
+  return s;
+}
+
+function isHappy(n) {
+  let slow = n;
+  let fast = digitSquareSum(n);
+  while (fast !== 1 &amp;&amp; slow !== fast) {
+    slow = digitSquareSum(slow);
+    fast = digitSquareSum(digitSquareSum(fast));
+  }
+  return fast === 1;
+}
+
+/** nums has n + 1 values in 1..n; treat i -&gt; nums[i] as a linked list. */
+function findDuplicate(nums) {
+  let slow = nums[0];
+  let fast = nums[0];
+  do {
+    slow = nums[slow];
+    fast = nums[nums[fast]];
+  } while (slow !== fast);
+  slow = nums[0];
+  while (slow !== fast) {
+    slow = nums[slow];
+    fast = nums[fast];
+  }
+  return slow;
+}
+
+function main() {
+  console.log(`middle of 1..5: ${middle(build(1, 2, 3, 4, 5)).val}, middle of 1..6: ${middle(build(1, 2, 3, 4, 5, 6)).val}`);
+  const withCycle = build(3, 2, 0, -4);
+  withCycle.next.next.next.next = withCycle.next; // tail -&gt; node with value 2
+  const start = cycleStart(withCycle);
+  console.log(`cycle in 3 2 0 -4 (tail to index 1): ${start !== null}, entrance value ${start.val}`);
+  console.log(`cycle in 1 2 3: ${cycleStart(build(1, 2, 3)) !== null}`);
+  console.log(`isHappy(19) = ${isHappy(19)}, isHappy(2) = ${isHappy(2)}`);
+  console.log(`findDuplicate(1 3 4 2 2) = ${findDuplicate([1, 3, 4, 2, 2])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-fast-slow-pointers-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ListNode</span> {</span><span class="ln" data-line="2">  <span class="hljs-attr">val</span>: <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="3">  <span class="hljs-attr">next</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">val</span>: <span class="hljs-built_in">number</span></span>) {</span><span class="ln" data-line="6">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">val</span> = val;</span><span class="ln" data-line="7">  }</span><span class="ln" data-line="8">}</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-keyword">function</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">...<span class="hljs-attr">vals</span>: <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-title class_">ListNode</span> {</span><span class="ln" data-line="11">  <span class="hljs-keyword">const</span> dummy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="12">  <span class="hljs-keyword">let</span> t = dummy;</span><span class="ln" data-line="13">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> vals) {</span><span class="ln" data-line="14">    t.<span class="hljs-property">next</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ListNode</span>(v);</span><span class="ln" data-line="15">    t = t.<span class="hljs-property">next</span>;</span><span class="ln" data-line="16">  }</span><span class="ln" data-line="17">  <span class="hljs-keyword">return</span> dummy.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>;</span><span class="ln" data-line="18">}</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-comment">/** Second middle for even lengths. */</span></span><span class="ln" data-line="21"><span class="hljs-keyword">function</span> <span class="hljs-title function_">middle</span>(<span class="hljs-params"><span class="hljs-attr">head</span>: <span class="hljs-title class_">ListNode</span></span>): <span class="hljs-title class_">ListNode</span> {</span><span class="ln" data-line="22">  <span class="hljs-keyword">let</span> <span class="hljs-attr">slow</span>: <span class="hljs-title class_">ListNode</span> = head;</span><span class="ln" data-line="23">  <span class="hljs-keyword">let</span> <span class="hljs-attr">fast</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = head;</span><span class="ln" data-line="24">  <span class="hljs-keyword">while</span> (fast !== <span class="hljs-literal">null</span> &amp;&amp; fast.<span class="hljs-property">next</span> !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="25">    slow = slow.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>;</span><span class="ln" data-line="26">    fast = fast.<span class="hljs-property">next</span>.<span class="hljs-property">next</span>;</span><span class="ln" data-line="27">  }</span><span class="ln" data-line="28">  <span class="hljs-keyword">return</span> slow;</span><span class="ln" data-line="29">}</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31"><span class="hljs-comment">/** Returns the node where the cycle begins, or null if there&#x27;s no cycle. */</span></span><span class="ln" data-line="32"><span class="hljs-keyword">function</span> <span class="hljs-title function_">cycleStart</span>(<span class="hljs-params"><span class="hljs-attr">head</span>: <span class="hljs-title class_">ListNode</span></span>): <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> {</span><span class="ln" data-line="33">  <span class="hljs-keyword">let</span> <span class="hljs-attr">slow</span>: <span class="hljs-title class_">ListNode</span> = head;</span><span class="ln" data-line="34">  <span class="hljs-keyword">let</span> <span class="hljs-attr">fast</span>: <span class="hljs-title class_">ListNode</span> | <span class="hljs-literal">null</span> = head;</span><span class="ln" data-line="35">  <span class="hljs-keyword">while</span> (fast !== <span class="hljs-literal">null</span> &amp;&amp; fast.<span class="hljs-property">next</span> !== <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="36">    slow = slow.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>;</span><span class="ln" data-line="37">    fast = fast.<span class="hljs-property">next</span>.<span class="hljs-property">next</span>;</span><span class="ln" data-line="38">    <span class="hljs-keyword">if</span> (slow === fast) {</span><span class="ln" data-line="39">      <span class="hljs-keyword">let</span> <span class="hljs-attr">p</span>: <span class="hljs-title class_">ListNode</span> = head; <span class="hljs-comment">// both move one step: meet at the entrance</span></span><span class="ln" data-line="40">      <span class="hljs-keyword">while</span> (p !== slow) {</span><span class="ln" data-line="41">        p = p.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>;</span><span class="ln" data-line="42">        slow = slow.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>;</span><span class="ln" data-line="43">      }</span><span class="ln" data-line="44">      <span class="hljs-keyword">return</span> p;</span><span class="ln" data-line="45">    }</span><span class="ln" data-line="46">  }</span><span class="ln" data-line="47">  <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;</span><span class="ln" data-line="48">}</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"><span class="hljs-keyword">function</span> <span class="hljs-title function_">digitSquareSum</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="51">  <span class="hljs-keyword">let</span> s = <span class="hljs-number">0</span>;</span><span class="ln" data-line="52">  <span class="hljs-keyword">for</span> (; n &gt; <span class="hljs-number">0</span>; n = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(n / <span class="hljs-number">10</span>)) s += (n % <span class="hljs-number">10</span>) ** <span class="hljs-number">2</span>;</span><span class="ln" data-line="53">  <span class="hljs-keyword">return</span> s;</span><span class="ln" data-line="54">}</span><span class="ln" data-line="55"> </span><span class="ln" data-line="56"><span class="hljs-keyword">function</span> <span class="hljs-title function_">isHappy</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="57">  <span class="hljs-keyword">let</span> slow = n;</span><span class="ln" data-line="58">  <span class="hljs-keyword">let</span> fast = <span class="hljs-title function_">digitSquareSum</span>(n);</span><span class="ln" data-line="59">  <span class="hljs-keyword">while</span> (fast !== <span class="hljs-number">1</span> &amp;&amp; slow !== fast) {</span><span class="ln" data-line="60">    slow = <span class="hljs-title function_">digitSquareSum</span>(slow);</span><span class="ln" data-line="61">    fast = <span class="hljs-title function_">digitSquareSum</span>(<span class="hljs-title function_">digitSquareSum</span>(fast));</span><span class="ln" data-line="62">  }</span><span class="ln" data-line="63">  <span class="hljs-keyword">return</span> fast === <span class="hljs-number">1</span>;</span><span class="ln" data-line="64">}</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66"><span class="hljs-comment">/** nums has n + 1 values in 1..n; treat i -&gt; nums[i] as a linked list. */</span></span><span class="ln" data-line="67"><span class="hljs-keyword">function</span> <span class="hljs-title function_">findDuplicate</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="68">  <span class="hljs-keyword">let</span> slow = nums[<span class="hljs-number">0</span>];</span><span class="ln" data-line="69">  <span class="hljs-keyword">let</span> fast = nums[<span class="hljs-number">0</span>];</span><span class="ln" data-line="70">  <span class="hljs-keyword">do</span> {</span><span class="ln" data-line="71">    slow = nums[slow];</span><span class="ln" data-line="72">    fast = nums[nums[fast]];</span><span class="ln" data-line="73">  } <span class="hljs-keyword">while</span> (slow !== fast);</span><span class="ln" data-line="74">  slow = nums[<span class="hljs-number">0</span>];</span><span class="ln" data-line="75">  <span class="hljs-keyword">while</span> (slow !== fast) {</span><span class="ln" data-line="76">    slow = nums[slow];</span><span class="ln" data-line="77">    fast = nums[fast];</span><span class="ln" data-line="78">  }</span><span class="ln" data-line="79">  <span class="hljs-keyword">return</span> slow;</span><span class="ln" data-line="80">}</span><span class="ln" data-line="81"> </span><span class="ln" data-line="82"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="83">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`middle of 1..5: <span class="hljs-subst">${middle(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>)).val}</span>, middle of 1..6: <span class="hljs-subst">${middle(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>)).val}</span>`</span>);</span><span class="ln" data-line="84">  <span class="hljs-keyword">const</span> withCycle = <span class="hljs-title function_">build</span>(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">4</span>);</span><span class="ln" data-line="85">  <span class="hljs-keyword">const</span> second = withCycle.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">ListNode</span>;</span><span class="ln" data-line="86">  <span class="hljs-keyword">let</span> tail = second;</span><span class="ln" data-line="87">  <span class="hljs-keyword">while</span> (tail.<span class="hljs-property">next</span> !== <span class="hljs-literal">null</span>) tail = tail.<span class="hljs-property">next</span>;</span><span class="ln" data-line="88">  tail.<span class="hljs-property">next</span> = second; <span class="hljs-comment">// tail -&gt; node with value 2</span></span><span class="ln" data-line="89">  <span class="hljs-keyword">const</span> start = <span class="hljs-title function_">cycleStart</span>(withCycle);</span><span class="ln" data-line="90">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`cycle in 3 2 0 -4 (tail to index 1): <span class="hljs-subst">${start !== <span class="hljs-literal">null</span>}</span>, entrance value <span class="hljs-subst">${start?.val}</span>`</span>);</span><span class="ln" data-line="91">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`cycle in 1 2 3: <span class="hljs-subst">${cycleStart(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)) !== <span class="hljs-literal">null</span>}</span>`</span>);</span><span class="ln" data-line="92">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`isHappy(19) = <span class="hljs-subst">${isHappy(<span class="hljs-number">19</span>)}</span>, isHappy(2) = <span class="hljs-subst">${isHappy(<span class="hljs-number">2</span>)}</span>`</span>);</span><span class="ln" data-line="93">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`findDuplicate(1 3 4 2 2) = <span class="hljs-subst">${findDuplicate([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>])}</span>`</span>);</span><span class="ln" data-line="94">}</span><span class="ln" data-line="95"> </span><span class="ln" data-line="96"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">class ListNode {
+  val: number;
+  next: ListNode | null = null;
+
+  constructor(val: number) {
+    this.val = val;
+  }
+}
+
+function build(...vals: number[]): ListNode {
+  const dummy = new ListNode(0);
+  let t = dummy;
+  for (const v of vals) {
+    t.next = new ListNode(v);
+    t = t.next;
+  }
+  return dummy.next as ListNode;
+}
+
+/** Second middle for even lengths. */
+function middle(head: ListNode): ListNode {
+  let slow: ListNode = head;
+  let fast: ListNode | null = head;
+  while (fast !== null &amp;&amp; fast.next !== null) {
+    slow = slow.next as ListNode;
+    fast = fast.next.next;
+  }
+  return slow;
+}
+
+/** Returns the node where the cycle begins, or null if there&#39;s no cycle. */
+function cycleStart(head: ListNode): ListNode | null {
+  let slow: ListNode = head;
+  let fast: ListNode | null = head;
+  while (fast !== null &amp;&amp; fast.next !== null) {
+    slow = slow.next as ListNode;
+    fast = fast.next.next;
+    if (slow === fast) {
+      let p: ListNode = head; // both move one step: meet at the entrance
+      while (p !== slow) {
+        p = p.next as ListNode;
+        slow = slow.next as ListNode;
+      }
+      return p;
+    }
+  }
+  return null;
+}
+
+function digitSquareSum(n: number): number {
+  let s = 0;
+  for (; n &gt; 0; n = Math.floor(n / 10)) s += (n % 10) ** 2;
+  return s;
+}
+
+function isHappy(n: number): boolean {
+  let slow = n;
+  let fast = digitSquareSum(n);
+  while (fast !== 1 &amp;&amp; slow !== fast) {
+    slow = digitSquareSum(slow);
+    fast = digitSquareSum(digitSquareSum(fast));
+  }
+  return fast === 1;
+}
+
+/** nums has n + 1 values in 1..n; treat i -&gt; nums[i] as a linked list. */
+function findDuplicate(nums: readonly number[]): number {
+  let slow = nums[0];
+  let fast = nums[0];
+  do {
+    slow = nums[slow];
+    fast = nums[nums[fast]];
+  } while (slow !== fast);
+  slow = nums[0];
+  while (slow !== fast) {
+    slow = nums[slow];
+    fast = nums[fast];
+  }
+  return slow;
+}
+
+function main(): void {
+  console.log(`middle of 1..5: ${middle(build(1, 2, 3, 4, 5)).val}, middle of 1..6: ${middle(build(1, 2, 3, 4, 5, 6)).val}`);
+  const withCycle = build(3, 2, 0, -4);
+  const second = withCycle.next as ListNode;
+  let tail = second;
+  while (tail.next !== null) tail = tail.next;
+  tail.next = second; // tail -&gt; node with value 2
+  const start = cycleStart(withCycle);
+  console.log(`cycle in 3 2 0 -4 (tail to index 1): ${start !== null}, entrance value ${start?.val}`);
+  console.log(`cycle in 1 2 3: ${cycleStart(build(1, 2, 3)) !== null}`);
+  console.log(`isHappy(19) = ${isHappy(19)}, isHappy(2) = ${isHappy(2)}`);
+  console.log(`findDuplicate(1 3 4 2 2) = ${findDuplicate([1, 3, 4, 2, 2])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-fast-slow-pointers-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ListNode</span>:</span><span class="ln" data-line="5">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, val: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="6">        <span class="hljs-variable language_">self</span>.val = val</span><span class="ln" data-line="7">        <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">next</span>: <span class="hljs-type">Optional</span>[<span class="hljs-string">&quot;ListNode&quot;</span>] = <span class="hljs-literal">None</span></span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-keyword">def</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">*vals: <span class="hljs-built_in">int</span></span>) -&gt; ListNode:</span><span class="ln" data-line="11">    dummy = t = ListNode(<span class="hljs-number">0</span>)</span><span class="ln" data-line="12">    <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> vals:</span><span class="ln" data-line="13">        t.<span class="hljs-built_in">next</span> = ListNode(v)</span><span class="ln" data-line="14">        t = t.<span class="hljs-built_in">next</span></span><span class="ln" data-line="15">    <span class="hljs-keyword">return</span> dummy.<span class="hljs-built_in">next</span></span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"> </span><span class="ln" data-line="18"><span class="hljs-keyword">def</span> <span class="hljs-title function_">middle</span>(<span class="hljs-params">head: ListNode</span>) -&gt; ListNode:</span><span class="ln" data-line="19">    <span class="hljs-string">&quot;&quot;&quot;Second middle for even lengths.&quot;&quot;&quot;</span></span><span class="ln" data-line="20">    slow = fast = head</span><span class="ln" data-line="21">    <span class="hljs-keyword">while</span> fast <span class="hljs-keyword">and</span> fast.<span class="hljs-built_in">next</span>:</span><span class="ln" data-line="22">        slow, fast = slow.<span class="hljs-built_in">next</span>, fast.<span class="hljs-built_in">next</span>.<span class="hljs-built_in">next</span></span><span class="ln" data-line="23">    <span class="hljs-keyword">return</span> slow</span><span class="ln" data-line="24"> </span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"><span class="hljs-keyword">def</span> <span class="hljs-title function_">cycle_start</span>(<span class="hljs-params">head: ListNode</span>) -&gt; <span class="hljs-type">Optional</span>[ListNode]:</span><span class="ln" data-line="27">    <span class="hljs-string">&quot;&quot;&quot;Returns the node where the cycle begins, or None if there&#x27;s no cycle.&quot;&quot;&quot;</span></span><span class="ln" data-line="28">    slow = fast = head</span><span class="ln" data-line="29">    <span class="hljs-keyword">while</span> fast <span class="hljs-keyword">and</span> fast.<span class="hljs-built_in">next</span>:</span><span class="ln" data-line="30">        slow, fast = slow.<span class="hljs-built_in">next</span>, fast.<span class="hljs-built_in">next</span>.<span class="hljs-built_in">next</span></span><span class="ln" data-line="31">        <span class="hljs-keyword">if</span> slow <span class="hljs-keyword">is</span> fast:  <span class="hljs-comment"># same node, not just same value</span></span><span class="ln" data-line="32">            p = head</span><span class="ln" data-line="33">            <span class="hljs-keyword">while</span> p <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> slow:  <span class="hljs-comment"># both move one step: meet at the entrance</span></span><span class="ln" data-line="34">                p, slow = p.<span class="hljs-built_in">next</span>, slow.<span class="hljs-built_in">next</span></span><span class="ln" data-line="35">            <span class="hljs-keyword">return</span> p</span><span class="ln" data-line="36">    <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span></span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"> </span><span class="ln" data-line="39"><span class="hljs-keyword">def</span> <span class="hljs-title function_">digit_square_sum</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="40">    <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(<span class="hljs-built_in">int</span>(d) ** <span class="hljs-number">2</span> <span class="hljs-keyword">for</span> d <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(n))</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"><span class="hljs-keyword">def</span> <span class="hljs-title function_">is_happy</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="44">    slow, fast = n, digit_square_sum(n)</span><span class="ln" data-line="45">    <span class="hljs-keyword">while</span> fast != <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> slow != fast:</span><span class="ln" data-line="46">        slow = digit_square_sum(slow)</span><span class="ln" data-line="47">        fast = digit_square_sum(digit_square_sum(fast))</span><span class="ln" data-line="48">    <span class="hljs-keyword">return</span> fast == <span class="hljs-number">1</span></span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"> </span><span class="ln" data-line="51"><span class="hljs-keyword">def</span> <span class="hljs-title function_">find_duplicate</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="52">    <span class="hljs-string">&quot;&quot;&quot;nums has n + 1 values in 1..n; treat i -&gt; nums[i] as a linked list.&quot;&quot;&quot;</span></span><span class="ln" data-line="53">    slow = fast = nums[<span class="hljs-number">0</span>]</span><span class="ln" data-line="54">    <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:</span><span class="ln" data-line="55">        slow, fast = nums[slow], nums[nums[fast]]</span><span class="ln" data-line="56">        <span class="hljs-keyword">if</span> slow == fast:</span><span class="ln" data-line="57">            <span class="hljs-keyword">break</span></span><span class="ln" data-line="58">    slow = nums[<span class="hljs-number">0</span>]</span><span class="ln" data-line="59">    <span class="hljs-keyword">while</span> slow != fast:</span><span class="ln" data-line="60">        slow, fast = nums[slow], nums[fast]</span><span class="ln" data-line="61">    <span class="hljs-keyword">return</span> slow</span><span class="ln" data-line="62"> </span><span class="ln" data-line="63"> </span><span class="ln" data-line="64"><span class="hljs-keyword">def</span> <span class="hljs-title function_">b</span>(<span class="hljs-params">x: <span class="hljs-built_in">bool</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="65">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;true&quot;</span> <span class="hljs-keyword">if</span> x <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;false&quot;</span></span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="69">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;middle of 1..5: <span class="hljs-subst">{middle(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>)).val}</span>, middle of 1..6: <span class="hljs-subst">{middle(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>)).val}</span>&quot;</span>)</span><span class="ln" data-line="70">    with_cycle = build(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">4</span>)</span><span class="ln" data-line="71">    with_cycle.<span class="hljs-built_in">next</span>.<span class="hljs-built_in">next</span>.<span class="hljs-built_in">next</span>.<span class="hljs-built_in">next</span> = with_cycle.<span class="hljs-built_in">next</span>  <span class="hljs-comment"># tail -&gt; node with value 2</span></span><span class="ln" data-line="72">    start = cycle_start(with_cycle)</span><span class="ln" data-line="73">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;cycle in 3 2 0 -4 (tail to index 1): <span class="hljs-subst">{b(start <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>)}</span>, entrance value <span class="hljs-subst">{start.val}</span>&quot;</span>)</span><span class="ln" data-line="74">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;cycle in 1 2 3: <span class="hljs-subst">{b(cycle_start(build(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)) <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>)}</span>&quot;</span>)</span><span class="ln" data-line="75">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;isHappy(19) = <span class="hljs-subst">{b(is_happy(<span class="hljs-number">19</span>))}</span>, isHappy(2) = <span class="hljs-subst">{b(is_happy(<span class="hljs-number">2</span>))}</span>&quot;</span>)</span><span class="ln" data-line="76">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;findDuplicate(1 3 4 2 2) = <span class="hljs-subst">{find_duplicate([<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>])}</span>&quot;</span>)</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78"> </span><span class="ln" data-line="79"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="80">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List, Optional
+
+
+class ListNode:
+    def __init__(self, val: int) -&gt; None:
+        self.val = val
+        self.next: Optional[&quot;ListNode&quot;] = None
+
+
+def build(*vals: int) -&gt; ListNode:
+    dummy = t = ListNode(0)
+    for v in vals:
+        t.next = ListNode(v)
+        t = t.next
+    return dummy.next
+
+
+def middle(head: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;Second middle for even lengths.&quot;&quot;&quot;
+    slow = fast = head
+    while fast and fast.next:
+        slow, fast = slow.next, fast.next.next
+    return slow
+
+
+def cycle_start(head: ListNode) -&gt; Optional[ListNode]:
+    &quot;&quot;&quot;Returns the node where the cycle begins, or None if there&#39;s no cycle.&quot;&quot;&quot;
+    slow = fast = head
+    while fast and fast.next:
+        slow, fast = slow.next, fast.next.next
+        if slow is fast:  # same node, not just same value
+            p = head
+            while p is not slow:  # both move one step: meet at the entrance
+                p, slow = p.next, slow.next
+            return p
+    return None
+
+
+def digit_square_sum(n: int) -&gt; int:
+    return sum(int(d) ** 2 for d in str(n))
+
+
+def is_happy(n: int) -&gt; bool:
+    slow, fast = n, digit_square_sum(n)
+    while fast != 1 and slow != fast:
+        slow = digit_square_sum(slow)
+        fast = digit_square_sum(digit_square_sum(fast))
+    return fast == 1
+
+
+def find_duplicate(nums: List[int]) -&gt; int:
+    &quot;&quot;&quot;nums has n + 1 values in 1..n; treat i -&gt; nums[i] as a linked list.&quot;&quot;&quot;
+    slow = fast = nums[0]
+    while True:
+        slow, fast = nums[slow], nums[nums[fast]]
+        if slow == fast:
+            break
+    slow = nums[0]
+    while slow != fast:
+        slow, fast = nums[slow], nums[fast]
+    return slow
+
+
+def b(x: bool) -&gt; str:
+    return &quot;true&quot; if x else &quot;false&quot;
+
+
+def main() -&gt; None:
+    print(f&quot;middle of 1..5: {middle(build(1, 2, 3, 4, 5)).val}, middle of 1..6: {middle(build(1, 2, 3, 4, 5, 6)).val}&quot;)
+    with_cycle = build(3, 2, 0, -4)
+    with_cycle.next.next.next.next = with_cycle.next  # tail -&gt; node with value 2
+    start = cycle_start(with_cycle)
+    print(f&quot;cycle in 3 2 0 -4 (tail to index 1): {b(start is not None)}, entrance value {start.val}&quot;)
+    print(f&quot;cycle in 1 2 3: {b(cycle_start(build(1, 2, 3)) is not None)}&quot;)
+    print(f&quot;isHappy(19) = {b(is_happy(19))}, isHappy(2) = {b(is_happy(2))}&quot;)
+    print(f&quot;findDuplicate(1 3 4 2 2) = {find_duplicate([1, 3, 4, 2, 2])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>middle of 1..5: 3, middle of 1..6: 4
+cycle in 3 2 0 -4 (tail to index 1): true, entrance value 2
+cycle in 1 2 3: false
+isHappy(19) = true, isHappy(2) = false
+findDuplicate(1 3 4 2 2) = 2</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Checking only <code>fast.next</code> (or only <code>fast</code>) before stepping twice, which throws a null error.</li><li>Comparing values instead of node identity, which reports false cycles when values repeat.</li><li>Getting the first vs second middle wrong for even-length lists; check what the problem wants.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/middle-of-the-linked-list/" rel="noopener" target="_blank">Middle of the Linked List<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>876</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/linked-list-cycle/" rel="noopener" target="_blank">Linked List Cycle<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>141</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/happy-number/" rel="noopener" target="_blank">Happy Number<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>202</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/linked-list-cycle-ii/" rel="noopener" target="_blank">Linked List Cycle II<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>142</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-the-duplicate-number/" rel="noopener" target="_blank">Find the Duplicate Number<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>287</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/linked-lists/index.html">Linked lists</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../kadane/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Kadane&#39;s algorithm</span></a><a class="pn pn-next" href="../in-place-reversal/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">In-place list reversal</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

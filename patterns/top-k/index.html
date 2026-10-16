@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Top K elements · DSA Academy</title>
+<meta name="description" content="A size-K heap keeps the best K seen so far.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Top K elements</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Top K elements</h1>
+  <p class="lede">To find the k largest (or smallest, or most frequent) items, keep a heap of size k. Each new item either beats the weakest of the current top k and replaces it, or is ignored.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Choosing a team of 5 from 200 tryouts. You don&#39;t rank all 200. You keep 5 names on a whiteboard with the weakest at the top; each new player who beats that weakest name replaces it.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>The words <strong>k largest, k smallest, k most frequent, k closest, k-th largest</strong>.</li>
+<li>Sorting everything would work but is more than you need.</li>
+<li>Data arrives as a stream and you need the current top k at any time.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">heap = min-heap ordered by &quot;how good&quot;         (for the k LARGEST)
+for each item:
+    push item
+    if heap.size &gt; k: pop                      ← drop the weakest
+heap holds the top k; heap.top is the k-th largest
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>It feels backwards, but to keep the <strong>largest</strong> k you use a <strong>min</strong>-heap. The
+root is the weakest of the current top k, so it&#39;s the one to compare against
+and evict. A heap of size k means each push or pop costs O(log k) rather than
+O(log n).</p>
+<p>For &quot;most frequent&quot;, count with a hash map first, then run the same loop over
+the (value, count) pairs ordered by count. For &quot;closest points&quot;, order by
+squared distance (no square root needed).</p>
+<p>When you need only the k-th element once, <strong>quickselect</strong> finds it in O(n) on
+average, and <strong>bucket sort</strong> by frequency works when counts are bounded by n.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Top k with a size-k heap</td><td class="nowrap">O(n log k) time, O(k) space</td><td>n pushes, each O(log k).</td></tr><tr><td>Sort everything instead</td><td class="nowrap">O(n log n)</td><td>Fine for small n; wasteful when k ≪ n.</td></tr><tr><td>Quickselect for the k-th element</td><td class="nowrap">O(n) average, O(n²) worst</td><td>Partition like quicksort, recurse into one side only.</td></tr><tr><td>Top k frequent with buckets</td><td class="nowrap">O(n)</td><td>Bucket i holds values that appear i times.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>All three keep a heap of at most k items. JavaScript and TypeScript include a small heap class, since neither has one built in. Results are sorted before printing, because heap order isn&#39;t sorted order.</p><figure class="codeblock" id="code-top-k" aria-label="K-th largest, top k frequent and k closest points">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-top-k-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-top-k-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-top-k-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-top-k-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-top-k-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.HashMap;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.Map;</span><span class="ln" data-line="5"><span class="hljs-keyword">import</span> java.util.PriorityQueue;</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">kthLargest</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums, <span class="hljs-type">int</span> k)</span> {</span><span class="ln" data-line="10">        <span class="hljs-type">PriorityQueue</span>&lt;Integer&gt; <span class="hljs-variable">heap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;(); <span class="hljs-comment">// min-heap of the k largest so far</span></span><span class="ln" data-line="11">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : nums) {</span><span class="ln" data-line="12">            heap.offer(x);</span><span class="ln" data-line="13">            <span class="hljs-keyword">if</span> (heap.size() &gt; k) heap.poll(); <span class="hljs-comment">// drop the weakest</span></span><span class="ln" data-line="14">        }</span><span class="ln" data-line="15">        <span class="hljs-keyword">return</span> heap.peek();</span><span class="ln" data-line="16">    }</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-title function_">topKFrequent</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums, <span class="hljs-type">int</span> k)</span> {</span><span class="ln" data-line="19">        <span class="hljs-type">Map</span>&lt;Integer, Integer&gt; <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();</span><span class="ln" data-line="20">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : nums) count.merge(x, <span class="hljs-number">1</span>, Integer::sum);</span><span class="ln" data-line="21">        <span class="hljs-type">PriorityQueue</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">heap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;((a, b) -&gt; Integer.compare(a[<span class="hljs-number">1</span>], b[<span class="hljs-number">1</span>])); <span class="hljs-comment">// {value, count}</span></span><span class="ln" data-line="22">        <span class="hljs-keyword">for</span> (Map.Entry&lt;Integer, Integer&gt; e : count.entrySet()) {</span><span class="ln" data-line="23">            heap.offer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { e.getKey(), e.getValue() });</span><span class="ln" data-line="24">            <span class="hljs-keyword">if</span> (heap.size() &gt; k) heap.poll();</span><span class="ln" data-line="25">        }</span><span class="ln" data-line="26">        <span class="hljs-type">List</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">top</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(heap);</span><span class="ln" data-line="27">        top.sort((a, b) -&gt; Integer.compare(b[<span class="hljs-number">1</span>], a[<span class="hljs-number">1</span>]));</span><span class="ln" data-line="28">        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="29">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] t : top) out.add(t[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="30">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="31">    }</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-title function_">kClosest</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] points, <span class="hljs-type">int</span> k)</span> {</span><span class="ln" data-line="34">        <span class="hljs-type">PriorityQueue</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">heap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;((a, b) -&gt; Integer.compare(dist(b), dist(a))); <span class="hljs-comment">// max-heap by distance</span></span><span class="ln" data-line="35">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] p : points) {</span><span class="ln" data-line="36">            heap.offer(p);</span><span class="ln" data-line="37">            <span class="hljs-keyword">if</span> (heap.size() &gt; k) heap.poll(); <span class="hljs-comment">// drop the farthest</span></span><span class="ln" data-line="38">        }</span><span class="ln" data-line="39">        <span class="hljs-type">List</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(heap);</span><span class="ln" data-line="40">        out.sort((a, b) -&gt; Integer.compare(dist(a), dist(b)));</span><span class="ln" data-line="41">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="42">    }</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">dist</span><span class="hljs-params">(<span class="hljs-type">int</span>[] p)</span> { <span class="hljs-keyword">return</span> p[<span class="hljs-number">0</span>] * p[<span class="hljs-number">0</span>] + p[<span class="hljs-number">1</span>] * p[<span class="hljs-number">1</span>]; } <span class="hljs-comment">// squared: no sqrt needed</span></span><span class="ln" data-line="45"> </span><span class="ln" data-line="46">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">fmt</span><span class="hljs-params">(List&lt;<span class="hljs-type">int</span>[]&gt; pts)</span> {</span><span class="ln" data-line="47">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="48">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] p : pts) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(<span class="hljs-string">&quot;[&quot;</span>).append(p[<span class="hljs-number">0</span>]).append(<span class="hljs-string">&quot;,&quot;</span>).append(p[<span class="hljs-number">1</span>]).append(<span class="hljs-string">&quot;]&quot;</span>);</span><span class="ln" data-line="49">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="50">    }</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="53">        System.out.println(<span class="hljs-string">&quot;2nd largest of 3 2 1 5 6 4: &quot;</span> + kthLargest(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span> }, <span class="hljs-number">2</span>)</span><span class="ln" data-line="54">                + <span class="hljs-string">&quot;, 4th largest of 3 2 3 1 2 4 5 5 6: &quot;</span> + kthLargest(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span> }, <span class="hljs-number">4</span>));</span><span class="ln" data-line="55">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="56">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : topKFrequent(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span> }, <span class="hljs-number">2</span>)) f.append(f.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(x);</span><span class="ln" data-line="57">        System.out.println(<span class="hljs-string">&quot;2 most frequent in 1 1 1 2 2 3: &quot;</span> + f);</span><span class="ln" data-line="58">        System.out.println(<span class="hljs-string">&quot;closest point to the origin of [1,3] [-2,2]: &quot;</span> + fmt(kClosest(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">3</span> }, { -<span class="hljs-number">2</span>, <span class="hljs-number">2</span> } }, <span class="hljs-number">1</span>)));</span><span class="ln" data-line="59">        System.out.println(<span class="hljs-string">&quot;2 closest of [3,3] [5,-1] [-2,4]: &quot;</span> + fmt(kClosest(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">3</span>, <span class="hljs-number">3</span> }, { <span class="hljs-number">5</span>, -<span class="hljs-number">1</span> }, { -<span class="hljs-number">2</span>, <span class="hljs-number">4</span> } }, <span class="hljs-number">2</span>)));</span><span class="ln" data-line="60">    }</span><span class="ln" data-line="61">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+
+public class Solution {
+
+    static int kthLargest(int[] nums, int k) {
+        PriorityQueue&lt;Integer&gt; heap = new PriorityQueue&lt;&gt;(); // min-heap of the k largest so far
+        for (int x : nums) {
+            heap.offer(x);
+            if (heap.size() &gt; k) heap.poll(); // drop the weakest
+        }
+        return heap.peek();
+    }
+
+    static List&lt;Integer&gt; topKFrequent(int[] nums, int k) {
+        Map&lt;Integer, Integer&gt; count = new HashMap&lt;&gt;();
+        for (int x : nums) count.merge(x, 1, Integer::sum);
+        PriorityQueue&lt;int[]&gt; heap = new PriorityQueue&lt;&gt;((a, b) -&gt; Integer.compare(a[1], b[1])); // {value, count}
+        for (Map.Entry&lt;Integer, Integer&gt; e : count.entrySet()) {
+            heap.offer(new int[] { e.getKey(), e.getValue() });
+            if (heap.size() &gt; k) heap.poll();
+        }
+        List&lt;int[]&gt; top = new ArrayList&lt;&gt;(heap);
+        top.sort((a, b) -&gt; Integer.compare(b[1], a[1]));
+        List&lt;Integer&gt; out = new ArrayList&lt;&gt;();
+        for (int[] t : top) out.add(t[0]);
+        return out;
+    }
+
+    static List&lt;int[]&gt; kClosest(int[][] points, int k) {
+        PriorityQueue&lt;int[]&gt; heap = new PriorityQueue&lt;&gt;((a, b) -&gt; Integer.compare(dist(b), dist(a))); // max-heap by distance
+        for (int[] p : points) {
+            heap.offer(p);
+            if (heap.size() &gt; k) heap.poll(); // drop the farthest
+        }
+        List&lt;int[]&gt; out = new ArrayList&lt;&gt;(heap);
+        out.sort((a, b) -&gt; Integer.compare(dist(a), dist(b)));
+        return out;
+    }
+
+    static int dist(int[] p) { return p[0] * p[0] + p[1] * p[1]; } // squared: no sqrt needed
+
+    static String fmt(List&lt;int[]&gt; pts) {
+        StringBuilder sb = new StringBuilder();
+        for (int[] p : pts) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(&quot;[&quot;).append(p[0]).append(&quot;,&quot;).append(p[1]).append(&quot;]&quot;);
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;2nd largest of 3 2 1 5 6 4: &quot; + kthLargest(new int[] { 3, 2, 1, 5, 6, 4 }, 2)
+                + &quot;, 4th largest of 3 2 3 1 2 4 5 5 6: &quot; + kthLargest(new int[] { 3, 2, 3, 1, 2, 4, 5, 5, 6 }, 4));
+        StringBuilder f = new StringBuilder();
+        for (int x : topKFrequent(new int[] { 1, 1, 1, 2, 2, 3 }, 2)) f.append(f.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(x);
+        System.out.println(&quot;2 most frequent in 1 1 1 2 2 3: &quot; + f);
+        System.out.println(&quot;closest point to the origin of [1,3] [-2,2]: &quot; + fmt(kClosest(new int[][] { { 1, 3 }, { -2, 2 } }, 1)));
+        System.out.println(&quot;2 closest of [3,3] [5,-1] [-2,4]: &quot; + fmt(kClosest(new int[][] { { 3, 3 }, { 5, -1 }, { -2, 4 } }, 2)));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-top-k-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Binary heap; less(a, b) says whether a should come out before b. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Heap</span> {</span><span class="ln" data-line="3">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">less</span>) {</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span> = [];</span><span class="ln" data-line="5">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>() {</span><span class="ln" data-line="8">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="9">  }</span><span class="ln" data-line="10">  <span class="hljs-title function_">peek</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="11">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="12">  }</span><span class="ln" data-line="13">  <span class="hljs-title function_">push</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="14">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="15">    a.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="16">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt; <span class="hljs-number">0</span>; ) {</span><span class="ln" data-line="17">      <span class="hljs-keyword">const</span> p = (i - <span class="hljs-number">1</span>) &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="18">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[i], a[p])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="19">      [a[i], a[p]] = [a[p], a[i]];</span><span class="ln" data-line="20">      i = p;</span><span class="ln" data-line="21">    }</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">  <span class="hljs-title function_">pop</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="24">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="25">    <span class="hljs-keyword">const</span> top = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> last = a.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="27">    <span class="hljs-keyword">if</span> (a.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="28">      a[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="29">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; ) {</span><span class="ln" data-line="30">        <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="31">        <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="32">        <span class="hljs-keyword">let</span> m = i;</span><span class="ln" data-line="33">        <span class="hljs-keyword">if</span> (l &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[l], a[m])) m = l;</span><span class="ln" data-line="34">        <span class="hljs-keyword">if</span> (r &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[r], a[m])) m = r;</span><span class="ln" data-line="35">        <span class="hljs-keyword">if</span> (m === i) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="36">        [a[i], a[m]] = [a[m], a[i]];</span><span class="ln" data-line="37">        i = m;</span><span class="ln" data-line="38">      }</span><span class="ln" data-line="39">    }</span><span class="ln" data-line="40">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="41">  }</span><span class="ln" data-line="42">}</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kthLargest</span>(<span class="hljs-params">nums, k</span>) {</span><span class="ln" data-line="45">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a &lt; b); <span class="hljs-comment">// min-heap of the k largest so far</span></span><span class="ln" data-line="46">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) {</span><span class="ln" data-line="47">    heap.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="48">    <span class="hljs-keyword">if</span> (heap.<span class="hljs-property">size</span> &gt; k) heap.<span class="hljs-title function_">pop</span>(); <span class="hljs-comment">// drop the weakest</span></span><span class="ln" data-line="49">  }</span><span class="ln" data-line="50">  <span class="hljs-keyword">return</span> heap.<span class="hljs-title function_">peek</span>();</span><span class="ln" data-line="51">}</span><span class="ln" data-line="52"> </span><span class="ln" data-line="53"><span class="hljs-keyword">function</span> <span class="hljs-title function_">topKFrequent</span>(<span class="hljs-params">nums, k</span>) {</span><span class="ln" data-line="54">  <span class="hljs-keyword">const</span> count = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>();</span><span class="ln" data-line="55">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) count.<span class="hljs-title function_">set</span>(x, (count.<span class="hljs-title function_">get</span>(x) ?? <span class="hljs-number">0</span>) + <span class="hljs-number">1</span>);</span><span class="ln" data-line="56">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">1</span>] &lt; b[<span class="hljs-number">1</span>]); <span class="hljs-comment">// [value, count], fewest first</span></span><span class="ln" data-line="57">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> entry <span class="hljs-keyword">of</span> count) {</span><span class="ln" data-line="58">    heap.<span class="hljs-title function_">push</span>(entry);</span><span class="ln" data-line="59">    <span class="hljs-keyword">if</span> (heap.<span class="hljs-property">size</span> &gt; k) heap.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="60">  }</span><span class="ln" data-line="61">  <span class="hljs-keyword">const</span> top = [];</span><span class="ln" data-line="62">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) top.<span class="hljs-title function_">push</span>(heap.<span class="hljs-title function_">pop</span>());</span><span class="ln" data-line="63">  <span class="hljs-keyword">return</span> top.<span class="hljs-title function_">reverse</span>().<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">[value]</span>) =&gt;</span> value); <span class="hljs-comment">// most frequent first</span></span><span class="ln" data-line="64">}</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66"><span class="hljs-keyword">const</span> <span class="hljs-title function_">dist</span> = (<span class="hljs-params">[x, y]</span>) =&gt; x * x + y * y; <span class="hljs-comment">// squared: no sqrt needed</span></span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kClosest</span>(<span class="hljs-params">points, k</span>) {</span><span class="ln" data-line="69">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> <span class="hljs-title function_">dist</span>(a) &gt; <span class="hljs-title function_">dist</span>(b)); <span class="hljs-comment">// max-heap by distance</span></span><span class="ln" data-line="70">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> p <span class="hljs-keyword">of</span> points) {</span><span class="ln" data-line="71">    heap.<span class="hljs-title function_">push</span>(p);</span><span class="ln" data-line="72">    <span class="hljs-keyword">if</span> (heap.<span class="hljs-property">size</span> &gt; k) heap.<span class="hljs-title function_">pop</span>(); <span class="hljs-comment">// drop the farthest</span></span><span class="ln" data-line="73">  }</span><span class="ln" data-line="74">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="75">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) out.<span class="hljs-title function_">push</span>(heap.<span class="hljs-title function_">pop</span>());</span><span class="ln" data-line="76">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">reverse</span>(); <span class="hljs-comment">// nearest first</span></span><span class="ln" data-line="77">}</span><span class="ln" data-line="78"> </span><span class="ln" data-line="79"><span class="hljs-keyword">const</span> <span class="hljs-title function_">fmt</span> = (<span class="hljs-params">pts</span>) =&gt; pts.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">[x, y]</span>) =&gt;</span> <span class="hljs-string">`[<span class="hljs-subst">${x}</span>,<span class="hljs-subst">${y}</span>]`</span>).<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="80"> </span><span class="ln" data-line="81"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="82">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`2nd largest of 3 2 1 5 6 4: <span class="hljs-subst">${kthLargest([<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span>], <span class="hljs-number">2</span>)}</span>, 4th largest of 3 2 3 1 2 4 5 5 6: <span class="hljs-subst">${kthLargest([<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>], <span class="hljs-number">4</span>)}</span>`</span>);</span><span class="ln" data-line="83">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`2 most frequent in 1 1 1 2 2 3: <span class="hljs-subst">${topKFrequent([<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>], <span class="hljs-number">2</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="84">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`closest point to the origin of [1,3] [-2,2]: <span class="hljs-subst">${fmt(kClosest([[<span class="hljs-number">1</span>, <span class="hljs-number">3</span>], [-<span class="hljs-number">2</span>, <span class="hljs-number">2</span>]], <span class="hljs-number">1</span>))}</span>`</span>);</span><span class="ln" data-line="85">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`2 closest of [3,3] [5,-1] [-2,4]: <span class="hljs-subst">${fmt(kClosest([[<span class="hljs-number">3</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">5</span>, -<span class="hljs-number">1</span>], [-<span class="hljs-number">2</span>, <span class="hljs-number">4</span>]], <span class="hljs-number">2</span>))}</span>`</span>);</span><span class="ln" data-line="86">}</span><span class="ln" data-line="87"> </span><span class="ln" data-line="88"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Binary heap; less(a, b) says whether a should come out before b. */
+class Heap {
+  constructor(less) {
+    this.a = [];
+    this.less = less;
+  }
+  get size() {
+    return this.a.length;
+  }
+  peek() {
+    return this.a[0];
+  }
+  push(x) {
+    const a = this.a;
+    a.push(x);
+    for (let i = a.length - 1; i &gt; 0; ) {
+      const p = (i - 1) &gt;&gt; 1;
+      if (!this.less(a[i], a[p])) break;
+      [a[i], a[p]] = [a[p], a[i]];
+      i = p;
+    }
+  }
+  pop() {
+    const a = this.a;
+    const top = a[0];
+    const last = a.pop();
+    if (a.length &gt; 0) {
+      a[0] = last;
+      for (let i = 0; ; ) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l &lt; a.length &amp;&amp; this.less(a[l], a[m])) m = l;
+        if (r &lt; a.length &amp;&amp; this.less(a[r], a[m])) m = r;
+        if (m === i) break;
+        [a[i], a[m]] = [a[m], a[i]];
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
+function kthLargest(nums, k) {
+  const heap = new Heap((a, b) =&gt; a &lt; b); // min-heap of the k largest so far
+  for (const x of nums) {
+    heap.push(x);
+    if (heap.size &gt; k) heap.pop(); // drop the weakest
+  }
+  return heap.peek();
+}
+
+function topKFrequent(nums, k) {
+  const count = new Map();
+  for (const x of nums) count.set(x, (count.get(x) ?? 0) + 1);
+  const heap = new Heap((a, b) =&gt; a[1] &lt; b[1]); // [value, count], fewest first
+  for (const entry of count) {
+    heap.push(entry);
+    if (heap.size &gt; k) heap.pop();
+  }
+  const top = [];
+  while (heap.size &gt; 0) top.push(heap.pop());
+  return top.reverse().map(([value]) =&gt; value); // most frequent first
+}
+
+const dist = ([x, y]) =&gt; x * x + y * y; // squared: no sqrt needed
+
+function kClosest(points, k) {
+  const heap = new Heap((a, b) =&gt; dist(a) &gt; dist(b)); // max-heap by distance
+  for (const p of points) {
+    heap.push(p);
+    if (heap.size &gt; k) heap.pop(); // drop the farthest
+  }
+  const out = [];
+  while (heap.size &gt; 0) out.push(heap.pop());
+  return out.reverse(); // nearest first
+}
+
+const fmt = (pts) =&gt; pts.map(([x, y]) =&gt; `[${x},${y}]`).join(&quot; &quot;);
+
+function main() {
+  console.log(`2nd largest of 3 2 1 5 6 4: ${kthLargest([3, 2, 1, 5, 6, 4], 2)}, 4th largest of 3 2 3 1 2 4 5 5 6: ${kthLargest([3, 2, 3, 1, 2, 4, 5, 5, 6], 4)}`);
+  console.log(`2 most frequent in 1 1 1 2 2 3: ${topKFrequent([1, 1, 1, 2, 2, 3], 2).join(&quot; &quot;)}`);
+  console.log(`closest point to the origin of [1,3] [-2,2]: ${fmt(kClosest([[1, 3], [-2, 2]], 1))}`);
+  console.log(`2 closest of [3,3] [5,-1] [-2,4]: ${fmt(kClosest([[3, 3], [5, -1], [-2, 4]], 2))}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-top-k-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Binary heap; less(a, b) says whether a should come out before b. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Heap</span>&lt;T&gt; {</span><span class="ln" data-line="3">  <span class="hljs-keyword">private</span> <span class="hljs-attr">a</span>: T[] = [];</span><span class="ln" data-line="4">  <span class="hljs-keyword">private</span> <span class="hljs-attr">less</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">x</span>: T, <span class="hljs-attr">y</span>: T</span>) =&gt;</span> <span class="hljs-built_in">boolean</span>;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">less</span>: (x: T, y: T) =&gt; <span class="hljs-built_in">boolean</span></span>) {</span><span class="ln" data-line="7">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="8">  }</span><span class="ln" data-line="9">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="10">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="11">  }</span><span class="ln" data-line="12">  <span class="hljs-title function_">peek</span>(): T {</span><span class="ln" data-line="13">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="14">  }</span><span class="ln" data-line="15">  <span class="hljs-title function_">push</span>(<span class="hljs-attr">x</span>: T): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="16">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="17">    a.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="18">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt; <span class="hljs-number">0</span>; ) {</span><span class="ln" data-line="19">      <span class="hljs-keyword">const</span> p = (i - <span class="hljs-number">1</span>) &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="20">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[i], a[p])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="21">      [a[i], a[p]] = [a[p], a[i]];</span><span class="ln" data-line="22">      i = p;</span><span class="ln" data-line="23">    }</span><span class="ln" data-line="24">  }</span><span class="ln" data-line="25">  <span class="hljs-title function_">pop</span>(): T {</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="27">    <span class="hljs-keyword">const</span> top = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="28">    <span class="hljs-keyword">const</span> last = a.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> T;</span><span class="ln" data-line="29">    <span class="hljs-keyword">if</span> (a.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="30">      a[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="31">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; ) {</span><span class="ln" data-line="32">        <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="33">        <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="34">        <span class="hljs-keyword">let</span> m = i;</span><span class="ln" data-line="35">        <span class="hljs-keyword">if</span> (l &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[l], a[m])) m = l;</span><span class="ln" data-line="36">        <span class="hljs-keyword">if</span> (r &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[r], a[m])) m = r;</span><span class="ln" data-line="37">        <span class="hljs-keyword">if</span> (m === i) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="38">        [a[i], a[m]] = [a[m], a[i]];</span><span class="ln" data-line="39">        i = m;</span><span class="ln" data-line="40">      }</span><span class="ln" data-line="41">    }</span><span class="ln" data-line="42">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="43">  }</span><span class="ln" data-line="44">}</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">type</span> <span class="hljs-title class_">Point</span> = [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>];</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kthLargest</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="49">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;<span class="hljs-built_in">number</span>&gt;(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a &lt; b); <span class="hljs-comment">// min-heap of the k largest so far</span></span><span class="ln" data-line="50">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) {</span><span class="ln" data-line="51">    heap.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="52">    <span class="hljs-keyword">if</span> (heap.<span class="hljs-property">size</span> &gt; k) heap.<span class="hljs-title function_">pop</span>(); <span class="hljs-comment">// drop the weakest</span></span><span class="ln" data-line="53">  }</span><span class="ln" data-line="54">  <span class="hljs-keyword">return</span> heap.<span class="hljs-title function_">peek</span>();</span><span class="ln" data-line="55">}</span><span class="ln" data-line="56"> </span><span class="ln" data-line="57"><span class="hljs-keyword">function</span> <span class="hljs-title function_">topKFrequent</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="58">  <span class="hljs-keyword">const</span> count = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>&gt;();</span><span class="ln" data-line="59">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> x <span class="hljs-keyword">of</span> nums) count.<span class="hljs-title function_">set</span>(x, (count.<span class="hljs-title function_">get</span>(x) ?? <span class="hljs-number">0</span>) + <span class="hljs-number">1</span>);</span><span class="ln" data-line="60">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;[<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>]&gt;(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">1</span>] &lt; b[<span class="hljs-number">1</span>]); <span class="hljs-comment">// [value, count], fewest first</span></span><span class="ln" data-line="61">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> entry <span class="hljs-keyword">of</span> count) {</span><span class="ln" data-line="62">    heap.<span class="hljs-title function_">push</span>(entry);</span><span class="ln" data-line="63">    <span class="hljs-keyword">if</span> (heap.<span class="hljs-property">size</span> &gt; k) heap.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="64">  }</span><span class="ln" data-line="65">  <span class="hljs-keyword">const</span> <span class="hljs-attr">top</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [];</span><span class="ln" data-line="66">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) top.<span class="hljs-title function_">push</span>(heap.<span class="hljs-title function_">pop</span>());</span><span class="ln" data-line="67">  <span class="hljs-keyword">return</span> top.<span class="hljs-title function_">reverse</span>().<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">[value]</span>) =&gt;</span> value); <span class="hljs-comment">// most frequent first</span></span><span class="ln" data-line="68">}</span><span class="ln" data-line="69"> </span><span class="ln" data-line="70"><span class="hljs-keyword">const</span> dist = ([x, y]: <span class="hljs-title class_">Point</span>): <span class="hljs-function"><span class="hljs-params">number</span> =&gt;</span> x * x + y * y; <span class="hljs-comment">// squared: no sqrt needed</span></span><span class="ln" data-line="71"> </span><span class="ln" data-line="72"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kClosest</span>(<span class="hljs-params"><span class="hljs-attr">points</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Point</span>[], <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-title class_">Point</span>[] {</span><span class="ln" data-line="73">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;<span class="hljs-title class_">Point</span>&gt;(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> <span class="hljs-title function_">dist</span>(a) &gt; <span class="hljs-title function_">dist</span>(b)); <span class="hljs-comment">// max-heap by distance</span></span><span class="ln" data-line="74">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> p <span class="hljs-keyword">of</span> points) {</span><span class="ln" data-line="75">    heap.<span class="hljs-title function_">push</span>(p);</span><span class="ln" data-line="76">    <span class="hljs-keyword">if</span> (heap.<span class="hljs-property">size</span> &gt; k) heap.<span class="hljs-title function_">pop</span>(); <span class="hljs-comment">// drop the farthest</span></span><span class="ln" data-line="77">  }</span><span class="ln" data-line="78">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-title class_">Point</span>[] = [];</span><span class="ln" data-line="79">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) out.<span class="hljs-title function_">push</span>(heap.<span class="hljs-title function_">pop</span>());</span><span class="ln" data-line="80">  <span class="hljs-keyword">return</span> out.<span class="hljs-title function_">reverse</span>(); <span class="hljs-comment">// nearest first</span></span><span class="ln" data-line="81">}</span><span class="ln" data-line="82"> </span><span class="ln" data-line="83"><span class="hljs-keyword">const</span> fmt = (<span class="hljs-attr">pts</span>: <span class="hljs-title class_">Point</span>[]): <span class="hljs-function"><span class="hljs-params">string</span> =&gt;</span> pts.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">[x, y]</span>) =&gt;</span> <span class="hljs-string">`[<span class="hljs-subst">${x}</span>,<span class="hljs-subst">${y}</span>]`</span>).<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="84"> </span><span class="ln" data-line="85"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="86">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`2nd largest of 3 2 1 5 6 4: <span class="hljs-subst">${kthLargest([<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span>], <span class="hljs-number">2</span>)}</span>, 4th largest of 3 2 3 1 2 4 5 5 6: <span class="hljs-subst">${kthLargest([<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>], <span class="hljs-number">4</span>)}</span>`</span>);</span><span class="ln" data-line="87">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`2 most frequent in 1 1 1 2 2 3: <span class="hljs-subst">${topKFrequent([<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>], <span class="hljs-number">2</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="88">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`closest point to the origin of [1,3] [-2,2]: <span class="hljs-subst">${fmt(kClosest([[<span class="hljs-number">1</span>, <span class="hljs-number">3</span>], [-<span class="hljs-number">2</span>, <span class="hljs-number">2</span>]], <span class="hljs-number">1</span>))}</span>`</span>);</span><span class="ln" data-line="89">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`2 closest of [3,3] [5,-1] [-2,4]: <span class="hljs-subst">${fmt(kClosest([[<span class="hljs-number">3</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">5</span>, -<span class="hljs-number">1</span>], [-<span class="hljs-number">2</span>, <span class="hljs-number">4</span>]], <span class="hljs-number">2</span>))}</span>`</span>);</span><span class="ln" data-line="90">}</span><span class="ln" data-line="91"> </span><span class="ln" data-line="92"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Binary heap; less(a, b) says whether a should come out before b. */
+class Heap&lt;T&gt; {
+  private a: T[] = [];
+  private less: (x: T, y: T) =&gt; boolean;
+
+  constructor(less: (x: T, y: T) =&gt; boolean) {
+    this.less = less;
+  }
+  get size(): number {
+    return this.a.length;
+  }
+  peek(): T {
+    return this.a[0];
+  }
+  push(x: T): void {
+    const a = this.a;
+    a.push(x);
+    for (let i = a.length - 1; i &gt; 0; ) {
+      const p = (i - 1) &gt;&gt; 1;
+      if (!this.less(a[i], a[p])) break;
+      [a[i], a[p]] = [a[p], a[i]];
+      i = p;
+    }
+  }
+  pop(): T {
+    const a = this.a;
+    const top = a[0];
+    const last = a.pop() as T;
+    if (a.length &gt; 0) {
+      a[0] = last;
+      for (let i = 0; ; ) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l &lt; a.length &amp;&amp; this.less(a[l], a[m])) m = l;
+        if (r &lt; a.length &amp;&amp; this.less(a[r], a[m])) m = r;
+        if (m === i) break;
+        [a[i], a[m]] = [a[m], a[i]];
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
+type Point = [number, number];
+
+function kthLargest(nums: readonly number[], k: number): number {
+  const heap = new Heap&lt;number&gt;((a, b) =&gt; a &lt; b); // min-heap of the k largest so far
+  for (const x of nums) {
+    heap.push(x);
+    if (heap.size &gt; k) heap.pop(); // drop the weakest
+  }
+  return heap.peek();
+}
+
+function topKFrequent(nums: readonly number[], k: number): number[] {
+  const count = new Map&lt;number, number&gt;();
+  for (const x of nums) count.set(x, (count.get(x) ?? 0) + 1);
+  const heap = new Heap&lt;[number, number]&gt;((a, b) =&gt; a[1] &lt; b[1]); // [value, count], fewest first
+  for (const entry of count) {
+    heap.push(entry);
+    if (heap.size &gt; k) heap.pop();
+  }
+  const top: [number, number][] = [];
+  while (heap.size &gt; 0) top.push(heap.pop());
+  return top.reverse().map(([value]) =&gt; value); // most frequent first
+}
+
+const dist = ([x, y]: Point): number =&gt; x * x + y * y; // squared: no sqrt needed
+
+function kClosest(points: readonly Point[], k: number): Point[] {
+  const heap = new Heap&lt;Point&gt;((a, b) =&gt; dist(a) &gt; dist(b)); // max-heap by distance
+  for (const p of points) {
+    heap.push(p);
+    if (heap.size &gt; k) heap.pop(); // drop the farthest
+  }
+  const out: Point[] = [];
+  while (heap.size &gt; 0) out.push(heap.pop());
+  return out.reverse(); // nearest first
+}
+
+const fmt = (pts: Point[]): string =&gt; pts.map(([x, y]) =&gt; `[${x},${y}]`).join(&quot; &quot;);
+
+function main(): void {
+  console.log(`2nd largest of 3 2 1 5 6 4: ${kthLargest([3, 2, 1, 5, 6, 4], 2)}, 4th largest of 3 2 3 1 2 4 5 5 6: ${kthLargest([3, 2, 3, 1, 2, 4, 5, 5, 6], 4)}`);
+  console.log(`2 most frequent in 1 1 1 2 2 3: ${topKFrequent([1, 1, 1, 2, 2, 3], 2).join(&quot; &quot;)}`);
+  console.log(`closest point to the origin of [1,3] [-2,2]: ${fmt(kClosest([[1, 3], [-2, 2]], 1))}`);
+  console.log(`2 closest of [3,3] [5,-1] [-2,4]: ${fmt(kClosest([[3, 3], [5, -1], [-2, 4]], 2))}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-top-k-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> heapq</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> Counter</span><span class="ln" data-line="3"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"><span class="hljs-keyword">def</span> <span class="hljs-title function_">kth_largest</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="7">    heap: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>] = []  <span class="hljs-comment"># min-heap of the k largest so far</span></span><span class="ln" data-line="8">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> nums:</span><span class="ln" data-line="9">        heapq.heappush(heap, x)</span><span class="ln" data-line="10">        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(heap) &gt; k:</span><span class="ln" data-line="11">            heapq.heappop(heap)  <span class="hljs-comment"># drop the weakest</span></span><span class="ln" data-line="12">    <span class="hljs-keyword">return</span> heap[<span class="hljs-number">0</span>]</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"> </span><span class="ln" data-line="15"><span class="hljs-keyword">def</span> <span class="hljs-title function_">top_k_frequent</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="16">    heap: <span class="hljs-type">List</span>[<span class="hljs-built_in">tuple</span>] = []  <span class="hljs-comment"># (count, value), fewest first</span></span><span class="ln" data-line="17">    <span class="hljs-keyword">for</span> value, cnt <span class="hljs-keyword">in</span> Counter(nums).items():</span><span class="ln" data-line="18">        heapq.heappush(heap, (cnt, value))</span><span class="ln" data-line="19">        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(heap) &gt; k:</span><span class="ln" data-line="20">            heapq.heappop(heap)</span><span class="ln" data-line="21">    <span class="hljs-keyword">return</span> [value <span class="hljs-keyword">for</span> cnt, value <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(heap, reverse=<span class="hljs-literal">True</span>)]  <span class="hljs-comment"># most frequent first</span></span><span class="ln" data-line="22"> </span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">def</span> <span class="hljs-title function_">k_closest</span>(<span class="hljs-params">points: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]], k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]:</span><span class="ln" data-line="25">    heap: <span class="hljs-type">List</span>[<span class="hljs-built_in">tuple</span>] = []  <span class="hljs-comment"># (-distance, x, y): a max-heap by distance</span></span><span class="ln" data-line="26">    <span class="hljs-keyword">for</span> x, y <span class="hljs-keyword">in</span> points:</span><span class="ln" data-line="27">        heapq.heappush(heap, (-(x * x + y * y), x, y))  <span class="hljs-comment"># squared: no sqrt needed</span></span><span class="ln" data-line="28">        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(heap) &gt; k:</span><span class="ln" data-line="29">            heapq.heappop(heap)  <span class="hljs-comment"># drop the farthest</span></span><span class="ln" data-line="30">    <span class="hljs-keyword">return</span> [[x, y] <span class="hljs-keyword">for</span> d, x, y <span class="hljs-keyword">in</span> <span class="hljs-built_in">sorted</span>(heap, reverse=<span class="hljs-literal">True</span>)]  <span class="hljs-comment"># nearest first</span></span><span class="ln" data-line="31"> </span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"><span class="hljs-keyword">def</span> <span class="hljs-title function_">fmt</span>(<span class="hljs-params">pts: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="34">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; &quot;</span>.join(<span class="hljs-string">f&quot;[<span class="hljs-subst">{x}</span>,<span class="hljs-subst">{y}</span>]&quot;</span> <span class="hljs-keyword">for</span> x, y <span class="hljs-keyword">in</span> pts)</span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="38">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;2nd largest of 3 2 1 5 6 4: <span class="hljs-subst">{kth_largest([<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">4</span>], <span class="hljs-number">2</span>)}</span>, 4th largest of 3 2 3 1 2 4 5 5 6: <span class="hljs-subst">{kth_largest([<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>], <span class="hljs-number">4</span>)}</span>&quot;</span>)</span><span class="ln" data-line="39">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;2 most frequent in 1 1 1 2 2 3: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, top_k_frequent([<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>], <span class="hljs-number">2</span>)))}</span>&quot;</span>)</span><span class="ln" data-line="40">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;closest point to the origin of [1,3] [-2,2]: <span class="hljs-subst">{fmt(k_closest([[<span class="hljs-number">1</span>, <span class="hljs-number">3</span>], [-<span class="hljs-number">2</span>, <span class="hljs-number">2</span>]], <span class="hljs-number">1</span>))}</span>&quot;</span>)</span><span class="ln" data-line="41">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;2 closest of [3,3] [5,-1] [-2,4]: <span class="hljs-subst">{fmt(k_closest([[<span class="hljs-number">3</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">5</span>, -<span class="hljs-number">1</span>], [-<span class="hljs-number">2</span>, <span class="hljs-number">4</span>]], <span class="hljs-number">2</span>))}</span>&quot;</span>)</span><span class="ln" data-line="42"> </span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="45">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import heapq
+from collections import Counter
+from typing import List
+
+
+def kth_largest(nums: List[int], k: int) -&gt; int:
+    heap: List[int] = []  # min-heap of the k largest so far
+    for x in nums:
+        heapq.heappush(heap, x)
+        if len(heap) &gt; k:
+            heapq.heappop(heap)  # drop the weakest
+    return heap[0]
+
+
+def top_k_frequent(nums: List[int], k: int) -&gt; List[int]:
+    heap: List[tuple] = []  # (count, value), fewest first
+    for value, cnt in Counter(nums).items():
+        heapq.heappush(heap, (cnt, value))
+        if len(heap) &gt; k:
+            heapq.heappop(heap)
+    return [value for cnt, value in sorted(heap, reverse=True)]  # most frequent first
+
+
+def k_closest(points: List[List[int]], k: int) -&gt; List[List[int]]:
+    heap: List[tuple] = []  # (-distance, x, y): a max-heap by distance
+    for x, y in points:
+        heapq.heappush(heap, (-(x * x + y * y), x, y))  # squared: no sqrt needed
+        if len(heap) &gt; k:
+            heapq.heappop(heap)  # drop the farthest
+    return [[x, y] for d, x, y in sorted(heap, reverse=True)]  # nearest first
+
+
+def fmt(pts: List[List[int]]) -&gt; str:
+    return &quot; &quot;.join(f&quot;[{x},{y}]&quot; for x, y in pts)
+
+
+def main() -&gt; None:
+    print(f&quot;2nd largest of 3 2 1 5 6 4: {kth_largest([3, 2, 1, 5, 6, 4], 2)}, 4th largest of 3 2 3 1 2 4 5 5 6: {kth_largest([3, 2, 3, 1, 2, 4, 5, 5, 6], 4)}&quot;)
+    print(f&quot;2 most frequent in 1 1 1 2 2 3: {&#39; &#39;.join(map(str, top_k_frequent([1, 1, 1, 2, 2, 3], 2)))}&quot;)
+    print(f&quot;closest point to the origin of [1,3] [-2,2]: {fmt(k_closest([[1, 3], [-2, 2]], 1))}&quot;)
+    print(f&quot;2 closest of [3,3] [5,-1] [-2,4]: {fmt(k_closest([[3, 3], [5, -1], [-2, 4]], 2))}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>2nd largest of 3 2 1 5 6 4: 5, 4th largest of 3 2 3 1 2 4 5 5 6: 4
+2 most frequent in 1 1 1 2 2 3: 1 2
+closest point to the origin of [1,3] [-2,2]: [-2,2]
+2 closest of [3,3] [5,-1] [-2,4]: [3,3] [-2,4]</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Using a max-heap of everything and popping k times: correct but O(n + k log n) memory and time, and misses the point in streams.</li><li>Forgetting to pop when the heap grows past k.</li><li>Comparing with subtraction in Java when values can overflow.</li><li>Returning the heap&#39;s internal order as if it were sorted.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/kth-largest-element-in-a-stream/" rel="noopener" target="_blank">Kth Largest Element in a Stream<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>703</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" rel="noopener" target="_blank">Kth Largest Element in an Array<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>215</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/top-k-frequent-elements/" rel="noopener" target="_blank">Top K Frequent Elements<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>347</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/k-closest-points-to-origin/" rel="noopener" target="_blank">K Closest Points to Origin<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>973</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/top-k-frequent-words/" rel="noopener" target="_blank">Top K Frequent Words<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>692</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/heaps/index.html">Heaps</a>, <a href="../../data-structures/hash-tables/index.html">Hash tables</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../modified-binary-search/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Modified binary search</span></a><a class="pn pn-next" href="../two-heaps/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Two heaps</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

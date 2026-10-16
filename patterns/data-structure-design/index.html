@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data structure design · DSA Academy</title>
+<meta name="description" content="Build LRU caches, min stacks and iterators.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Data structure design</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Data structure design</h1>
+  <p class="lede">Design questions ask you to build a class whose operations all meet a time limit, usually O(1). The answer is almost always two simple structures combined so that each covers the other&#39;s weak spot.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A library with both a card catalogue and a returns trolley. The catalogue finds any book instantly but knows nothing about order; the trolley knows exactly which book came back most recently but can&#39;t find anything. Together they answer both kinds of question quickly.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>&quot;Design a class&quot; with a list of operations and a required complexity for each.</li>
+<li>O(1) lookup <strong>and</strong> O(1) ordering (LRU, LFU).</li>
+<li>O(1) insert, delete <strong>and</strong> random choice (randomised set).</li>
+<li>A stack or queue that also reports its minimum, or a queue built from stacks.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">list each operation and its required cost
+for each one, pick the structure that already does it in that time:
+    lookup by key → hash map
+    order by recency / insertion → doubly linked list (with sentinels)
+    random access / random choice → dynamic array
+    min or max so far → a second stack, or a heap
+keep the structures in sync inside every method
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 680 170" role="img" aria-label="An LRU cache: a hash map from keys to nodes of a doubly linked list ordered from most to least recently used"><defs><marker id="ah2-dg-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head" d="M0 0L10 5L0 10z"/></marker><marker id="ah2-dg-head-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-head-a" d="M0 0L10 5L0 10z"/></marker></defs><text class="dg-lbl" x="20" y="24">map</text><rect class="dg-box" x="20" y="36" width="70" height="34" rx="6"/><text class="dg-s" x="55.0" y="53.0">k=3</text><rect class="dg-box" x="20" y="80" width="70" height="34" rx="6"/><text class="dg-s" x="55.0" y="97.0">k=4</text><rect class="dg-ghost" x="150" y="50" width="90" height="40" rx="6"/><text class="dg-s" x="195.0" y="70.0">head</text><path class="dg-line" d="M240 62 L270 62" marker-end="url(#ah2-dg-head)"/><path class="dg-line" d="M270 80 L240 80" marker-end="url(#ah2-dg-head)"/><rect class="dg-ok" x="270" y="50" width="90" height="40" rx="6"/><text class="dg-t" x="315.0" y="70.0">4:4</text><path class="dg-line" d="M360 62 L390 62" marker-end="url(#ah2-dg-head)"/><path class="dg-line" d="M390 80 L360 80" marker-end="url(#ah2-dg-head)"/><rect class="dg-ok" x="390" y="50" width="90" height="40" rx="6"/><text class="dg-t" x="435.0" y="70.0">3:3</text><path class="dg-line" d="M480 62 L510 62" marker-end="url(#ah2-dg-head)"/><path class="dg-line" d="M510 80 L480 80" marker-end="url(#ah2-dg-head)"/><rect class="dg-ghost" x="510" y="50" width="90" height="40" rx="6"/><text class="dg-s" x="555.0" y="70.0">tail</text><path class="dg-line-a" d="M90 53 C 130 53, 380 20, 435 48" marker-end="url(#ah2-dg-head-a)"/><path class="dg-line-a" d="M90 97 C 130 110, 280 120, 315 92" marker-end="url(#ah2-dg-head-a)"/><text class="dg-m" x="150" y="130">most recent</text><text class="dg-m dg-end" x="600" y="130">least recent: evict</text></svg><figcaption>The hash map finds a key's node in O(1). The doubly linked list keeps usage order: a hit moves the node to the front, and eviction removes the node before the tail sentinel.</figcaption></figure><ul>
+<li><strong>LRU cache</strong>: a hash map from key to list node gives O(1) lookup; a doubly
+linked list ordered by recency gives O(1) move-to-front and O(1) eviction.
+Sentinel head and tail nodes remove every edge case.</li>
+<li><strong>Min stack</strong>: push each value together with the minimum so far. The current
+minimum is always on top.</li>
+<li><strong>Queue from two stacks</strong>: push onto an <code>in</code> stack; when you need the front,
+pour <code>in</code> into an <code>out</code> stack if <code>out</code> is empty. Each element moves once, so
+operations are amortised O(1).</li>
+<li><strong>Randomised set</strong>: an array holds the values (random choice is a random
+index) and a map holds each value&#39;s index. To delete, swap the value with the
+last element, update that element&#39;s index, then pop.</li>
+</ul>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>LRU cache get / put</td><td class="nowrap">O(1)</td><td>Hash map lookup plus a constant number of pointer changes.</td></tr><tr><td>Min stack push / pop / getMin</td><td class="nowrap">O(1)</td><td>Each entry stores its own running minimum.</td></tr><tr><td>Queue from two stacks</td><td class="nowrap">O(1) amortised</td><td>Each element is moved from <code>in</code> to <code>out</code> once.</td></tr><tr><td>Randomised set insert / remove / getRandom</td><td class="nowrap">O(1) average</td><td>Swap-with-last deletion keeps the array dense.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>The LRU cache is built by hand from a hash map and a doubly linked list with sentinels, rather than with <code>LinkedHashMap</code> or <code>OrderedDict</code>, because that&#39;s what interviewers ask for. <code>getRandom</code> is only called when one value is left, so the output is the same every run.</p><figure class="codeblock" id="code-data-structure-design" aria-label="LRU cache, min stack, queue from two stacks and a randomised set">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-data-structure-design-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-data-structure-design-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-data-structure-design-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-data-structure-design-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-data-structure-design-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayDeque;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.Deque;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.HashMap;</span><span class="ln" data-line="5"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="6"><span class="hljs-keyword">import</span> java.util.Map;</span><span class="ln" data-line="7"><span class="hljs-keyword">import</span> java.util.Random;</span><span class="ln" data-line="8"> </span><span class="ln" data-line="9"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">LRUCache</span> {</span><span class="ln" data-line="12">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Node</span> {</span><span class="ln" data-line="13">            <span class="hljs-type">int</span> key, value;</span><span class="ln" data-line="14">            Node prev, next;</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">            Node(<span class="hljs-type">int</span> key, <span class="hljs-type">int</span> value) { <span class="hljs-built_in">this</span>.key = key; <span class="hljs-built_in">this</span>.value = value; }</span><span class="ln" data-line="17">        }</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> capacity;</span><span class="ln" data-line="20">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span>&lt;Integer, Node&gt; <span class="hljs-variable">map</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();</span><span class="ln" data-line="21">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Node</span> <span class="hljs-variable">head</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>), tail = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>); <span class="hljs-comment">// sentinels</span></span><span class="ln" data-line="22"> </span><span class="ln" data-line="23">        LRUCache(<span class="hljs-type">int</span> capacity) {</span><span class="ln" data-line="24">            <span class="hljs-built_in">this</span>.capacity = capacity;</span><span class="ln" data-line="25">            head.next = tail;</span><span class="ln" data-line="26">            tail.prev = head;</span><span class="ln" data-line="27">        }</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29">        <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">unlink</span><span class="hljs-params">(Node n)</span> { n.prev.next = n.next; n.next.prev = n.prev; }</span><span class="ln" data-line="30"> </span><span class="ln" data-line="31">        <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">addFront</span><span class="hljs-params">(Node n)</span> {</span><span class="ln" data-line="32">            n.next = head.next;</span><span class="ln" data-line="33">            n.prev = head;</span><span class="ln" data-line="34">            head.next.prev = n;</span><span class="ln" data-line="35">            head.next = n;</span><span class="ln" data-line="36">        }</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38">        <span class="hljs-type">int</span> <span class="hljs-title function_">get</span><span class="hljs-params">(<span class="hljs-type">int</span> key)</span> {</span><span class="ln" data-line="39">            <span class="hljs-type">Node</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> map.get(key);</span><span class="ln" data-line="40">            <span class="hljs-keyword">if</span> (n == <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="41">            unlink(n);</span><span class="ln" data-line="42">            addFront(n); <span class="hljs-comment">// most recently used</span></span><span class="ln" data-line="43">            <span class="hljs-keyword">return</span> n.value;</span><span class="ln" data-line="44">        }</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46">        <span class="hljs-type">void</span> <span class="hljs-title function_">put</span><span class="hljs-params">(<span class="hljs-type">int</span> key, <span class="hljs-type">int</span> value)</span> {</span><span class="ln" data-line="47">            <span class="hljs-type">Node</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> map.get(key);</span><span class="ln" data-line="48">            <span class="hljs-keyword">if</span> (n != <span class="hljs-literal">null</span>) {</span><span class="ln" data-line="49">                n.value = value;</span><span class="ln" data-line="50">                unlink(n);</span><span class="ln" data-line="51">                addFront(n);</span><span class="ln" data-line="52">                <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="53">            }</span><span class="ln" data-line="54">            <span class="hljs-keyword">if</span> (map.size() == capacity) { <span class="hljs-comment">// evict the least recently used</span></span><span class="ln" data-line="55">                <span class="hljs-type">Node</span> <span class="hljs-variable">lru</span> <span class="hljs-operator">=</span> tail.prev;</span><span class="ln" data-line="56">                unlink(lru);</span><span class="ln" data-line="57">                map.remove(lru.key);</span><span class="ln" data-line="58">            }</span><span class="ln" data-line="59">            n = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>(key, value);</span><span class="ln" data-line="60">            map.put(key, n);</span><span class="ln" data-line="61">            addFront(n);</span><span class="ln" data-line="62">        }</span><span class="ln" data-line="63"> </span><span class="ln" data-line="64">        <span class="hljs-type">String</span> <span class="hljs-title function_">order</span><span class="hljs-params">()</span> {</span><span class="ln" data-line="65">            <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="66">            <span class="hljs-keyword">for</span> (<span class="hljs-type">Node</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> head.next; n != tail; n = n.next) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(n.key);</span><span class="ln" data-line="67">            <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="68">        }</span><span class="ln" data-line="69">    }</span><span class="ln" data-line="70"> </span><span class="ln" data-line="71">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MinStack</span> {</span><span class="ln" data-line="72">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Deque</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">stack</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;(); <span class="hljs-comment">// {value, minimum so far}</span></span><span class="ln" data-line="73"> </span><span class="ln" data-line="74">        <span class="hljs-type">void</span> <span class="hljs-title function_">push</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> { stack.push(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { x, stack.isEmpty() ? x : Math.min(x, stack.peek()[<span class="hljs-number">1</span>]) }); }</span><span class="ln" data-line="75">        <span class="hljs-type">void</span> <span class="hljs-title function_">pop</span><span class="hljs-params">()</span> { stack.pop(); }</span><span class="ln" data-line="76">        <span class="hljs-type">int</span> <span class="hljs-title function_">top</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> stack.peek()[<span class="hljs-number">0</span>]; }</span><span class="ln" data-line="77">        <span class="hljs-type">int</span> <span class="hljs-title function_">getMin</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> stack.peek()[<span class="hljs-number">1</span>]; }</span><span class="ln" data-line="78">    }</span><span class="ln" data-line="79"> </span><span class="ln" data-line="80">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MyQueue</span> {</span><span class="ln" data-line="81">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Deque</span>&lt;Integer&gt; <span class="hljs-variable">in</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;(), out = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;();</span><span class="ln" data-line="82"> </span><span class="ln" data-line="83">        <span class="hljs-type">void</span> <span class="hljs-title function_">push</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> { in.push(x); }</span><span class="ln" data-line="84"> </span><span class="ln" data-line="85">        <span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">pour</span><span class="hljs-params">()</span> { <span class="hljs-keyword">if</span> (out.isEmpty()) <span class="hljs-keyword">while</span> (!in.isEmpty()) out.push(in.pop()); } <span class="hljs-comment">// only when out is empty</span></span><span class="ln" data-line="86"> </span><span class="ln" data-line="87">        <span class="hljs-type">int</span> <span class="hljs-title function_">pop</span><span class="hljs-params">()</span> { pour(); <span class="hljs-keyword">return</span> out.pop(); }</span><span class="ln" data-line="88">        <span class="hljs-type">int</span> <span class="hljs-title function_">peek</span><span class="hljs-params">()</span> { pour(); <span class="hljs-keyword">return</span> out.peek(); }</span><span class="ln" data-line="89">        <span class="hljs-type">boolean</span> <span class="hljs-title function_">empty</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> in.isEmpty() &amp;&amp; out.isEmpty(); }</span><span class="ln" data-line="90">    }</span><span class="ln" data-line="91"> </span><span class="ln" data-line="92">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RandomizedSet</span> {</span><span class="ln" data-line="93">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">values</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="94">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Map</span>&lt;Integer, Integer&gt; <span class="hljs-variable">indexOf</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();</span><span class="ln" data-line="95">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Random</span> <span class="hljs-variable">random</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Random</span>();</span><span class="ln" data-line="96"> </span><span class="ln" data-line="97">        <span class="hljs-type">boolean</span> <span class="hljs-title function_">insert</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> {</span><span class="ln" data-line="98">            <span class="hljs-keyword">if</span> (indexOf.containsKey(x)) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="99">            indexOf.put(x, values.size());</span><span class="ln" data-line="100">            values.add(x);</span><span class="ln" data-line="101">            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="102">        }</span><span class="ln" data-line="103"> </span><span class="ln" data-line="104">        <span class="hljs-type">boolean</span> <span class="hljs-title function_">remove</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> {</span><span class="ln" data-line="105">            <span class="hljs-type">Integer</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> indexOf.remove(x);</span><span class="ln" data-line="106">            <span class="hljs-keyword">if</span> (i == <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="107">            <span class="hljs-type">int</span> <span class="hljs-variable">last</span> <span class="hljs-operator">=</span> values.remove(values.size() - <span class="hljs-number">1</span>);</span><span class="ln" data-line="108">            <span class="hljs-keyword">if</span> (i &lt; values.size()) { values.set(i, last); indexOf.put(last, i); } <span class="hljs-comment">// move the last value into the gap</span></span><span class="ln" data-line="109">            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="110">        }</span><span class="ln" data-line="111"> </span><span class="ln" data-line="112">        <span class="hljs-type">int</span> <span class="hljs-title function_">getRandom</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> values.get(random.nextInt(values.size())); }</span><span class="ln" data-line="113">        <span class="hljs-type">int</span> <span class="hljs-title function_">size</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> values.size(); }</span><span class="ln" data-line="114">    }</span><span class="ln" data-line="115"> </span><span class="ln" data-line="116">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="117">        <span class="hljs-type">LRUCache</span> <span class="hljs-variable">lru</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LRUCache</span>(<span class="hljs-number">2</span>);</span><span class="ln" data-line="118">        lru.put(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>);</span><span class="ln" data-line="119">        lru.put(<span class="hljs-number">2</span>, <span class="hljs-number">2</span>);</span><span class="ln" data-line="120">        <span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> lru.get(<span class="hljs-number">1</span>);</span><span class="ln" data-line="121">        lru.put(<span class="hljs-number">3</span>, <span class="hljs-number">3</span>); <span class="hljs-comment">// evicts 2</span></span><span class="ln" data-line="122">        <span class="hljs-type">int</span> <span class="hljs-variable">b</span> <span class="hljs-operator">=</span> lru.get(<span class="hljs-number">2</span>);</span><span class="ln" data-line="123">        lru.put(<span class="hljs-number">4</span>, <span class="hljs-number">4</span>); <span class="hljs-comment">// evicts 1</span></span><span class="ln" data-line="124">        System.out.println(<span class="hljs-string">&quot;LRU: get(1) = &quot;</span> + a + <span class="hljs-string">&quot;, get(2) = &quot;</span> + b + <span class="hljs-string">&quot;, get(1) = &quot;</span> + lru.get(<span class="hljs-number">1</span>) + <span class="hljs-string">&quot;, get(3) = &quot;</span> + lru.get(<span class="hljs-number">3</span>) + <span class="hljs-string">&quot;, get(4) = &quot;</span> + lru.get(<span class="hljs-number">4</span>) + <span class="hljs-string">&quot;, order &quot;</span> + lru.order());</span><span class="ln" data-line="125"> </span><span class="ln" data-line="126">        <span class="hljs-type">MinStack</span> <span class="hljs-variable">ms</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MinStack</span>();</span><span class="ln" data-line="127">        ms.push(-<span class="hljs-number">2</span>);</span><span class="ln" data-line="128">        ms.push(<span class="hljs-number">0</span>);</span><span class="ln" data-line="129">        ms.push(-<span class="hljs-number">3</span>);</span><span class="ln" data-line="130">        <span class="hljs-type">int</span> <span class="hljs-variable">min1</span> <span class="hljs-operator">=</span> ms.getMin();</span><span class="ln" data-line="131">        ms.pop();</span><span class="ln" data-line="132">        System.out.println(<span class="hljs-string">&quot;min stack: getMin = &quot;</span> + min1 + <span class="hljs-string">&quot;, after pop top = &quot;</span> + ms.top() + <span class="hljs-string">&quot;, getMin = &quot;</span> + ms.getMin());</span><span class="ln" data-line="133"> </span><span class="ln" data-line="134">        <span class="hljs-type">MyQueue</span> <span class="hljs-variable">q</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MyQueue</span>();</span><span class="ln" data-line="135">        q.push(<span class="hljs-number">1</span>);</span><span class="ln" data-line="136">        q.push(<span class="hljs-number">2</span>);</span><span class="ln" data-line="137">        <span class="hljs-type">int</span> <span class="hljs-variable">peek</span> <span class="hljs-operator">=</span> q.peek(), popped = q.pop();</span><span class="ln" data-line="138">        System.out.println(<span class="hljs-string">&quot;queue from stacks: peek = &quot;</span> + peek + <span class="hljs-string">&quot;, pop = &quot;</span> + popped + <span class="hljs-string">&quot;, empty = &quot;</span> + q.empty());</span><span class="ln" data-line="139"> </span><span class="ln" data-line="140">        <span class="hljs-type">RandomizedSet</span> <span class="hljs-variable">rs</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RandomizedSet</span>();</span><span class="ln" data-line="141">        <span class="hljs-type">boolean</span> <span class="hljs-variable">i1</span> <span class="hljs-operator">=</span> rs.insert(<span class="hljs-number">1</span>), r2 = rs.remove(<span class="hljs-number">2</span>), i2 = rs.insert(<span class="hljs-number">2</span>), i2again = rs.insert(<span class="hljs-number">2</span>), r1 = rs.remove(<span class="hljs-number">1</span>);</span><span class="ln" data-line="142">        System.out.println(<span class="hljs-string">&quot;randomized set: insert 1 &quot;</span> + i1 + <span class="hljs-string">&quot;, remove 2 &quot;</span> + r2 + <span class="hljs-string">&quot;, insert 2 &quot;</span> + i2 + <span class="hljs-string">&quot;, insert 2 again &quot;</span> + i2again</span><span class="ln" data-line="143">                + <span class="hljs-string">&quot;, remove 1 &quot;</span> + r1 + <span class="hljs-string">&quot;, getRandom = &quot;</span> + rs.getRandom() + <span class="hljs-string">&quot;, size &quot;</span> + rs.size());</span><span class="ln" data-line="144">    }</span><span class="ln" data-line="145">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+public class Solution {
+
+    static class LRUCache {
+        private static class Node {
+            int key, value;
+            Node prev, next;
+
+            Node(int key, int value) { this.key = key; this.value = value; }
+        }
+
+        private final int capacity;
+        private final Map&lt;Integer, Node&gt; map = new HashMap&lt;&gt;();
+        private final Node head = new Node(0, 0), tail = new Node(0, 0); // sentinels
+
+        LRUCache(int capacity) {
+            this.capacity = capacity;
+            head.next = tail;
+            tail.prev = head;
+        }
+
+        private void unlink(Node n) { n.prev.next = n.next; n.next.prev = n.prev; }
+
+        private void addFront(Node n) {
+            n.next = head.next;
+            n.prev = head;
+            head.next.prev = n;
+            head.next = n;
+        }
+
+        int get(int key) {
+            Node n = map.get(key);
+            if (n == null) return -1;
+            unlink(n);
+            addFront(n); // most recently used
+            return n.value;
+        }
+
+        void put(int key, int value) {
+            Node n = map.get(key);
+            if (n != null) {
+                n.value = value;
+                unlink(n);
+                addFront(n);
+                return;
+            }
+            if (map.size() == capacity) { // evict the least recently used
+                Node lru = tail.prev;
+                unlink(lru);
+                map.remove(lru.key);
+            }
+            n = new Node(key, value);
+            map.put(key, n);
+            addFront(n);
+        }
+
+        String order() {
+            StringBuilder sb = new StringBuilder();
+            for (Node n = head.next; n != tail; n = n.next) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(n.key);
+            return sb.toString();
+        }
+    }
+
+    static class MinStack {
+        private final Deque&lt;int[]&gt; stack = new ArrayDeque&lt;&gt;(); // {value, minimum so far}
+
+        void push(int x) { stack.push(new int[] { x, stack.isEmpty() ? x : Math.min(x, stack.peek()[1]) }); }
+        void pop() { stack.pop(); }
+        int top() { return stack.peek()[0]; }
+        int getMin() { return stack.peek()[1]; }
+    }
+
+    static class MyQueue {
+        private final Deque&lt;Integer&gt; in = new ArrayDeque&lt;&gt;(), out = new ArrayDeque&lt;&gt;();
+
+        void push(int x) { in.push(x); }
+
+        private void pour() { if (out.isEmpty()) while (!in.isEmpty()) out.push(in.pop()); } // only when out is empty
+
+        int pop() { pour(); return out.pop(); }
+        int peek() { pour(); return out.peek(); }
+        boolean empty() { return in.isEmpty() &amp;&amp; out.isEmpty(); }
+    }
+
+    static class RandomizedSet {
+        private final List&lt;Integer&gt; values = new ArrayList&lt;&gt;();
+        private final Map&lt;Integer, Integer&gt; indexOf = new HashMap&lt;&gt;();
+        private final Random random = new Random();
+
+        boolean insert(int x) {
+            if (indexOf.containsKey(x)) return false;
+            indexOf.put(x, values.size());
+            values.add(x);
+            return true;
+        }
+
+        boolean remove(int x) {
+            Integer i = indexOf.remove(x);
+            if (i == null) return false;
+            int last = values.remove(values.size() - 1);
+            if (i &lt; values.size()) { values.set(i, last); indexOf.put(last, i); } // move the last value into the gap
+            return true;
+        }
+
+        int getRandom() { return values.get(random.nextInt(values.size())); }
+        int size() { return values.size(); }
+    }
+
+    public static void main(String[] args) {
+        LRUCache lru = new LRUCache(2);
+        lru.put(1, 1);
+        lru.put(2, 2);
+        int a = lru.get(1);
+        lru.put(3, 3); // evicts 2
+        int b = lru.get(2);
+        lru.put(4, 4); // evicts 1
+        System.out.println(&quot;LRU: get(1) = &quot; + a + &quot;, get(2) = &quot; + b + &quot;, get(1) = &quot; + lru.get(1) + &quot;, get(3) = &quot; + lru.get(3) + &quot;, get(4) = &quot; + lru.get(4) + &quot;, order &quot; + lru.order());
+
+        MinStack ms = new MinStack();
+        ms.push(-2);
+        ms.push(0);
+        ms.push(-3);
+        int min1 = ms.getMin();
+        ms.pop();
+        System.out.println(&quot;min stack: getMin = &quot; + min1 + &quot;, after pop top = &quot; + ms.top() + &quot;, getMin = &quot; + ms.getMin());
+
+        MyQueue q = new MyQueue();
+        q.push(1);
+        q.push(2);
+        int peek = q.peek(), popped = q.pop();
+        System.out.println(&quot;queue from stacks: peek = &quot; + peek + &quot;, pop = &quot; + popped + &quot;, empty = &quot; + q.empty());
+
+        RandomizedSet rs = new RandomizedSet();
+        boolean i1 = rs.insert(1), r2 = rs.remove(2), i2 = rs.insert(2), i2again = rs.insert(2), r1 = rs.remove(1);
+        System.out.println(&quot;randomized set: insert 1 &quot; + i1 + &quot;, remove 2 &quot; + r2 + &quot;, insert 2 &quot; + i2 + &quot;, insert 2 again &quot; + i2again
+                + &quot;, remove 1 &quot; + r1 + &quot;, getRandom = &quot; + rs.getRandom() + &quot;, size &quot; + rs.size());
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-data-structure-design-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LRUCache</span> {</span><span class="ln" data-line="2">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">capacity</span>) {</span><span class="ln" data-line="3">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">capacity</span> = capacity;</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>();</span><span class="ln" data-line="5">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span> = { <span class="hljs-attr">key</span>: <span class="hljs-number">0</span>, <span class="hljs-attr">value</span>: <span class="hljs-number">0</span>, <span class="hljs-attr">prev</span>: <span class="hljs-literal">null</span>, <span class="hljs-attr">next</span>: <span class="hljs-literal">null</span> }; <span class="hljs-comment">// sentinels</span></span><span class="ln" data-line="6">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">tail</span> = { <span class="hljs-attr">key</span>: <span class="hljs-number">0</span>, <span class="hljs-attr">value</span>: <span class="hljs-number">0</span>, <span class="hljs-attr">prev</span>: <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>, <span class="hljs-attr">next</span>: <span class="hljs-literal">null</span> };</span><span class="ln" data-line="7">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">tail</span>;</span><span class="ln" data-line="8">  }</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10">  <span class="hljs-title function_">unlink</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="11">    n.<span class="hljs-property">prev</span>.<span class="hljs-property">next</span> = n.<span class="hljs-property">next</span>;</span><span class="ln" data-line="12">    n.<span class="hljs-property">next</span>.<span class="hljs-property">prev</span> = n.<span class="hljs-property">prev</span>;</span><span class="ln" data-line="13">  }</span><span class="ln" data-line="14"> </span><span class="ln" data-line="15">  <span class="hljs-title function_">addFront</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="16">    n.<span class="hljs-property">next</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span>;</span><span class="ln" data-line="17">    n.<span class="hljs-property">prev</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>;</span><span class="ln" data-line="18">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span>.<span class="hljs-property">prev</span> = n;</span><span class="ln" data-line="19">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span> = n;</span><span class="ln" data-line="20">  }</span><span class="ln" data-line="21"> </span><span class="ln" data-line="22">  <span class="hljs-title function_">get</span>(<span class="hljs-params">key</span>) {</span><span class="ln" data-line="23">    <span class="hljs-keyword">const</span> n = <span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-title function_">get</span>(key);</span><span class="ln" data-line="24">    <span class="hljs-keyword">if</span> (!n) <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="25">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">unlink</span>(n);</span><span class="ln" data-line="26">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">addFront</span>(n); <span class="hljs-comment">// most recently used</span></span><span class="ln" data-line="27">    <span class="hljs-keyword">return</span> n.<span class="hljs-property">value</span>;</span><span class="ln" data-line="28">  }</span><span class="ln" data-line="29"> </span><span class="ln" data-line="30">  <span class="hljs-title function_">put</span>(<span class="hljs-params">key, value</span>) {</span><span class="ln" data-line="31">    <span class="hljs-keyword">let</span> n = <span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-title function_">get</span>(key);</span><span class="ln" data-line="32">    <span class="hljs-keyword">if</span> (n) {</span><span class="ln" data-line="33">      n.<span class="hljs-property">value</span> = value;</span><span class="ln" data-line="34">      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">unlink</span>(n);</span><span class="ln" data-line="35">      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">addFront</span>(n);</span><span class="ln" data-line="36">      <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="37">    }</span><span class="ln" data-line="38">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-property">size</span> === <span class="hljs-variable language_">this</span>.<span class="hljs-property">capacity</span>) {</span><span class="ln" data-line="39">      <span class="hljs-keyword">const</span> lru = <span class="hljs-variable language_">this</span>.<span class="hljs-property">tail</span>.<span class="hljs-property">prev</span>; <span class="hljs-comment">// evict the least recently used</span></span><span class="ln" data-line="40">      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">unlink</span>(lru);</span><span class="ln" data-line="41">      <span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-title function_">delete</span>(lru.<span class="hljs-property">key</span>);</span><span class="ln" data-line="42">    }</span><span class="ln" data-line="43">    n = { key, value, <span class="hljs-attr">prev</span>: <span class="hljs-literal">null</span>, <span class="hljs-attr">next</span>: <span class="hljs-literal">null</span> };</span><span class="ln" data-line="44">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-title function_">set</span>(key, n);</span><span class="ln" data-line="45">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">addFront</span>(n);</span><span class="ln" data-line="46">  }</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48">  <span class="hljs-title function_">order</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="49">    <span class="hljs-keyword">const</span> keys = [];</span><span class="ln" data-line="50">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> n = <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span>; n !== <span class="hljs-variable language_">this</span>.<span class="hljs-property">tail</span>; n = n.<span class="hljs-property">next</span>) keys.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">key</span>);</span><span class="ln" data-line="51">    <span class="hljs-keyword">return</span> keys.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="52">  }</span><span class="ln" data-line="53">}</span><span class="ln" data-line="54"> </span><span class="ln" data-line="55"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MinStack</span> {</span><span class="ln" data-line="56">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="57">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span> = []; <span class="hljs-comment">// [value, minimum so far]</span></span><span class="ln" data-line="58">  }</span><span class="ln" data-line="59">  <span class="hljs-title function_">push</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="60">    <span class="hljs-keyword">const</span> min = <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span> ? x : <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(x, <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">getMin</span>());</span><span class="ln" data-line="61">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-title function_">push</span>([x, min]);</span><span class="ln" data-line="62">  }</span><span class="ln" data-line="63">  <span class="hljs-title function_">pop</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="64">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="65">  }</span><span class="ln" data-line="66">  <span class="hljs-title function_">top</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="67">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>][<span class="hljs-number">0</span>];</span><span class="ln" data-line="68">  }</span><span class="ln" data-line="69">  <span class="hljs-title function_">getMin</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="70">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>][<span class="hljs-number">1</span>];</span><span class="ln" data-line="71">  }</span><span class="ln" data-line="72">}</span><span class="ln" data-line="73"> </span><span class="ln" data-line="74"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MyQueue</span> {</span><span class="ln" data-line="75">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="76">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">in</span> = [];</span><span class="ln" data-line="77">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span> = [];</span><span class="ln" data-line="78">  }</span><span class="ln" data-line="79">  <span class="hljs-title function_">push</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="80">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">in</span>.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="81">  }</span><span class="ln" data-line="82">  <span class="hljs-title function_">pour</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="83">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>) <span class="hljs-keyword">while</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">in</span>.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">push</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">in</span>.<span class="hljs-title function_">pop</span>()); <span class="hljs-comment">// only when out is empty</span></span><span class="ln" data-line="84">  }</span><span class="ln" data-line="85">  <span class="hljs-title function_">pop</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="86">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">pour</span>();</span><span class="ln" data-line="87">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="88">  }</span><span class="ln" data-line="89">  <span class="hljs-title function_">peek</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="90">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">pour</span>();</span><span class="ln" data-line="91">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>];</span><span class="ln" data-line="92">  }</span><span class="ln" data-line="93">  <span class="hljs-title function_">empty</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="94">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">in</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>;</span><span class="ln" data-line="95">  }</span><span class="ln" data-line="96">}</span><span class="ln" data-line="97"> </span><span class="ln" data-line="98"><span class="hljs-keyword">class</span> <span class="hljs-title class_">RandomizedSet</span> {</span><span class="ln" data-line="99">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="100">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span> = [];</span><span class="ln" data-line="101">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>();</span><span class="ln" data-line="102">  }</span><span class="ln" data-line="103">  <span class="hljs-title function_">insert</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="104">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">has</span>(x)) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="105">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">set</span>(x, <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-property">length</span>);</span><span class="ln" data-line="106">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="107">    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="108">  }</span><span class="ln" data-line="109">  <span class="hljs-title function_">remove</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="110">    <span class="hljs-keyword">const</span> i = <span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">get</span>(x);</span><span class="ln" data-line="111">    <span class="hljs-keyword">if</span> (i === <span class="hljs-literal">undefined</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="112">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">delete</span>(x);</span><span class="ln" data-line="113">    <span class="hljs-keyword">const</span> last = <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="114">    <span class="hljs-keyword">if</span> (i &lt; <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-property">length</span>) {</span><span class="ln" data-line="115">      <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>[i] = last; <span class="hljs-comment">// move the last value into the gap</span></span><span class="ln" data-line="116">      <span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">set</span>(last, i);</span><span class="ln" data-line="117">    }</span><span class="ln" data-line="118">    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="119">  }</span><span class="ln" data-line="120">  <span class="hljs-title function_">getRandom</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="121">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>[<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">random</span>() * <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-property">length</span>)];</span><span class="ln" data-line="122">  }</span><span class="ln" data-line="123">  <span class="hljs-title function_">size</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="124">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="125">  }</span><span class="ln" data-line="126">}</span><span class="ln" data-line="127"> </span><span class="ln" data-line="128"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="129">  <span class="hljs-keyword">const</span> lru = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LRUCache</span>(<span class="hljs-number">2</span>);</span><span class="ln" data-line="130">  lru.<span class="hljs-title function_">put</span>(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>);</span><span class="ln" data-line="131">  lru.<span class="hljs-title function_">put</span>(<span class="hljs-number">2</span>, <span class="hljs-number">2</span>);</span><span class="ln" data-line="132">  <span class="hljs-keyword">const</span> a = lru.<span class="hljs-title function_">get</span>(<span class="hljs-number">1</span>);</span><span class="ln" data-line="133">  lru.<span class="hljs-title function_">put</span>(<span class="hljs-number">3</span>, <span class="hljs-number">3</span>); <span class="hljs-comment">// evicts 2</span></span><span class="ln" data-line="134">  <span class="hljs-keyword">const</span> b = lru.<span class="hljs-title function_">get</span>(<span class="hljs-number">2</span>);</span><span class="ln" data-line="135">  lru.<span class="hljs-title function_">put</span>(<span class="hljs-number">4</span>, <span class="hljs-number">4</span>); <span class="hljs-comment">// evicts 1</span></span><span class="ln" data-line="136">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`LRU: get(1) = <span class="hljs-subst">${a}</span>, get(2) = <span class="hljs-subst">${b}</span>, get(1) = <span class="hljs-subst">${lru.get(<span class="hljs-number">1</span>)}</span>, get(3) = <span class="hljs-subst">${lru.get(<span class="hljs-number">3</span>)}</span>, get(4) = <span class="hljs-subst">${lru.get(<span class="hljs-number">4</span>)}</span>, order <span class="hljs-subst">${lru.order()}</span>`</span>);</span><span class="ln" data-line="137"> </span><span class="ln" data-line="138">  <span class="hljs-keyword">const</span> ms = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MinStack</span>();</span><span class="ln" data-line="139">  ms.<span class="hljs-title function_">push</span>(-<span class="hljs-number">2</span>);</span><span class="ln" data-line="140">  ms.<span class="hljs-title function_">push</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="141">  ms.<span class="hljs-title function_">push</span>(-<span class="hljs-number">3</span>);</span><span class="ln" data-line="142">  <span class="hljs-keyword">const</span> min1 = ms.<span class="hljs-title function_">getMin</span>();</span><span class="ln" data-line="143">  ms.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="144">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`min stack: getMin = <span class="hljs-subst">${min1}</span>, after pop top = <span class="hljs-subst">${ms.top()}</span>, getMin = <span class="hljs-subst">${ms.getMin()}</span>`</span>);</span><span class="ln" data-line="145"> </span><span class="ln" data-line="146">  <span class="hljs-keyword">const</span> q = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MyQueue</span>();</span><span class="ln" data-line="147">  q.<span class="hljs-title function_">push</span>(<span class="hljs-number">1</span>);</span><span class="ln" data-line="148">  q.<span class="hljs-title function_">push</span>(<span class="hljs-number">2</span>);</span><span class="ln" data-line="149">  <span class="hljs-keyword">const</span> peek = q.<span class="hljs-title function_">peek</span>();</span><span class="ln" data-line="150">  <span class="hljs-keyword">const</span> popped = q.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="151">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`queue from stacks: peek = <span class="hljs-subst">${peek}</span>, pop = <span class="hljs-subst">${popped}</span>, empty = <span class="hljs-subst">${q.empty()}</span>`</span>);</span><span class="ln" data-line="152"> </span><span class="ln" data-line="153">  <span class="hljs-keyword">const</span> rs = <span class="hljs-keyword">new</span> <span class="hljs-title class_">RandomizedSet</span>();</span><span class="ln" data-line="154">  <span class="hljs-keyword">const</span> results = [rs.<span class="hljs-title function_">insert</span>(<span class="hljs-number">1</span>), rs.<span class="hljs-title function_">remove</span>(<span class="hljs-number">2</span>), rs.<span class="hljs-title function_">insert</span>(<span class="hljs-number">2</span>), rs.<span class="hljs-title function_">insert</span>(<span class="hljs-number">2</span>), rs.<span class="hljs-title function_">remove</span>(<span class="hljs-number">1</span>)];</span><span class="ln" data-line="155">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`randomized set: insert 1 <span class="hljs-subst">${results[<span class="hljs-number">0</span>]}</span>, remove 2 <span class="hljs-subst">${results[<span class="hljs-number">1</span>]}</span>, insert 2 <span class="hljs-subst">${results[<span class="hljs-number">2</span>]}</span>, insert 2 again <span class="hljs-subst">${results[<span class="hljs-number">3</span>]}</span>, remove 1 <span class="hljs-subst">${results[<span class="hljs-number">4</span>]}</span>, getRandom = <span class="hljs-subst">${rs.getRandom()}</span>, size <span class="hljs-subst">${rs.size()}</span>`</span>);</span><span class="ln" data-line="156">}</span><span class="ln" data-line="157"> </span><span class="ln" data-line="158"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">class LRUCache {
+  constructor(capacity) {
+    this.capacity = capacity;
+    this.map = new Map();
+    this.head = { key: 0, value: 0, prev: null, next: null }; // sentinels
+    this.tail = { key: 0, value: 0, prev: this.head, next: null };
+    this.head.next = this.tail;
+  }
+
+  unlink(n) {
+    n.prev.next = n.next;
+    n.next.prev = n.prev;
+  }
+
+  addFront(n) {
+    n.next = this.head.next;
+    n.prev = this.head;
+    this.head.next.prev = n;
+    this.head.next = n;
+  }
+
+  get(key) {
+    const n = this.map.get(key);
+    if (!n) return -1;
+    this.unlink(n);
+    this.addFront(n); // most recently used
+    return n.value;
+  }
+
+  put(key, value) {
+    let n = this.map.get(key);
+    if (n) {
+      n.value = value;
+      this.unlink(n);
+      this.addFront(n);
+      return;
+    }
+    if (this.map.size === this.capacity) {
+      const lru = this.tail.prev; // evict the least recently used
+      this.unlink(lru);
+      this.map.delete(lru.key);
+    }
+    n = { key, value, prev: null, next: null };
+    this.map.set(key, n);
+    this.addFront(n);
+  }
+
+  order() {
+    const keys = [];
+    for (let n = this.head.next; n !== this.tail; n = n.next) keys.push(n.key);
+    return keys.join(&quot; &quot;);
+  }
+}
+
+class MinStack {
+  constructor() {
+    this.stack = []; // [value, minimum so far]
+  }
+  push(x) {
+    const min = this.stack.length === 0 ? x : Math.min(x, this.getMin());
+    this.stack.push([x, min]);
+  }
+  pop() {
+    this.stack.pop();
+  }
+  top() {
+    return this.stack[this.stack.length - 1][0];
+  }
+  getMin() {
+    return this.stack[this.stack.length - 1][1];
+  }
+}
+
+class MyQueue {
+  constructor() {
+    this.in = [];
+    this.out = [];
+  }
+  push(x) {
+    this.in.push(x);
+  }
+  pour() {
+    if (this.out.length === 0) while (this.in.length &gt; 0) this.out.push(this.in.pop()); // only when out is empty
+  }
+  pop() {
+    this.pour();
+    return this.out.pop();
+  }
+  peek() {
+    this.pour();
+    return this.out[this.out.length - 1];
+  }
+  empty() {
+    return this.in.length === 0 &amp;&amp; this.out.length === 0;
+  }
+}
+
+class RandomizedSet {
+  constructor() {
+    this.values = [];
+    this.indexOf = new Map();
+  }
+  insert(x) {
+    if (this.indexOf.has(x)) return false;
+    this.indexOf.set(x, this.values.length);
+    this.values.push(x);
+    return true;
+  }
+  remove(x) {
+    const i = this.indexOf.get(x);
+    if (i === undefined) return false;
+    this.indexOf.delete(x);
+    const last = this.values.pop();
+    if (i &lt; this.values.length) {
+      this.values[i] = last; // move the last value into the gap
+      this.indexOf.set(last, i);
+    }
+    return true;
+  }
+  getRandom() {
+    return this.values[Math.floor(Math.random() * this.values.length)];
+  }
+  size() {
+    return this.values.length;
+  }
+}
+
+function main() {
+  const lru = new LRUCache(2);
+  lru.put(1, 1);
+  lru.put(2, 2);
+  const a = lru.get(1);
+  lru.put(3, 3); // evicts 2
+  const b = lru.get(2);
+  lru.put(4, 4); // evicts 1
+  console.log(`LRU: get(1) = ${a}, get(2) = ${b}, get(1) = ${lru.get(1)}, get(3) = ${lru.get(3)}, get(4) = ${lru.get(4)}, order ${lru.order()}`);
+
+  const ms = new MinStack();
+  ms.push(-2);
+  ms.push(0);
+  ms.push(-3);
+  const min1 = ms.getMin();
+  ms.pop();
+  console.log(`min stack: getMin = ${min1}, after pop top = ${ms.top()}, getMin = ${ms.getMin()}`);
+
+  const q = new MyQueue();
+  q.push(1);
+  q.push(2);
+  const peek = q.peek();
+  const popped = q.pop();
+  console.log(`queue from stacks: peek = ${peek}, pop = ${popped}, empty = ${q.empty()}`);
+
+  const rs = new RandomizedSet();
+  const results = [rs.insert(1), rs.remove(2), rs.insert(2), rs.insert(2), rs.remove(1)];
+  console.log(`randomized set: insert 1 ${results[0]}, remove 2 ${results[1]}, insert 2 ${results[2]}, insert 2 again ${results[3]}, remove 1 ${results[4]}, getRandom = ${rs.getRandom()}, size ${rs.size()}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-data-structure-design-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">interface</span> <span class="hljs-title class_">LNode</span> {</span><span class="ln" data-line="2">  <span class="hljs-attr">key</span>: <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="3">  <span class="hljs-attr">value</span>: <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="4">  <span class="hljs-attr">prev</span>: <span class="hljs-title class_">LNode</span> | <span class="hljs-literal">null</span>;</span><span class="ln" data-line="5">  <span class="hljs-attr">next</span>: <span class="hljs-title class_">LNode</span> | <span class="hljs-literal">null</span>;</span><span class="ln" data-line="6">}</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LRUCache</span> {</span><span class="ln" data-line="9">  <span class="hljs-keyword">private</span> <span class="hljs-attr">capacity</span>: <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="10">  <span class="hljs-keyword">private</span> map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">number</span>, <span class="hljs-title class_">LNode</span>&gt;();</span><span class="ln" data-line="11">  <span class="hljs-keyword">private</span> <span class="hljs-attr">head</span>: <span class="hljs-title class_">LNode</span> = { <span class="hljs-attr">key</span>: <span class="hljs-number">0</span>, <span class="hljs-attr">value</span>: <span class="hljs-number">0</span>, <span class="hljs-attr">prev</span>: <span class="hljs-literal">null</span>, <span class="hljs-attr">next</span>: <span class="hljs-literal">null</span> }; <span class="hljs-comment">// sentinels</span></span><span class="ln" data-line="12">  <span class="hljs-keyword">private</span> <span class="hljs-attr">tail</span>: <span class="hljs-title class_">LNode</span> = { <span class="hljs-attr">key</span>: <span class="hljs-number">0</span>, <span class="hljs-attr">value</span>: <span class="hljs-number">0</span>, <span class="hljs-attr">prev</span>: <span class="hljs-literal">null</span>, <span class="hljs-attr">next</span>: <span class="hljs-literal">null</span> };</span><span class="ln" data-line="13"> </span><span class="ln" data-line="14">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">capacity</span>: <span class="hljs-built_in">number</span></span>) {</span><span class="ln" data-line="15">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">capacity</span> = capacity;</span><span class="ln" data-line="16">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">tail</span>;</span><span class="ln" data-line="17">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">tail</span>.<span class="hljs-property">prev</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>;</span><span class="ln" data-line="18">  }</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20">  <span class="hljs-keyword">private</span> <span class="hljs-title function_">unlink</span>(<span class="hljs-attr">n</span>: <span class="hljs-title class_">LNode</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="21">    (n.<span class="hljs-property">prev</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">LNode</span>).<span class="hljs-property">next</span> = n.<span class="hljs-property">next</span>;</span><span class="ln" data-line="22">    (n.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">LNode</span>).<span class="hljs-property">prev</span> = n.<span class="hljs-property">prev</span>;</span><span class="ln" data-line="23">  }</span><span class="ln" data-line="24"> </span><span class="ln" data-line="25">  <span class="hljs-keyword">private</span> <span class="hljs-title function_">addFront</span>(<span class="hljs-attr">n</span>: <span class="hljs-title class_">LNode</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="26">    n.<span class="hljs-property">next</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span>;</span><span class="ln" data-line="27">    n.<span class="hljs-property">prev</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>;</span><span class="ln" data-line="28">    (<span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">LNode</span>).<span class="hljs-property">prev</span> = n;</span><span class="ln" data-line="29">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span> = n;</span><span class="ln" data-line="30">  }</span><span class="ln" data-line="31"> </span><span class="ln" data-line="32">  <span class="hljs-title function_">get</span>(<span class="hljs-attr">key</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="33">    <span class="hljs-keyword">const</span> n = <span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-title function_">get</span>(key);</span><span class="ln" data-line="34">    <span class="hljs-keyword">if</span> (!n) <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="35">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">unlink</span>(n);</span><span class="ln" data-line="36">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">addFront</span>(n); <span class="hljs-comment">// most recently used</span></span><span class="ln" data-line="37">    <span class="hljs-keyword">return</span> n.<span class="hljs-property">value</span>;</span><span class="ln" data-line="38">  }</span><span class="ln" data-line="39"> </span><span class="ln" data-line="40">  <span class="hljs-title function_">put</span>(<span class="hljs-attr">key</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">value</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="41">    <span class="hljs-keyword">const</span> existing = <span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-title function_">get</span>(key);</span><span class="ln" data-line="42">    <span class="hljs-keyword">if</span> (existing) {</span><span class="ln" data-line="43">      existing.<span class="hljs-property">value</span> = value;</span><span class="ln" data-line="44">      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">unlink</span>(existing);</span><span class="ln" data-line="45">      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">addFront</span>(existing);</span><span class="ln" data-line="46">      <span class="hljs-keyword">return</span>;</span><span class="ln" data-line="47">    }</span><span class="ln" data-line="48">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-property">size</span> === <span class="hljs-variable language_">this</span>.<span class="hljs-property">capacity</span>) {</span><span class="ln" data-line="49">      <span class="hljs-keyword">const</span> lru = <span class="hljs-variable language_">this</span>.<span class="hljs-property">tail</span>.<span class="hljs-property">prev</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">LNode</span>; <span class="hljs-comment">// evict the least recently used</span></span><span class="ln" data-line="50">      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">unlink</span>(lru);</span><span class="ln" data-line="51">      <span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-title function_">delete</span>(lru.<span class="hljs-property">key</span>);</span><span class="ln" data-line="52">    }</span><span class="ln" data-line="53">    <span class="hljs-keyword">const</span> <span class="hljs-attr">n</span>: <span class="hljs-title class_">LNode</span> = { key, value, <span class="hljs-attr">prev</span>: <span class="hljs-literal">null</span>, <span class="hljs-attr">next</span>: <span class="hljs-literal">null</span> };</span><span class="ln" data-line="54">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">map</span>.<span class="hljs-title function_">set</span>(key, n);</span><span class="ln" data-line="55">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">addFront</span>(n);</span><span class="ln" data-line="56">  }</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58">  <span class="hljs-title function_">order</span>(): <span class="hljs-built_in">string</span> {</span><span class="ln" data-line="59">    <span class="hljs-keyword">const</span> <span class="hljs-attr">keys</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="60">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> n = <span class="hljs-variable language_">this</span>.<span class="hljs-property">head</span>.<span class="hljs-property">next</span>; n !== <span class="hljs-literal">null</span> &amp;&amp; n !== <span class="hljs-variable language_">this</span>.<span class="hljs-property">tail</span>; n = n.<span class="hljs-property">next</span>) keys.<span class="hljs-title function_">push</span>(n.<span class="hljs-property">key</span>);</span><span class="ln" data-line="61">    <span class="hljs-keyword">return</span> keys.<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot; &quot;</span>);</span><span class="ln" data-line="62">  }</span><span class="ln" data-line="63">}</span><span class="ln" data-line="64"> </span><span class="ln" data-line="65"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MinStack</span> {</span><span class="ln" data-line="66">  <span class="hljs-keyword">private</span> <span class="hljs-attr">stack</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = []; <span class="hljs-comment">// [value, minimum so far]</span></span><span class="ln" data-line="67"> </span><span class="ln" data-line="68">  <span class="hljs-title function_">push</span>(<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="69">    <span class="hljs-keyword">const</span> min = <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span> ? x : <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(x, <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">getMin</span>());</span><span class="ln" data-line="70">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-title function_">push</span>([x, min]);</span><span class="ln" data-line="71">  }</span><span class="ln" data-line="72">  <span class="hljs-title function_">pop</span>(): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="73">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="74">  }</span><span class="ln" data-line="75">  <span class="hljs-title function_">top</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="76">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>][<span class="hljs-number">0</span>];</span><span class="ln" data-line="77">  }</span><span class="ln" data-line="78">  <span class="hljs-title function_">getMin</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="79">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">stack</span>.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>][<span class="hljs-number">1</span>];</span><span class="ln" data-line="80">  }</span><span class="ln" data-line="81">}</span><span class="ln" data-line="82"> </span><span class="ln" data-line="83"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MyQueue</span> {</span><span class="ln" data-line="84">  <span class="hljs-keyword">private</span> <span class="hljs-attr">in</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="85">  <span class="hljs-keyword">private</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="86"> </span><span class="ln" data-line="87">  <span class="hljs-title function_">push</span>(<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="88">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">in</span>.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="89">  }</span><span class="ln" data-line="90">  <span class="hljs-keyword">private</span> <span class="hljs-title function_">pour</span>(): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="91">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>) <span class="hljs-keyword">while</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">in</span>.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">push</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">in</span>.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> <span class="hljs-built_in">number</span>); <span class="hljs-comment">// only when out is empty</span></span><span class="ln" data-line="92">  }</span><span class="ln" data-line="93">  <span class="hljs-title function_">pop</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="94">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">pour</span>();</span><span class="ln" data-line="95">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="96">  }</span><span class="ln" data-line="97">  <span class="hljs-title function_">peek</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="98">    <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">pour</span>();</span><span class="ln" data-line="99">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>];</span><span class="ln" data-line="100">  }</span><span class="ln" data-line="101">  <span class="hljs-title function_">empty</span>(): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="102">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">in</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-property">out</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>;</span><span class="ln" data-line="103">  }</span><span class="ln" data-line="104">}</span><span class="ln" data-line="105"> </span><span class="ln" data-line="106"><span class="hljs-keyword">class</span> <span class="hljs-title class_">RandomizedSet</span> {</span><span class="ln" data-line="107">  <span class="hljs-keyword">private</span> <span class="hljs-attr">values</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="108">  <span class="hljs-keyword">private</span> indexOf = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>&gt;();</span><span class="ln" data-line="109"> </span><span class="ln" data-line="110">  <span class="hljs-title function_">insert</span>(<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="111">    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">has</span>(x)) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="112">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">set</span>(x, <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-property">length</span>);</span><span class="ln" data-line="113">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="114">    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="115">  }</span><span class="ln" data-line="116">  <span class="hljs-title function_">remove</span>(<span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">boolean</span> {</span><span class="ln" data-line="117">    <span class="hljs-keyword">const</span> i = <span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">get</span>(x);</span><span class="ln" data-line="118">    <span class="hljs-keyword">if</span> (i === <span class="hljs-literal">undefined</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;</span><span class="ln" data-line="119">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">delete</span>(x);</span><span class="ln" data-line="120">    <span class="hljs-keyword">const</span> last = <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> <span class="hljs-built_in">number</span>;</span><span class="ln" data-line="121">    <span class="hljs-keyword">if</span> (i &lt; <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-property">length</span>) {</span><span class="ln" data-line="122">      <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>[i] = last; <span class="hljs-comment">// move the last value into the gap</span></span><span class="ln" data-line="123">      <span class="hljs-variable language_">this</span>.<span class="hljs-property">indexOf</span>.<span class="hljs-title function_">set</span>(last, i);</span><span class="ln" data-line="124">    }</span><span class="ln" data-line="125">    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;</span><span class="ln" data-line="126">  }</span><span class="ln" data-line="127">  <span class="hljs-title function_">getRandom</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="128">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>[<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">floor</span>(<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">random</span>() * <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-property">length</span>)];</span><span class="ln" data-line="129">  }</span><span class="ln" data-line="130">  <span class="hljs-title function_">size</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="131">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">values</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="132">  }</span><span class="ln" data-line="133">}</span><span class="ln" data-line="134"> </span><span class="ln" data-line="135"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="136">  <span class="hljs-keyword">const</span> lru = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LRUCache</span>(<span class="hljs-number">2</span>);</span><span class="ln" data-line="137">  lru.<span class="hljs-title function_">put</span>(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>);</span><span class="ln" data-line="138">  lru.<span class="hljs-title function_">put</span>(<span class="hljs-number">2</span>, <span class="hljs-number">2</span>);</span><span class="ln" data-line="139">  <span class="hljs-keyword">const</span> a = lru.<span class="hljs-title function_">get</span>(<span class="hljs-number">1</span>);</span><span class="ln" data-line="140">  lru.<span class="hljs-title function_">put</span>(<span class="hljs-number">3</span>, <span class="hljs-number">3</span>); <span class="hljs-comment">// evicts 2</span></span><span class="ln" data-line="141">  <span class="hljs-keyword">const</span> b = lru.<span class="hljs-title function_">get</span>(<span class="hljs-number">2</span>);</span><span class="ln" data-line="142">  lru.<span class="hljs-title function_">put</span>(<span class="hljs-number">4</span>, <span class="hljs-number">4</span>); <span class="hljs-comment">// evicts 1</span></span><span class="ln" data-line="143">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`LRU: get(1) = <span class="hljs-subst">${a}</span>, get(2) = <span class="hljs-subst">${b}</span>, get(1) = <span class="hljs-subst">${lru.get(<span class="hljs-number">1</span>)}</span>, get(3) = <span class="hljs-subst">${lru.get(<span class="hljs-number">3</span>)}</span>, get(4) = <span class="hljs-subst">${lru.get(<span class="hljs-number">4</span>)}</span>, order <span class="hljs-subst">${lru.order()}</span>`</span>);</span><span class="ln" data-line="144"> </span><span class="ln" data-line="145">  <span class="hljs-keyword">const</span> ms = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MinStack</span>();</span><span class="ln" data-line="146">  ms.<span class="hljs-title function_">push</span>(-<span class="hljs-number">2</span>);</span><span class="ln" data-line="147">  ms.<span class="hljs-title function_">push</span>(<span class="hljs-number">0</span>);</span><span class="ln" data-line="148">  ms.<span class="hljs-title function_">push</span>(-<span class="hljs-number">3</span>);</span><span class="ln" data-line="149">  <span class="hljs-keyword">const</span> min1 = ms.<span class="hljs-title function_">getMin</span>();</span><span class="ln" data-line="150">  ms.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="151">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`min stack: getMin = <span class="hljs-subst">${min1}</span>, after pop top = <span class="hljs-subst">${ms.top()}</span>, getMin = <span class="hljs-subst">${ms.getMin()}</span>`</span>);</span><span class="ln" data-line="152"> </span><span class="ln" data-line="153">  <span class="hljs-keyword">const</span> q = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MyQueue</span>();</span><span class="ln" data-line="154">  q.<span class="hljs-title function_">push</span>(<span class="hljs-number">1</span>);</span><span class="ln" data-line="155">  q.<span class="hljs-title function_">push</span>(<span class="hljs-number">2</span>);</span><span class="ln" data-line="156">  <span class="hljs-keyword">const</span> peek = q.<span class="hljs-title function_">peek</span>();</span><span class="ln" data-line="157">  <span class="hljs-keyword">const</span> popped = q.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="158">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`queue from stacks: peek = <span class="hljs-subst">${peek}</span>, pop = <span class="hljs-subst">${popped}</span>, empty = <span class="hljs-subst">${q.empty()}</span>`</span>);</span><span class="ln" data-line="159"> </span><span class="ln" data-line="160">  <span class="hljs-keyword">const</span> rs = <span class="hljs-keyword">new</span> <span class="hljs-title class_">RandomizedSet</span>();</span><span class="ln" data-line="161">  <span class="hljs-keyword">const</span> results = [rs.<span class="hljs-title function_">insert</span>(<span class="hljs-number">1</span>), rs.<span class="hljs-title function_">remove</span>(<span class="hljs-number">2</span>), rs.<span class="hljs-title function_">insert</span>(<span class="hljs-number">2</span>), rs.<span class="hljs-title function_">insert</span>(<span class="hljs-number">2</span>), rs.<span class="hljs-title function_">remove</span>(<span class="hljs-number">1</span>)];</span><span class="ln" data-line="162">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`randomized set: insert 1 <span class="hljs-subst">${results[<span class="hljs-number">0</span>]}</span>, remove 2 <span class="hljs-subst">${results[<span class="hljs-number">1</span>]}</span>, insert 2 <span class="hljs-subst">${results[<span class="hljs-number">2</span>]}</span>, insert 2 again <span class="hljs-subst">${results[<span class="hljs-number">3</span>]}</span>, remove 1 <span class="hljs-subst">${results[<span class="hljs-number">4</span>]}</span>, getRandom = <span class="hljs-subst">${rs.getRandom()}</span>, size <span class="hljs-subst">${rs.size()}</span>`</span>);</span><span class="ln" data-line="163">}</span><span class="ln" data-line="164"> </span><span class="ln" data-line="165"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">interface LNode {
+  key: number;
+  value: number;
+  prev: LNode | null;
+  next: LNode | null;
+}
+
+class LRUCache {
+  private capacity: number;
+  private map = new Map&lt;number, LNode&gt;();
+  private head: LNode = { key: 0, value: 0, prev: null, next: null }; // sentinels
+  private tail: LNode = { key: 0, value: 0, prev: null, next: null };
+
+  constructor(capacity: number) {
+    this.capacity = capacity;
+    this.head.next = this.tail;
+    this.tail.prev = this.head;
+  }
+
+  private unlink(n: LNode): void {
+    (n.prev as LNode).next = n.next;
+    (n.next as LNode).prev = n.prev;
+  }
+
+  private addFront(n: LNode): void {
+    n.next = this.head.next;
+    n.prev = this.head;
+    (this.head.next as LNode).prev = n;
+    this.head.next = n;
+  }
+
+  get(key: number): number {
+    const n = this.map.get(key);
+    if (!n) return -1;
+    this.unlink(n);
+    this.addFront(n); // most recently used
+    return n.value;
+  }
+
+  put(key: number, value: number): void {
+    const existing = this.map.get(key);
+    if (existing) {
+      existing.value = value;
+      this.unlink(existing);
+      this.addFront(existing);
+      return;
+    }
+    if (this.map.size === this.capacity) {
+      const lru = this.tail.prev as LNode; // evict the least recently used
+      this.unlink(lru);
+      this.map.delete(lru.key);
+    }
+    const n: LNode = { key, value, prev: null, next: null };
+    this.map.set(key, n);
+    this.addFront(n);
+  }
+
+  order(): string {
+    const keys: number[] = [];
+    for (let n = this.head.next; n !== null &amp;&amp; n !== this.tail; n = n.next) keys.push(n.key);
+    return keys.join(&quot; &quot;);
+  }
+}
+
+class MinStack {
+  private stack: [number, number][] = []; // [value, minimum so far]
+
+  push(x: number): void {
+    const min = this.stack.length === 0 ? x : Math.min(x, this.getMin());
+    this.stack.push([x, min]);
+  }
+  pop(): void {
+    this.stack.pop();
+  }
+  top(): number {
+    return this.stack[this.stack.length - 1][0];
+  }
+  getMin(): number {
+    return this.stack[this.stack.length - 1][1];
+  }
+}
+
+class MyQueue {
+  private in: number[] = [];
+  private out: number[] = [];
+
+  push(x: number): void {
+    this.in.push(x);
+  }
+  private pour(): void {
+    if (this.out.length === 0) while (this.in.length &gt; 0) this.out.push(this.in.pop() as number); // only when out is empty
+  }
+  pop(): number {
+    this.pour();
+    return this.out.pop() as number;
+  }
+  peek(): number {
+    this.pour();
+    return this.out[this.out.length - 1];
+  }
+  empty(): boolean {
+    return this.in.length === 0 &amp;&amp; this.out.length === 0;
+  }
+}
+
+class RandomizedSet {
+  private values: number[] = [];
+  private indexOf = new Map&lt;number, number&gt;();
+
+  insert(x: number): boolean {
+    if (this.indexOf.has(x)) return false;
+    this.indexOf.set(x, this.values.length);
+    this.values.push(x);
+    return true;
+  }
+  remove(x: number): boolean {
+    const i = this.indexOf.get(x);
+    if (i === undefined) return false;
+    this.indexOf.delete(x);
+    const last = this.values.pop() as number;
+    if (i &lt; this.values.length) {
+      this.values[i] = last; // move the last value into the gap
+      this.indexOf.set(last, i);
+    }
+    return true;
+  }
+  getRandom(): number {
+    return this.values[Math.floor(Math.random() * this.values.length)];
+  }
+  size(): number {
+    return this.values.length;
+  }
+}
+
+function main(): void {
+  const lru = new LRUCache(2);
+  lru.put(1, 1);
+  lru.put(2, 2);
+  const a = lru.get(1);
+  lru.put(3, 3); // evicts 2
+  const b = lru.get(2);
+  lru.put(4, 4); // evicts 1
+  console.log(`LRU: get(1) = ${a}, get(2) = ${b}, get(1) = ${lru.get(1)}, get(3) = ${lru.get(3)}, get(4) = ${lru.get(4)}, order ${lru.order()}`);
+
+  const ms = new MinStack();
+  ms.push(-2);
+  ms.push(0);
+  ms.push(-3);
+  const min1 = ms.getMin();
+  ms.pop();
+  console.log(`min stack: getMin = ${min1}, after pop top = ${ms.top()}, getMin = ${ms.getMin()}`);
+
+  const q = new MyQueue();
+  q.push(1);
+  q.push(2);
+  const peek = q.peek();
+  const popped = q.pop();
+  console.log(`queue from stacks: peek = ${peek}, pop = ${popped}, empty = ${q.empty()}`);
+
+  const rs = new RandomizedSet();
+  const results = [rs.insert(1), rs.remove(2), rs.insert(2), rs.insert(2), rs.remove(1)];
+  console.log(`randomized set: insert 1 ${results[0]}, remove 2 ${results[1]}, insert 2 ${results[2]}, insert 2 again ${results[3]}, remove 1 ${results[4]}, getRandom = ${rs.getRandom()}, size ${rs.size()}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-data-structure-design-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> random</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Dict</span>, <span class="hljs-type">List</span>, <span class="hljs-type">Optional</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">class</span> <span class="hljs-title class_">_Node</span>:</span><span class="ln" data-line="6">    __slots__ = (<span class="hljs-string">&quot;key&quot;</span>, <span class="hljs-string">&quot;value&quot;</span>, <span class="hljs-string">&quot;prev&quot;</span>, <span class="hljs-string">&quot;next&quot;</span>)</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, key: <span class="hljs-built_in">int</span> = <span class="hljs-number">0</span>, value: <span class="hljs-built_in">int</span> = <span class="hljs-number">0</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="9">        <span class="hljs-variable language_">self</span>.key, <span class="hljs-variable language_">self</span>.value = key, value</span><span class="ln" data-line="10">        <span class="hljs-variable language_">self</span>.prev: <span class="hljs-type">Optional</span>[<span class="hljs-string">&quot;_Node&quot;</span>] = <span class="hljs-literal">None</span></span><span class="ln" data-line="11">        <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">next</span>: <span class="hljs-type">Optional</span>[<span class="hljs-string">&quot;_Node&quot;</span>] = <span class="hljs-literal">None</span></span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"> </span><span class="ln" data-line="14"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LRUCache</span>:</span><span class="ln" data-line="15">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, capacity: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="16">        <span class="hljs-variable language_">self</span>.capacity = capacity</span><span class="ln" data-line="17">        <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">map</span>: <span class="hljs-type">Dict</span>[<span class="hljs-built_in">int</span>, _Node] = {}</span><span class="ln" data-line="18">        <span class="hljs-variable language_">self</span>.head, <span class="hljs-variable language_">self</span>.tail = _Node(), _Node()  <span class="hljs-comment"># sentinels</span></span><span class="ln" data-line="19">        <span class="hljs-variable language_">self</span>.head.<span class="hljs-built_in">next</span>, <span class="hljs-variable language_">self</span>.tail.prev = <span class="hljs-variable language_">self</span>.tail, <span class="hljs-variable language_">self</span>.head</span><span class="ln" data-line="20"> </span><span class="ln" data-line="21">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_unlink</span>(<span class="hljs-params">self, n: _Node</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="22">        n.prev.<span class="hljs-built_in">next</span>, n.<span class="hljs-built_in">next</span>.prev = n.<span class="hljs-built_in">next</span>, n.prev</span><span class="ln" data-line="23"> </span><span class="ln" data-line="24">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_add_front</span>(<span class="hljs-params">self, n: _Node</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="25">        n.<span class="hljs-built_in">next</span>, n.prev = <span class="hljs-variable language_">self</span>.head.<span class="hljs-built_in">next</span>, <span class="hljs-variable language_">self</span>.head</span><span class="ln" data-line="26">        <span class="hljs-variable language_">self</span>.head.<span class="hljs-built_in">next</span>.prev = n</span><span class="ln" data-line="27">        <span class="hljs-variable language_">self</span>.head.<span class="hljs-built_in">next</span> = n</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get</span>(<span class="hljs-params">self, key: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="30">        n = <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">map</span>.get(key)</span><span class="ln" data-line="31">        <span class="hljs-keyword">if</span> n <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="32">            <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span></span><span class="ln" data-line="33">        <span class="hljs-variable language_">self</span>._unlink(n)</span><span class="ln" data-line="34">        <span class="hljs-variable language_">self</span>._add_front(n)  <span class="hljs-comment"># most recently used</span></span><span class="ln" data-line="35">        <span class="hljs-keyword">return</span> n.value</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">put</span>(<span class="hljs-params">self, key: <span class="hljs-built_in">int</span>, value: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="38">        n = <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">map</span>.get(key)</span><span class="ln" data-line="39">        <span class="hljs-keyword">if</span> n <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="40">            n.value = value</span><span class="ln" data-line="41">            <span class="hljs-variable language_">self</span>._unlink(n)</span><span class="ln" data-line="42">            <span class="hljs-variable language_">self</span>._add_front(n)</span><span class="ln" data-line="43">            <span class="hljs-keyword">return</span></span><span class="ln" data-line="44">        <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.<span class="hljs-built_in">map</span>) == <span class="hljs-variable language_">self</span>.capacity:  <span class="hljs-comment"># evict the least recently used</span></span><span class="ln" data-line="45">            lru = <span class="hljs-variable language_">self</span>.tail.prev</span><span class="ln" data-line="46">            <span class="hljs-variable language_">self</span>._unlink(lru)</span><span class="ln" data-line="47">            <span class="hljs-keyword">del</span> <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">map</span>[lru.key]</span><span class="ln" data-line="48">        n = _Node(key, value)</span><span class="ln" data-line="49">        <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">map</span>[key] = n</span><span class="ln" data-line="50">        <span class="hljs-variable language_">self</span>._add_front(n)</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">order</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="53">        keys, n = [], <span class="hljs-variable language_">self</span>.head.<span class="hljs-built_in">next</span></span><span class="ln" data-line="54">        <span class="hljs-keyword">while</span> n <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.tail:</span><span class="ln" data-line="55">            keys.append(<span class="hljs-built_in">str</span>(n.key))</span><span class="ln" data-line="56">            n = n.<span class="hljs-built_in">next</span></span><span class="ln" data-line="57">        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot; &quot;</span>.join(keys)</span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MinStack</span>:</span><span class="ln" data-line="61">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="62">        <span class="hljs-variable language_">self</span>.stack: <span class="hljs-type">List</span>[<span class="hljs-built_in">tuple</span>] = []  <span class="hljs-comment"># (value, minimum so far)</span></span><span class="ln" data-line="63"> </span><span class="ln" data-line="64">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">push</span>(<span class="hljs-params">self, x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="65">        <span class="hljs-variable language_">self</span>.stack.append((x, x <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.stack <span class="hljs-keyword">else</span> <span class="hljs-built_in">min</span>(x, <span class="hljs-variable language_">self</span>.stack[-<span class="hljs-number">1</span>][<span class="hljs-number">1</span>])))</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pop</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="68">        <span class="hljs-variable language_">self</span>.stack.pop()</span><span class="ln" data-line="69"> </span><span class="ln" data-line="70">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">top</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="71">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.stack[-<span class="hljs-number">1</span>][<span class="hljs-number">0</span>]</span><span class="ln" data-line="72"> </span><span class="ln" data-line="73">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_min</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="74">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.stack[-<span class="hljs-number">1</span>][<span class="hljs-number">1</span>]</span><span class="ln" data-line="75"> </span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"><span class="hljs-keyword">class</span> <span class="hljs-title class_">MyQueue</span>:</span><span class="ln" data-line="78">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="79">        <span class="hljs-variable language_">self</span>.inbox: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>] = []</span><span class="ln" data-line="80">        <span class="hljs-variable language_">self</span>.outbox: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>] = []</span><span class="ln" data-line="81"> </span><span class="ln" data-line="82">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">push</span>(<span class="hljs-params">self, x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="83">        <span class="hljs-variable language_">self</span>.inbox.append(x)</span><span class="ln" data-line="84"> </span><span class="ln" data-line="85">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_pour</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="86">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.outbox:  <span class="hljs-comment"># only when outbox is empty</span></span><span class="ln" data-line="87">            <span class="hljs-keyword">while</span> <span class="hljs-variable language_">self</span>.inbox:</span><span class="ln" data-line="88">                <span class="hljs-variable language_">self</span>.outbox.append(<span class="hljs-variable language_">self</span>.inbox.pop())</span><span class="ln" data-line="89"> </span><span class="ln" data-line="90">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pop</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="91">        <span class="hljs-variable language_">self</span>._pour()</span><span class="ln" data-line="92">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.outbox.pop()</span><span class="ln" data-line="93"> </span><span class="ln" data-line="94">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">peek</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="95">        <span class="hljs-variable language_">self</span>._pour()</span><span class="ln" data-line="96">        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.outbox[-<span class="hljs-number">1</span>]</span><span class="ln" data-line="97"> </span><span class="ln" data-line="98">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">empty</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="99">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.inbox <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.outbox</span><span class="ln" data-line="100"> </span><span class="ln" data-line="101"> </span><span class="ln" data-line="102"><span class="hljs-keyword">class</span> <span class="hljs-title class_">RandomizedSet</span>:</span><span class="ln" data-line="103">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="104">        <span class="hljs-variable language_">self</span>.values: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>] = []</span><span class="ln" data-line="105">        <span class="hljs-variable language_">self</span>.index_of: <span class="hljs-type">Dict</span>[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>] = {}</span><span class="ln" data-line="106"> </span><span class="ln" data-line="107">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">insert</span>(<span class="hljs-params">self, x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="108">        <span class="hljs-keyword">if</span> x <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.index_of:</span><span class="ln" data-line="109">            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span></span><span class="ln" data-line="110">        <span class="hljs-variable language_">self</span>.index_of[x] = <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.values)</span><span class="ln" data-line="111">        <span class="hljs-variable language_">self</span>.values.append(x)</span><span class="ln" data-line="112">        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span></span><span class="ln" data-line="113"> </span><span class="ln" data-line="114">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">remove</span>(<span class="hljs-params">self, x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:</span><span class="ln" data-line="115">        i = <span class="hljs-variable language_">self</span>.index_of.pop(x, <span class="hljs-literal">None</span>)</span><span class="ln" data-line="116">        <span class="hljs-keyword">if</span> i <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:</span><span class="ln" data-line="117">            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span></span><span class="ln" data-line="118">        last = <span class="hljs-variable language_">self</span>.values.pop()</span><span class="ln" data-line="119">        <span class="hljs-keyword">if</span> i &lt; <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.values):  <span class="hljs-comment"># move the last value into the gap</span></span><span class="ln" data-line="120">            <span class="hljs-variable language_">self</span>.values[i] = last</span><span class="ln" data-line="121">            <span class="hljs-variable language_">self</span>.index_of[last] = i</span><span class="ln" data-line="122">        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span></span><span class="ln" data-line="123"> </span><span class="ln" data-line="124">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_random</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="125">        <span class="hljs-keyword">return</span> random.choice(<span class="hljs-variable language_">self</span>.values)</span><span class="ln" data-line="126"> </span><span class="ln" data-line="127">    <span class="hljs-keyword">def</span> <span class="hljs-title function_">size</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="128">        <span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>.values)</span><span class="ln" data-line="129"> </span><span class="ln" data-line="130"> </span><span class="ln" data-line="131"><span class="hljs-keyword">def</span> <span class="hljs-title function_">b</span>(<span class="hljs-params">x: <span class="hljs-built_in">bool</span></span>) -&gt; <span class="hljs-built_in">str</span>:</span><span class="ln" data-line="132">    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;true&quot;</span> <span class="hljs-keyword">if</span> x <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;false&quot;</span></span><span class="ln" data-line="133"> </span><span class="ln" data-line="134"> </span><span class="ln" data-line="135"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="136">    lru = LRUCache(<span class="hljs-number">2</span>)</span><span class="ln" data-line="137">    lru.put(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>)</span><span class="ln" data-line="138">    lru.put(<span class="hljs-number">2</span>, <span class="hljs-number">2</span>)</span><span class="ln" data-line="139">    a = lru.get(<span class="hljs-number">1</span>)</span><span class="ln" data-line="140">    lru.put(<span class="hljs-number">3</span>, <span class="hljs-number">3</span>)  <span class="hljs-comment"># evicts 2</span></span><span class="ln" data-line="141">    c = lru.get(<span class="hljs-number">2</span>)</span><span class="ln" data-line="142">    lru.put(<span class="hljs-number">4</span>, <span class="hljs-number">4</span>)  <span class="hljs-comment"># evicts 1</span></span><span class="ln" data-line="143">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;LRU: get(1) = <span class="hljs-subst">{a}</span>, get(2) = <span class="hljs-subst">{c}</span>, get(1) = <span class="hljs-subst">{lru.get(<span class="hljs-number">1</span>)}</span>, get(3) = <span class="hljs-subst">{lru.get(<span class="hljs-number">3</span>)}</span>, get(4) = <span class="hljs-subst">{lru.get(<span class="hljs-number">4</span>)}</span>, order <span class="hljs-subst">{lru.order()}</span>&quot;</span>)</span><span class="ln" data-line="144"> </span><span class="ln" data-line="145">    ms = MinStack()</span><span class="ln" data-line="146">    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> (-<span class="hljs-number">2</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">3</span>):</span><span class="ln" data-line="147">        ms.push(x)</span><span class="ln" data-line="148">    min1 = ms.get_min()</span><span class="ln" data-line="149">    ms.pop()</span><span class="ln" data-line="150">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;min stack: getMin = <span class="hljs-subst">{min1}</span>, after pop top = <span class="hljs-subst">{ms.top()}</span>, getMin = <span class="hljs-subst">{ms.get_min()}</span>&quot;</span>)</span><span class="ln" data-line="151"> </span><span class="ln" data-line="152">    q = MyQueue()</span><span class="ln" data-line="153">    q.push(<span class="hljs-number">1</span>)</span><span class="ln" data-line="154">    q.push(<span class="hljs-number">2</span>)</span><span class="ln" data-line="155">    peek, popped = q.peek(), q.pop()</span><span class="ln" data-line="156">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;queue from stacks: peek = <span class="hljs-subst">{peek}</span>, pop = <span class="hljs-subst">{popped}</span>, empty = <span class="hljs-subst">{b(q.empty())}</span>&quot;</span>)</span><span class="ln" data-line="157"> </span><span class="ln" data-line="158">    rs = RandomizedSet()</span><span class="ln" data-line="159">    r = [rs.insert(<span class="hljs-number">1</span>), rs.remove(<span class="hljs-number">2</span>), rs.insert(<span class="hljs-number">2</span>), rs.insert(<span class="hljs-number">2</span>), rs.remove(<span class="hljs-number">1</span>)]</span><span class="ln" data-line="160">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;randomized set: insert 1 <span class="hljs-subst">{b(r[<span class="hljs-number">0</span>])}</span>, remove 2 <span class="hljs-subst">{b(r[<span class="hljs-number">1</span>])}</span>, insert 2 <span class="hljs-subst">{b(r[<span class="hljs-number">2</span>])}</span>, insert 2 again <span class="hljs-subst">{b(r[<span class="hljs-number">3</span>])}</span>, remove 1 <span class="hljs-subst">{b(r[<span class="hljs-number">4</span>])}</span>, getRandom = <span class="hljs-subst">{rs.get_random()}</span>, size <span class="hljs-subst">{rs.size()}</span>&quot;</span>)</span><span class="ln" data-line="161"> </span><span class="ln" data-line="162"> </span><span class="ln" data-line="163"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="164">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import random
+from typing import Dict, List, Optional
+
+
+class _Node:
+    __slots__ = (&quot;key&quot;, &quot;value&quot;, &quot;prev&quot;, &quot;next&quot;)
+
+    def __init__(self, key: int = 0, value: int = 0) -&gt; None:
+        self.key, self.value = key, value
+        self.prev: Optional[&quot;_Node&quot;] = None
+        self.next: Optional[&quot;_Node&quot;] = None
+
+
+class LRUCache:
+    def __init__(self, capacity: int) -&gt; None:
+        self.capacity = capacity
+        self.map: Dict[int, _Node] = {}
+        self.head, self.tail = _Node(), _Node()  # sentinels
+        self.head.next, self.tail.prev = self.tail, self.head
+
+    def _unlink(self, n: _Node) -&gt; None:
+        n.prev.next, n.next.prev = n.next, n.prev
+
+    def _add_front(self, n: _Node) -&gt; None:
+        n.next, n.prev = self.head.next, self.head
+        self.head.next.prev = n
+        self.head.next = n
+
+    def get(self, key: int) -&gt; int:
+        n = self.map.get(key)
+        if n is None:
+            return -1
+        self._unlink(n)
+        self._add_front(n)  # most recently used
+        return n.value
+
+    def put(self, key: int, value: int) -&gt; None:
+        n = self.map.get(key)
+        if n is not None:
+            n.value = value
+            self._unlink(n)
+            self._add_front(n)
+            return
+        if len(self.map) == self.capacity:  # evict the least recently used
+            lru = self.tail.prev
+            self._unlink(lru)
+            del self.map[lru.key]
+        n = _Node(key, value)
+        self.map[key] = n
+        self._add_front(n)
+
+    def order(self) -&gt; str:
+        keys, n = [], self.head.next
+        while n is not self.tail:
+            keys.append(str(n.key))
+            n = n.next
+        return &quot; &quot;.join(keys)
+
+
+class MinStack:
+    def __init__(self) -&gt; None:
+        self.stack: List[tuple] = []  # (value, minimum so far)
+
+    def push(self, x: int) -&gt; None:
+        self.stack.append((x, x if not self.stack else min(x, self.stack[-1][1])))
+
+    def pop(self) -&gt; None:
+        self.stack.pop()
+
+    def top(self) -&gt; int:
+        return self.stack[-1][0]
+
+    def get_min(self) -&gt; int:
+        return self.stack[-1][1]
+
+
+class MyQueue:
+    def __init__(self) -&gt; None:
+        self.inbox: List[int] = []
+        self.outbox: List[int] = []
+
+    def push(self, x: int) -&gt; None:
+        self.inbox.append(x)
+
+    def _pour(self) -&gt; None:
+        if not self.outbox:  # only when outbox is empty
+            while self.inbox:
+                self.outbox.append(self.inbox.pop())
+
+    def pop(self) -&gt; int:
+        self._pour()
+        return self.outbox.pop()
+
+    def peek(self) -&gt; int:
+        self._pour()
+        return self.outbox[-1]
+
+    def empty(self) -&gt; bool:
+        return not self.inbox and not self.outbox
+
+
+class RandomizedSet:
+    def __init__(self) -&gt; None:
+        self.values: List[int] = []
+        self.index_of: Dict[int, int] = {}
+
+    def insert(self, x: int) -&gt; bool:
+        if x in self.index_of:
+            return False
+        self.index_of[x] = len(self.values)
+        self.values.append(x)
+        return True
+
+    def remove(self, x: int) -&gt; bool:
+        i = self.index_of.pop(x, None)
+        if i is None:
+            return False
+        last = self.values.pop()
+        if i &lt; len(self.values):  # move the last value into the gap
+            self.values[i] = last
+            self.index_of[last] = i
+        return True
+
+    def get_random(self) -&gt; int:
+        return random.choice(self.values)
+
+    def size(self) -&gt; int:
+        return len(self.values)
+
+
+def b(x: bool) -&gt; str:
+    return &quot;true&quot; if x else &quot;false&quot;
+
+
+def main() -&gt; None:
+    lru = LRUCache(2)
+    lru.put(1, 1)
+    lru.put(2, 2)
+    a = lru.get(1)
+    lru.put(3, 3)  # evicts 2
+    c = lru.get(2)
+    lru.put(4, 4)  # evicts 1
+    print(f&quot;LRU: get(1) = {a}, get(2) = {c}, get(1) = {lru.get(1)}, get(3) = {lru.get(3)}, get(4) = {lru.get(4)}, order {lru.order()}&quot;)
+
+    ms = MinStack()
+    for x in (-2, 0, -3):
+        ms.push(x)
+    min1 = ms.get_min()
+    ms.pop()
+    print(f&quot;min stack: getMin = {min1}, after pop top = {ms.top()}, getMin = {ms.get_min()}&quot;)
+
+    q = MyQueue()
+    q.push(1)
+    q.push(2)
+    peek, popped = q.peek(), q.pop()
+    print(f&quot;queue from stacks: peek = {peek}, pop = {popped}, empty = {b(q.empty())}&quot;)
+
+    rs = RandomizedSet()
+    r = [rs.insert(1), rs.remove(2), rs.insert(2), rs.insert(2), rs.remove(1)]
+    print(f&quot;randomized set: insert 1 {b(r[0])}, remove 2 {b(r[1])}, insert 2 {b(r[2])}, insert 2 again {b(r[3])}, remove 1 {b(r[4])}, getRandom = {rs.get_random()}, size {rs.size()}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>LRU: get(1) = 1, get(2) = -1, get(1) = -1, get(3) = 3, get(4) = 4, order 4 3
+min stack: getMin = -3, after pop top = 0, getMin = -2
+queue from stacks: peek = 1, pop = 1, empty = false
+randomized set: insert 1 true, remove 2 false, insert 2 true, insert 2 again false, remove 1 true, getRandom = 2, size 1</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Forgetting to update the hash map when a node is evicted or moved.</li><li>Using a singly linked list for LRU, so removing a node in the middle is O(n).</li><li>In the randomised set, removing the last element and then trying to update its (now removed) index.</li><li>In the two-stack queue, pouring into <code>out</code> while it still has elements, which breaks the order.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/implement-queue-using-stacks/" rel="noopener" target="_blank">Implement Queue using Stacks<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>232</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/min-stack/" rel="noopener" target="_blank">Min Stack<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>155</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/lru-cache/" rel="noopener" target="_blank">LRU Cache<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>146</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/insert-delete-getrandom-o1/" rel="noopener" target="_blank">Insert Delete GetRandom O(1)<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>380</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/lfu-cache/" rel="noopener" target="_blank">LFU Cache<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>460</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/hash-tables/index.html">Hash tables</a>, <a href="../../data-structures/linked-lists/index.html">Linked lists</a>, <a href="../../data-structures/heaps/index.html">Heaps</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../matrix-traversal/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Matrix traversal</span></a><a class="pn pn-next" href="../../lld/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Low-level design</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

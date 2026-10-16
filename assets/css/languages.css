@@ -1,0 +1,17 @@
+/* Generated from content/languages.json. Do not edit. */
+.code-pane { display: none; }
+html:not([data-lang]) .code-pane[data-lang="java"] { display: block; }
+html[data-lang="java"] .code-pane[data-lang="java"] { display: block; }
+html[data-lang="javascript"] .code-pane[data-lang="javascript"] { display: block; }
+html[data-lang="typescript"] .code-pane[data-lang="typescript"] { display: block; }
+html[data-lang="python"] .code-pane[data-lang="python"] { display: block; }
+.lang-note { display: none; }
+html:not([data-lang]) .lang-note[data-lang="java"] { display: block; }
+html[data-lang="java"] .lang-note[data-lang="java"] { display: block; }
+html[data-lang="javascript"] .lang-note[data-lang="javascript"] { display: block; }
+html[data-lang="typescript"] .lang-note[data-lang="typescript"] { display: block; }
+html[data-lang="python"] .lang-note[data-lang="python"] { display: block; }
+html[data-lang="java"] .code-tab[data-lang="java"] { color: var(--ink); background: var(--surface); border-color: var(--line-strong); border-bottom-color: var(--surface); }
+html[data-lang="javascript"] .code-tab[data-lang="javascript"] { color: var(--ink); background: var(--surface); border-color: var(--line-strong); border-bottom-color: var(--surface); }
+html[data-lang="typescript"] .code-tab[data-lang="typescript"] { color: var(--ink); background: var(--surface); border-color: var(--line-strong); border-bottom-color: var(--surface); }
+html[data-lang="python"] .code-tab[data-lang="python"] { color: var(--ink); background: var(--surface); border-color: var(--line-strong); border-bottom-color: var(--surface); }

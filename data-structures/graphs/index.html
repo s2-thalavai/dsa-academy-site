@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graphs · DSA Academy</title>
+<meta name="description" content="Adjacency lists and matrices, grids as graphs, DAGs.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../index.html" aria-current="page">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../../patterns/index.html">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Data structures</a></li><li><span aria-current="page">Graphs</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Graphs</h1>
+  <p class="lede">A graph is a set of nodes (vertices) joined by edges. Roads between cities, friendships, web links, task dependencies and grids are all graphs.</p>
+  <p class="tags"><span class="pill">Data structure</span> <span class="muted">15 minute read</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> A city map. Intersections are nodes and streets are edges. One-way streets make it directed; distances or travel times make it weighted. Asking &quot;can I get from here to there, and how fast?&quot; is a graph question.</p></aside>
+<h2 id="kinds-of-graph">Kinds of graph</h2>
+<ul>
+<li><strong>Undirected</strong>: edges go both ways (friendship). <strong>Directed</strong>: edges have a
+direction (follows, one-way streets, &quot;A must happen before B&quot;).</li>
+<li><strong>Weighted</strong>: each edge carries a number such as a distance or cost.
+<strong>Unweighted</strong>: every edge counts the same.</li>
+<li><strong>Cyclic</strong> or <strong>acyclic</strong>: whether you can leave a node and come back to it.
+A <strong>DAG</strong> (directed acyclic graph) models dependencies, and it&#39;s exactly the
+kind of graph that has a topological order.</li>
+<li><strong>Connected</strong>: every node can reach every other. Otherwise the graph splits
+into <strong>connected components</strong>.</li>
+<li><strong>Dense</strong> graphs have edges between most pairs (E close to V²); <strong>sparse</strong>
+graphs have far fewer (E close to V). Most real graphs are sparse.</li>
+</ul>
+<h2 id="how-it-sits-in-memory">How it sits in memory</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 700 280" role="img" aria-label="An undirected graph of six nodes, its adjacency list and its adjacency matrix"><defs></defs><path class="dg-line" d="M60 60 L150 30"/><path class="dg-line" d="M60 60 L150 120"/><path class="dg-line" d="M150 30 L240 75"/><path class="dg-line" d="M150 120 L240 75"/><path class="dg-line" d="M240 75 L320 130"/><circle class="dg-box" cx="60" cy="60" r="18"/><text class="dg-t" x="60" y="60">0</text><circle class="dg-box" cx="150" cy="30" r="18"/><text class="dg-t" x="150" y="30">1</text><circle class="dg-box" cx="150" cy="120" r="18"/><text class="dg-t" x="150" y="120">2</text><circle class="dg-a" cx="240" cy="75" r="18"/><text class="dg-t" x="240" y="75">3</text><circle class="dg-box" cx="320" cy="130" r="18"/><text class="dg-t" x="320" y="130">4</text><circle class="dg-box" cx="300" cy="30" r="18"/><text class="dg-t" x="300" y="30">5</text><text class="dg-lbl" x="20" y="180">Adjacency list</text><rect class="dg-box" x="20" y="190" width="0" height="0" rx="6"/><rect class="dg-box" x="20" y="204" width="0" height="0" rx="6"/><rect class="dg-box" x="20" y="218" width="0" height="0" rx="6"/><rect class="dg-box" x="20" y="232" width="0" height="0" rx="6"/><rect class="dg-box" x="20" y="246" width="0" height="0" rx="6"/><rect class="dg-box" x="20" y="260" width="0" height="0" rx="6"/><text class="dg-m" x="30" y="206">0 → 1 2</text><text class="dg-m" x="30" y="228">1 → 0 3</text><text class="dg-m" x="30" y="250">2 → 0 3</text><text class="dg-m" x="170" y="206">3 → 1 2 4</text><text class="dg-m" x="170" y="228">4 → 3</text><text class="dg-m" x="170" y="250">5 → —</text><text class="dg-lbl" x="400" y="20">Adjacency matrix</text><text class="dg-s" x="440" y="42">0</text><text class="dg-s" x="480" y="42">1</text><text class="dg-s" x="520" y="42">2</text><text class="dg-s" x="560" y="42">3</text><text class="dg-s" x="600" y="42">4</text><text class="dg-s" x="640" y="42">5</text><text class="dg-s" x="408" y="66">0</text><rect class="dg-box" x="422" y="46" width="36" height="32" rx="6"/><text class="dg-s" x="440.0" y="62.0">0</text><rect class="dg-ok" x="462" y="46" width="36" height="32" rx="6"/><text class="dg-s" x="480.0" y="62.0">1</text><rect class="dg-ok" x="502" y="46" width="36" height="32" rx="6"/><text class="dg-s" x="520.0" y="62.0">1</text><rect class="dg-box" x="542" y="46" width="36" height="32" rx="6"/><text class="dg-s" x="560.0" y="62.0">0</text><rect class="dg-box" x="582" y="46" width="36" height="32" rx="6"/><text class="dg-s" x="600.0" y="62.0">0</text><rect class="dg-box" x="622" y="46" width="36" height="32" rx="6"/><text class="dg-s" x="640.0" y="62.0">0</text><text class="dg-s" x="408" y="102">1</text><rect class="dg-ok" x="422" y="82" width="36" height="32" rx="6"/><text class="dg-s" x="440.0" y="98.0">1</text><rect class="dg-box" x="462" y="82" width="36" height="32" rx="6"/><text class="dg-s" x="480.0" y="98.0">0</text><rect class="dg-box" x="502" y="82" width="36" height="32" rx="6"/><text class="dg-s" x="520.0" y="98.0">0</text><rect class="dg-ok" x="542" y="82" width="36" height="32" rx="6"/><text class="dg-s" x="560.0" y="98.0">1</text><rect class="dg-box" x="582" y="82" width="36" height="32" rx="6"/><text class="dg-s" x="600.0" y="98.0">0</text><rect class="dg-box" x="622" y="82" width="36" height="32" rx="6"/><text class="dg-s" x="640.0" y="98.0">0</text><text class="dg-s" x="408" y="138">2</text><rect class="dg-ok" x="422" y="118" width="36" height="32" rx="6"/><text class="dg-s" x="440.0" y="134.0">1</text><rect class="dg-box" x="462" y="118" width="36" height="32" rx="6"/><text class="dg-s" x="480.0" y="134.0">0</text><rect class="dg-box" x="502" y="118" width="36" height="32" rx="6"/><text class="dg-s" x="520.0" y="134.0">0</text><rect class="dg-ok" x="542" y="118" width="36" height="32" rx="6"/><text class="dg-s" x="560.0" y="134.0">1</text><rect class="dg-box" x="582" y="118" width="36" height="32" rx="6"/><text class="dg-s" x="600.0" y="134.0">0</text><rect class="dg-box" x="622" y="118" width="36" height="32" rx="6"/><text class="dg-s" x="640.0" y="134.0">0</text><text class="dg-s" x="408" y="174">3</text><rect class="dg-box" x="422" y="154" width="36" height="32" rx="6"/><text class="dg-s" x="440.0" y="170.0">0</text><rect class="dg-ok" x="462" y="154" width="36" height="32" rx="6"/><text class="dg-s" x="480.0" y="170.0">1</text><rect class="dg-ok" x="502" y="154" width="36" height="32" rx="6"/><text class="dg-s" x="520.0" y="170.0">1</text><rect class="dg-box" x="542" y="154" width="36" height="32" rx="6"/><text class="dg-s" x="560.0" y="170.0">0</text><rect class="dg-ok" x="582" y="154" width="36" height="32" rx="6"/><text class="dg-s" x="600.0" y="170.0">1</text><rect class="dg-box" x="622" y="154" width="36" height="32" rx="6"/><text class="dg-s" x="640.0" y="170.0">0</text><text class="dg-s" x="408" y="210">4</text><rect class="dg-box" x="422" y="190" width="36" height="32" rx="6"/><text class="dg-s" x="440.0" y="206.0">0</text><rect class="dg-box" x="462" y="190" width="36" height="32" rx="6"/><text class="dg-s" x="480.0" y="206.0">0</text><rect class="dg-box" x="502" y="190" width="36" height="32" rx="6"/><text class="dg-s" x="520.0" y="206.0">0</text><rect class="dg-ok" x="542" y="190" width="36" height="32" rx="6"/><text class="dg-s" x="560.0" y="206.0">1</text><rect class="dg-box" x="582" y="190" width="36" height="32" rx="6"/><text class="dg-s" x="600.0" y="206.0">0</text><rect class="dg-box" x="622" y="190" width="36" height="32" rx="6"/><text class="dg-s" x="640.0" y="206.0">0</text><text class="dg-s" x="408" y="246">5</text><rect class="dg-box" x="422" y="226" width="36" height="32" rx="6"/><text class="dg-s" x="440.0" y="242.0">0</text><rect class="dg-box" x="462" y="226" width="36" height="32" rx="6"/><text class="dg-s" x="480.0" y="242.0">0</text><rect class="dg-box" x="502" y="226" width="36" height="32" rx="6"/><text class="dg-s" x="520.0" y="242.0">0</text><rect class="dg-box" x="542" y="226" width="36" height="32" rx="6"/><text class="dg-s" x="560.0" y="242.0">0</text><rect class="dg-box" x="582" y="226" width="36" height="32" rx="6"/><text class="dg-s" x="600.0" y="242.0">0</text><rect class="dg-box" x="622" y="226" width="36" height="32" rx="6"/><text class="dg-s" x="640.0" y="242.0">0</text></svg><figcaption>The same graph stored two ways. The list keeps only the edges that exist (O(V + E) memory). The matrix keeps a cell for every pair (O(V²) memory) but answers "is there an edge?" in O(1).</figcaption></figure><p>Use an <strong>adjacency list</strong> by default. It uses memory proportional to the edges
+that exist, and BFS, DFS and Dijkstra all spend their time listing neighbours,
+which a list does directly.</p>
+<p>Use an <strong>adjacency matrix</strong> when the graph is small and dense, or when you
+check &quot;is there an edge between u and v?&quot; constantly (Floyd–Warshall works on a
+matrix).</p>
+<p>An <strong>edge list</strong> (just an array of <code>(u, v, w)</code> triples) is the third common
+form. Kruskal&#39;s algorithm and Bellman-Ford iterate over it directly.</p>
+<h2 id="grids-are-implicit-graphs">Grids are implicit graphs</h2>
+<figure class="diagram diagram-wide"><svg viewBox="0 0 660 200" role="img" aria-label="A grid of land and water cells treated as a graph whose nodes are cells and whose edges join neighbouring land cells"><defs></defs><rect class="dg-ok" x="20" y="20" width="40" height="40" rx="6"/><text class="dg-t" x="40.0" y="40.0">1</text><rect class="dg-ok" x="64" y="20" width="40" height="40" rx="6"/><text class="dg-t" x="84.0" y="40.0">1</text><rect class="dg-box" x="108" y="20" width="40" height="40" rx="6"/><text class="dg-t" x="128.0" y="40.0">0</text><rect class="dg-box" x="152" y="20" width="40" height="40" rx="6"/><text class="dg-t" x="172.0" y="40.0">0</text><rect class="dg-box" x="196" y="20" width="40" height="40" rx="6"/><text class="dg-t" x="216.0" y="40.0">0</text><rect class="dg-ok" x="20" y="64" width="40" height="40" rx="6"/><text class="dg-t" x="40.0" y="84.0">1</text><rect class="dg-ok" x="64" y="64" width="40" height="40" rx="6"/><text class="dg-t" x="84.0" y="84.0">1</text><rect class="dg-box" x="108" y="64" width="40" height="40" rx="6"/><text class="dg-t" x="128.0" y="84.0">0</text><rect class="dg-box" x="152" y="64" width="40" height="40" rx="6"/><text class="dg-t" x="172.0" y="84.0">0</text><rect class="dg-box" x="196" y="64" width="40" height="40" rx="6"/><text class="dg-t" x="216.0" y="84.0">0</text><rect class="dg-box" x="20" y="108" width="40" height="40" rx="6"/><text class="dg-t" x="40.0" y="128.0">0</text><rect class="dg-box" x="64" y="108" width="40" height="40" rx="6"/><text class="dg-t" x="84.0" y="128.0">0</text><rect class="dg-ok" x="108" y="108" width="40" height="40" rx="6"/><text class="dg-t" x="128.0" y="128.0">1</text><rect class="dg-box" x="152" y="108" width="40" height="40" rx="6"/><text class="dg-t" x="172.0" y="128.0">0</text><rect class="dg-box" x="196" y="108" width="40" height="40" rx="6"/><text class="dg-t" x="216.0" y="128.0">0</text><rect class="dg-box" x="20" y="152" width="40" height="40" rx="6"/><text class="dg-t" x="40.0" y="172.0">0</text><rect class="dg-box" x="64" y="152" width="40" height="40" rx="6"/><text class="dg-t" x="84.0" y="172.0">0</text><rect class="dg-box" x="108" y="152" width="40" height="40" rx="6"/><text class="dg-t" x="128.0" y="172.0">0</text><rect class="dg-ok" x="152" y="152" width="40" height="40" rx="6"/><text class="dg-t" x="172.0" y="172.0">1</text><rect class="dg-ok" x="196" y="152" width="40" height="40" rx="6"/><text class="dg-t" x="216.0" y="172.0">1</text><text class="dg-lbl" x="260" y="40">neighbours of (r, c):</text><text class="dg-m" x="260" y="64">(r − 1, c), (r + 1, c), (r, c − 1), (r, c + 1)</text><text class="dg-m" x="260" y="92">skip any that are out of bounds or water</text><text class="dg-lbl" x="260" y="130">This grid has 3 islands: 3 connected</text><text class="dg-lbl" x="260" y="150">groups of 1s.</text></svg><figcaption>A grid is a graph you never build. Each cell is a node, and its neighbours are the cells up, down, left and right that are in bounds.</figcaption></figure><p>You don&#39;t need to build anything for a grid. Compute neighbours on the fly
+with a direction array such as <code>[(-1, 0), (1, 0), (0, -1), (0, 1)]</code>, and use
+the grid itself (or a <code>visited</code> grid) to track what you&#39;ve seen. A grid with R
+rows and C columns has V = R × C nodes and at most 4V edges, so BFS or DFS over
+it is O(R × C).</p>
+<h2 id="dags">DAGs</h2>
+<p>A directed acyclic graph has no cycles, so its nodes can be lined up so that
+every edge points forward. That line-up is a <strong>topological order</strong>. Build
+systems, course prerequisites and spreadsheet recalculation all rely on it. See
+Topological sort for the algorithm.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Store the graph: adjacency list</td><td class="nowrap">O(V + E) space</td><td>One entry per node plus one per edge (two for undirected).</td></tr><tr><td>Store the graph: adjacency matrix</td><td class="nowrap">O(V²) space</td><td>A cell for every pair of nodes, edge or not.</td></tr><tr><td>Is there an edge u–v?</td><td class="nowrap">O(1) matrix, O(deg u) list</td><td>The matrix indexes directly; the list scans u&#39;s neighbours (O(1) if each list is a hash set).</td></tr><tr><td>List the neighbours of u</td><td class="nowrap">O(deg u) list, O(V) matrix</td><td>The matrix has to scan the whole row.</td></tr><tr><td>BFS or DFS over everything</td><td class="nowrap">O(V + E) with a list</td><td>Each node is visited once and each edge examined once (twice if undirected). O(V²) with a matrix.</td></tr></tbody></table></div>
+<h2 id="use-when">When to use it</h2>
+<div class="two-col"><div><h3>Reach for it when</h3><ul><li>The problem talks about connections: friends, routes, prerequisites, dependencies, networks.</li><li>You&#39;re asked about reachability, shortest paths, cycles, ordering or connected groups.</li><li>There&#39;s a grid and you move between neighbouring cells (islands, mazes, flood fill).</li><li>States connect to other states by moves: word ladders, puzzle solvers, lock combinations.</li></ul></div><div><h3>Think twice when</h3><ul><li>The structure is strictly hierarchical with one parent per node. A tree is simpler.</li><li>You&#39;d build a dense matrix for a huge sparse graph: 10⁵ nodes means 10¹⁰ cells.</li></ul></div></div>
+<h2 id="lang-notes">In your language</h2>
+<div class="lang-notes"><div class="lang-note" data-lang="java"><p class="lang-note-label">Notes for Java</p><ul>
+<li>Adjacency list: <code>List&lt;List&lt;Integer&gt;&gt; adj = new ArrayList&lt;&gt;();</code> with <code>adj.add(new ArrayList&lt;&gt;())</code> per node. For weighted edges store <code>int[] {to, weight}</code>.</li>
+<li>For node labels that aren&#39;t 0..n − 1, use <code>Map&lt;String, List&lt;String&gt;&gt;</code> and <code>computeIfAbsent(u, k -&gt; new ArrayList&lt;&gt;())</code>.</li>
+<li>BFS with <code>ArrayDeque</code>; mark visited in a <code>boolean[]</code> when you enqueue.</li>
+</ul>
+</div><div class="lang-note" data-lang="javascript"><p class="lang-note-label">Notes for JavaScript</p><ul>
+<li><code>const adj = Array.from({ length: n }, () =&gt; []);</code> then <code>adj[u].push(v)</code>. Don&#39;t use <code>new Array(n).fill([])</code>, which shares one array between all nodes.</li>
+<li>For string labels use <code>Map&lt;string, string[]&gt;</code>.</li>
+<li>For BFS keep a head index into an array instead of calling <code>shift()</code>.</li>
+</ul>
+</div><div class="lang-note" data-lang="typescript"><p class="lang-note-label">Notes for TypeScript</p><ul>
+<li>Type it as <code>number[][]</code> or <code>Map&lt;string, string[]&gt;</code>. For weighted graphs, <code>Array&lt;Array&lt;[to: number, w: number]&gt;&gt;</code> names the tuple fields.</li>
+</ul>
+</div><div class="lang-note" data-lang="python"><p class="lang-note-label">Notes for Python</p><ul>
+<li><code>adj = defaultdict(list)</code> then <code>adj[u].append(v)</code> handles any hashable label.</li>
+<li>BFS uses <code>collections.deque</code>. Mark visited in a <code>set</code> (or a list of bools for 0..n − 1 labels).</li>
+<li>Recursive DFS hits the 1,000-frame recursion limit on long paths; use an explicit stack for big graphs.</li>
+</ul>
+</div><p class="muted lang-note-hint">Switch the language at the top of the page to see notes for another language.</p></div>
+<h2 id="code">Code</h2>
+<p>Build the graph from the diagram, print it as a list and one matrix row, run BFS and DFS from node 0, count connected components, then count islands in a grid treated as an implicit graph.</p><figure class="codeblock" id="code-graphs" aria-label="An adjacency list with BFS, DFS, components and a grid">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-graphs-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-graphs-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-graphs-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-graphs-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-graphs-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayDeque;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.Queue;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-title function_">buildUndirected</span><span class="hljs-params">(<span class="hljs-type">int</span> n, <span class="hljs-type">int</span>[][] edges)</span> {</span><span class="ln" data-line="9">        <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-variable">adj</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="10">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; n; i++) adj.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;());</span><span class="ln" data-line="11">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] e : edges) {</span><span class="ln" data-line="12">            adj.get(e[<span class="hljs-number">0</span>]).add(e[<span class="hljs-number">1</span>]);</span><span class="ln" data-line="13">            adj.get(e[<span class="hljs-number">1</span>]).add(e[<span class="hljs-number">0</span>]); <span class="hljs-comment">// undirected: both directions</span></span><span class="ln" data-line="14">        }</span><span class="ln" data-line="15">        <span class="hljs-keyword">return</span> adj;</span><span class="ln" data-line="16">    }</span><span class="ln" data-line="17"> </span><span class="ln" data-line="18">    <span class="hljs-comment">/** Returns the visit order; dist[] receives hop counts (-1 if unreachable). */</span></span><span class="ln" data-line="19">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-title function_">bfs</span><span class="hljs-params">(List&lt;List&lt;Integer&gt;&gt; adj, <span class="hljs-type">int</span> start, <span class="hljs-type">int</span>[] dist)</span> {</span><span class="ln" data-line="20">        java.util.Arrays.fill(dist, -<span class="hljs-number">1</span>);</span><span class="ln" data-line="21">        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">order</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="22">        <span class="hljs-type">Queue</span>&lt;Integer&gt; <span class="hljs-variable">queue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;();</span><span class="ln" data-line="23">        dist[start] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="24">        queue.add(start);</span><span class="ln" data-line="25">        <span class="hljs-keyword">while</span> (!queue.isEmpty()) {</span><span class="ln" data-line="26">            <span class="hljs-type">int</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> queue.poll();</span><span class="ln" data-line="27">            order.add(u);</span><span class="ln" data-line="28">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : adj.get(u)) {</span><span class="ln" data-line="29">                <span class="hljs-keyword">if</span> (dist[v] == -<span class="hljs-number">1</span>) { <span class="hljs-comment">// mark when enqueuing</span></span><span class="ln" data-line="30">                    dist[v] = dist[u] + <span class="hljs-number">1</span>;</span><span class="ln" data-line="31">                    queue.add(v);</span><span class="ln" data-line="32">                }</span><span class="ln" data-line="33">            }</span><span class="ln" data-line="34">        }</span><span class="ln" data-line="35">        <span class="hljs-keyword">return</span> order;</span><span class="ln" data-line="36">    }</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38">    <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">dfs</span><span class="hljs-params">(List&lt;List&lt;Integer&gt;&gt; adj, <span class="hljs-type">int</span> u, <span class="hljs-type">boolean</span>[] seen, List&lt;Integer&gt; order)</span> {</span><span class="ln" data-line="39">        seen[u] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="40">        order.add(u);</span><span class="ln" data-line="41">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : adj.get(u)) {</span><span class="ln" data-line="42">            <span class="hljs-keyword">if</span> (!seen[v]) dfs(adj, v, seen, order);</span><span class="ln" data-line="43">        }</span><span class="ln" data-line="44">    }</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">components</span><span class="hljs-params">(List&lt;List&lt;Integer&gt;&gt; adj)</span> {</span><span class="ln" data-line="47">        <span class="hljs-type">boolean</span>[] <span class="hljs-variable">seen</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">boolean</span>[adj.size()];</span><span class="ln" data-line="48">        <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="49">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; u &lt; adj.size(); u++) {</span><span class="ln" data-line="50">            <span class="hljs-keyword">if</span> (!seen[u]) {</span><span class="ln" data-line="51">                count++;</span><span class="ln" data-line="52">                dfs(adj, u, seen, <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;());</span><span class="ln" data-line="53">            }</span><span class="ln" data-line="54">        }</span><span class="ln" data-line="55">        <span class="hljs-keyword">return</span> count;</span><span class="ln" data-line="56">    }</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">countIslands</span><span class="hljs-params">(String[] grid)</span> {</span><span class="ln" data-line="59">        <span class="hljs-type">int</span> <span class="hljs-variable">rows</span> <span class="hljs-operator">=</span> grid.length, cols = grid[<span class="hljs-number">0</span>].length();</span><span class="ln" data-line="60">        <span class="hljs-type">boolean</span>[][] <span class="hljs-variable">seen</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">boolean</span>[rows][cols];</span><span class="ln" data-line="61">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">dirs</span> <span class="hljs-operator">=</span> { { -<span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">0</span>, -<span class="hljs-number">1</span> }, { <span class="hljs-number">0</span>, <span class="hljs-number">1</span> } };</span><span class="ln" data-line="62">        <span class="hljs-type">int</span> <span class="hljs-variable">islands</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="63">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; r &lt; rows; r++) {</span><span class="ln" data-line="64">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">c</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; c &lt; cols; c++) {</span><span class="ln" data-line="65">                <span class="hljs-keyword">if</span> (grid[r].charAt(c) != <span class="hljs-string">&#x27;1&#x27;</span> || seen[r][c]) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="66">                islands++;</span><span class="ln" data-line="67">                <span class="hljs-type">ArrayDeque</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">stack</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayDeque</span>&lt;&gt;();</span><span class="ln" data-line="68">                stack.push(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { r, c });</span><span class="ln" data-line="69">                seen[r][c] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="70">                <span class="hljs-keyword">while</span> (!stack.isEmpty()) {</span><span class="ln" data-line="71">                    <span class="hljs-type">int</span>[] <span class="hljs-variable">cell</span> <span class="hljs-operator">=</span> stack.pop();</span><span class="ln" data-line="72">                    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] d : dirs) {</span><span class="ln" data-line="73">                        <span class="hljs-type">int</span> <span class="hljs-variable">nr</span> <span class="hljs-operator">=</span> cell[<span class="hljs-number">0</span>] + d[<span class="hljs-number">0</span>], nc = cell[<span class="hljs-number">1</span>] + d[<span class="hljs-number">1</span>];</span><span class="ln" data-line="74">                        <span class="hljs-keyword">if</span> (nr &gt;= <span class="hljs-number">0</span> &amp;&amp; nr &lt; rows &amp;&amp; nc &gt;= <span class="hljs-number">0</span> &amp;&amp; nc &lt; cols &amp;&amp; grid[nr].charAt(nc) == <span class="hljs-string">&#x27;1&#x27;</span> &amp;&amp; !seen[nr][nc]) {</span><span class="ln" data-line="75">                            seen[nr][nc] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="76">                            stack.push(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { nr, nc });</span><span class="ln" data-line="77">                        }</span><span class="ln" data-line="78">                    }</span><span class="ln" data-line="79">                }</span><span class="ln" data-line="80">            }</span><span class="ln" data-line="81">        }</span><span class="ln" data-line="82">        <span class="hljs-keyword">return</span> islands;</span><span class="ln" data-line="83">    }</span><span class="ln" data-line="84"> </span><span class="ln" data-line="85">    <span class="hljs-keyword">static</span> <span class="hljs-type">String</span> <span class="hljs-title function_">join</span><span class="hljs-params">(List&lt;Integer&gt; xs)</span> {</span><span class="ln" data-line="86">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="87">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : xs) sb.append(sb.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(x);</span><span class="ln" data-line="88">        <span class="hljs-keyword">return</span> sb.toString();</span><span class="ln" data-line="89">    }</span><span class="ln" data-line="90"> </span><span class="ln" data-line="91">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="92">        <span class="hljs-type">int</span> <span class="hljs-variable">n</span> <span class="hljs-operator">=</span> <span class="hljs-number">6</span>;</span><span class="ln" data-line="93">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">edges</span> <span class="hljs-operator">=</span> { { <span class="hljs-number">0</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">0</span>, <span class="hljs-number">2</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">3</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">3</span> }, { <span class="hljs-number">3</span>, <span class="hljs-number">4</span> } };</span><span class="ln" data-line="94">        <span class="hljs-type">List</span>&lt;List&lt;Integer&gt;&gt; <span class="hljs-variable">adj</span> <span class="hljs-operator">=</span> buildUndirected(n, edges);</span><span class="ln" data-line="95">        System.out.println(<span class="hljs-string">&quot;adjacency list:&quot;</span>);</span><span class="ln" data-line="96">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; u &lt; n; u++) {</span><span class="ln" data-line="97">            <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">line</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>(<span class="hljs-string">&quot;  &quot;</span> + u + <span class="hljs-string">&quot;:&quot;</span>);</span><span class="ln" data-line="98">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> v : adj.get(u)) line.append(<span class="hljs-string">&quot; &quot;</span>).append(v);</span><span class="ln" data-line="99">            System.out.println(line);</span><span class="ln" data-line="100">        }</span><span class="ln" data-line="101">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">matrix</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n][n];</span><span class="ln" data-line="102">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] e : edges) { matrix[e[<span class="hljs-number">0</span>]][e[<span class="hljs-number">1</span>]] = <span class="hljs-number">1</span>; matrix[e[<span class="hljs-number">1</span>]][e[<span class="hljs-number">0</span>]] = <span class="hljs-number">1</span>; }</span><span class="ln" data-line="103">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">row3</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="104">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; j &lt; n; j++) row3.append(j &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(matrix[<span class="hljs-number">3</span>][j]);</span><span class="ln" data-line="105">        System.out.println(<span class="hljs-string">&quot;matrix row 3: &quot;</span> + row3);</span><span class="ln" data-line="106">        <span class="hljs-type">int</span>[] <span class="hljs-variable">dist</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n];</span><span class="ln" data-line="107">        System.out.println(<span class="hljs-string">&quot;BFS from 0: &quot;</span> + join(bfs(adj, <span class="hljs-number">0</span>, dist)) + <span class="hljs-string">&quot;, hops to 4: &quot;</span> + dist[<span class="hljs-number">4</span>] + <span class="hljs-string">&quot;, hops to 5: &quot;</span> + dist[<span class="hljs-number">5</span>]);</span><span class="ln" data-line="108">        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">order</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="109">        dfs(adj, <span class="hljs-number">0</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">boolean</span>[n], order);</span><span class="ln" data-line="110">        System.out.println(<span class="hljs-string">&quot;DFS from 0: &quot;</span> + join(order));</span><span class="ln" data-line="111">        System.out.println(<span class="hljs-string">&quot;connected components: &quot;</span> + components(adj));</span><span class="ln" data-line="112">        System.out.println(<span class="hljs-string">&quot;islands in grid: &quot;</span> + countIslands(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] { <span class="hljs-string">&quot;11000&quot;</span>, <span class="hljs-string">&quot;11000&quot;</span>, <span class="hljs-string">&quot;00100&quot;</span>, <span class="hljs-string">&quot;00011&quot;</span> }));</span><span class="ln" data-line="113">    }</span><span class="ln" data-line="114">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+
+public class Solution {
+
+    static List&lt;List&lt;Integer&gt;&gt; buildUndirected(int n, int[][] edges) {
+        List&lt;List&lt;Integer&gt;&gt; adj = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; n; i++) adj.add(new ArrayList&lt;&gt;());
+        for (int[] e : edges) {
+            adj.get(e[0]).add(e[1]);
+            adj.get(e[1]).add(e[0]); // undirected: both directions
+        }
+        return adj;
+    }
+
+    /** Returns the visit order; dist[] receives hop counts (-1 if unreachable). */
+    static List&lt;Integer&gt; bfs(List&lt;List&lt;Integer&gt;&gt; adj, int start, int[] dist) {
+        java.util.Arrays.fill(dist, -1);
+        List&lt;Integer&gt; order = new ArrayList&lt;&gt;();
+        Queue&lt;Integer&gt; queue = new ArrayDeque&lt;&gt;();
+        dist[start] = 0;
+        queue.add(start);
+        while (!queue.isEmpty()) {
+            int u = queue.poll();
+            order.add(u);
+            for (int v : adj.get(u)) {
+                if (dist[v] == -1) { // mark when enqueuing
+                    dist[v] = dist[u] + 1;
+                    queue.add(v);
+                }
+            }
+        }
+        return order;
+    }
+
+    static void dfs(List&lt;List&lt;Integer&gt;&gt; adj, int u, boolean[] seen, List&lt;Integer&gt; order) {
+        seen[u] = true;
+        order.add(u);
+        for (int v : adj.get(u)) {
+            if (!seen[v]) dfs(adj, v, seen, order);
+        }
+    }
+
+    static int components(List&lt;List&lt;Integer&gt;&gt; adj) {
+        boolean[] seen = new boolean[adj.size()];
+        int count = 0;
+        for (int u = 0; u &lt; adj.size(); u++) {
+            if (!seen[u]) {
+                count++;
+                dfs(adj, u, seen, new ArrayList&lt;&gt;());
+            }
+        }
+        return count;
+    }
+
+    static int countIslands(String[] grid) {
+        int rows = grid.length, cols = grid[0].length();
+        boolean[][] seen = new boolean[rows][cols];
+        int[][] dirs = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+        int islands = 0;
+        for (int r = 0; r &lt; rows; r++) {
+            for (int c = 0; c &lt; cols; c++) {
+                if (grid[r].charAt(c) != &#39;1&#39; || seen[r][c]) continue;
+                islands++;
+                ArrayDeque&lt;int[]&gt; stack = new ArrayDeque&lt;&gt;();
+                stack.push(new int[] { r, c });
+                seen[r][c] = true;
+                while (!stack.isEmpty()) {
+                    int[] cell = stack.pop();
+                    for (int[] d : dirs) {
+                        int nr = cell[0] + d[0], nc = cell[1] + d[1];
+                        if (nr &gt;= 0 &amp;&amp; nr &lt; rows &amp;&amp; nc &gt;= 0 &amp;&amp; nc &lt; cols &amp;&amp; grid[nr].charAt(nc) == &#39;1&#39; &amp;&amp; !seen[nr][nc]) {
+                            seen[nr][nc] = true;
+                            stack.push(new int[] { nr, nc });
+                        }
+                    }
+                }
+            }
+        }
+        return islands;
+    }
+
+    static String join(List&lt;Integer&gt; xs) {
+        StringBuilder sb = new StringBuilder();
+        for (int x : xs) sb.append(sb.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(x);
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        int n = 6;
+        int[][] edges = { { 0, 1 }, { 0, 2 }, { 1, 3 }, { 2, 3 }, { 3, 4 } };
+        List&lt;List&lt;Integer&gt;&gt; adj = buildUndirected(n, edges);
+        System.out.println(&quot;adjacency list:&quot;);
+        for (int u = 0; u &lt; n; u++) {
+            StringBuilder line = new StringBuilder(&quot;  &quot; + u + &quot;:&quot;);
+            for (int v : adj.get(u)) line.append(&quot; &quot;).append(v);
+            System.out.println(line);
+        }
+        int[][] matrix = new int[n][n];
+        for (int[] e : edges) { matrix[e[0]][e[1]] = 1; matrix[e[1]][e[0]] = 1; }
+        StringBuilder row3 = new StringBuilder();
+        for (int j = 0; j &lt; n; j++) row3.append(j &gt; 0 ? &quot; &quot; : &quot;&quot;).append(matrix[3][j]);
+        System.out.println(&quot;matrix row 3: &quot; + row3);
+        int[] dist = new int[n];
+        System.out.println(&quot;BFS from 0: &quot; + join(bfs(adj, 0, dist)) + &quot;, hops to 4: &quot; + dist[4] + &quot;, hops to 5: &quot; + dist[5]);
+        List&lt;Integer&gt; order = new ArrayList&lt;&gt;();
+        dfs(adj, 0, new boolean[n], order);
+        System.out.println(&quot;DFS from 0: &quot; + join(order));
+        System.out.println(&quot;connected components: &quot; + components(adj));
+        System.out.println(&quot;islands in grid: &quot; + countIslands(new String[] { &quot;11000&quot;, &quot;11000&quot;, &quot;00100&quot;, &quot;00011&quot; }));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-graphs-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">buildUndirected</span>(<span class="hljs-params">n, edges</span>) {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> adj = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> []);</span><span class="ln" data-line="3">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [u, v] <span class="hljs-keyword">of</span> edges) {</span><span class="ln" data-line="4">    adj[u].<span class="hljs-title function_">push</span>(v);</span><span class="ln" data-line="5">    adj[v].<span class="hljs-title function_">push</span>(u); <span class="hljs-comment">// undirected: both directions</span></span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">return</span> adj;</span><span class="ln" data-line="8">}</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-comment">/** Returns the visit order and hop counts (-1 if unreachable). */</span></span><span class="ln" data-line="11"><span class="hljs-keyword">function</span> <span class="hljs-title function_">bfs</span>(<span class="hljs-params">adj, start</span>) {</span><span class="ln" data-line="12">  <span class="hljs-keyword">const</span> dist = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(adj.<span class="hljs-property">length</span>).<span class="hljs-title function_">fill</span>(-<span class="hljs-number">1</span>);</span><span class="ln" data-line="13">  <span class="hljs-keyword">const</span> order = [];</span><span class="ln" data-line="14">  <span class="hljs-keyword">const</span> queue = [start];</span><span class="ln" data-line="15">  dist[start] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="16">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> head = <span class="hljs-number">0</span>; head &lt; queue.<span class="hljs-property">length</span>; head++) {</span><span class="ln" data-line="17">    <span class="hljs-keyword">const</span> u = queue[head];</span><span class="ln" data-line="18">    order.<span class="hljs-title function_">push</span>(u);</span><span class="ln" data-line="19">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> adj[u]) {</span><span class="ln" data-line="20">      <span class="hljs-keyword">if</span> (dist[v] === -<span class="hljs-number">1</span>) {</span><span class="ln" data-line="21">        dist[v] = dist[u] + <span class="hljs-number">1</span>; <span class="hljs-comment">// mark when enqueuing</span></span><span class="ln" data-line="22">        queue.<span class="hljs-title function_">push</span>(v);</span><span class="ln" data-line="23">      }</span><span class="ln" data-line="24">    }</span><span class="ln" data-line="25">  }</span><span class="ln" data-line="26">  <span class="hljs-keyword">return</span> { order, dist };</span><span class="ln" data-line="27">}</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29"><span class="hljs-keyword">function</span> <span class="hljs-title function_">dfs</span>(<span class="hljs-params">adj, u, seen, order</span>) {</span><span class="ln" data-line="30">  seen[u] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="31">  order.<span class="hljs-title function_">push</span>(u);</span><span class="ln" data-line="32">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> adj[u]) {</span><span class="ln" data-line="33">    <span class="hljs-keyword">if</span> (!seen[v]) <span class="hljs-title function_">dfs</span>(adj, v, seen, order);</span><span class="ln" data-line="34">  }</span><span class="ln" data-line="35">  <span class="hljs-keyword">return</span> order;</span><span class="ln" data-line="36">}</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"><span class="hljs-keyword">function</span> <span class="hljs-title function_">components</span>(<span class="hljs-params">adj</span>) {</span><span class="ln" data-line="39">  <span class="hljs-keyword">const</span> seen = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(adj.<span class="hljs-property">length</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>);</span><span class="ln" data-line="40">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="41">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> u = <span class="hljs-number">0</span>; u &lt; adj.<span class="hljs-property">length</span>; u++) {</span><span class="ln" data-line="42">    <span class="hljs-keyword">if</span> (!seen[u]) {</span><span class="ln" data-line="43">      count++;</span><span class="ln" data-line="44">      <span class="hljs-title function_">dfs</span>(adj, u, seen, []);</span><span class="ln" data-line="45">    }</span><span class="ln" data-line="46">  }</span><span class="ln" data-line="47">  <span class="hljs-keyword">return</span> count;</span><span class="ln" data-line="48">}</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"><span class="hljs-keyword">function</span> <span class="hljs-title function_">countIslands</span>(<span class="hljs-params">grid</span>) {</span><span class="ln" data-line="51">  <span class="hljs-keyword">const</span> rows = grid.<span class="hljs-property">length</span>;</span><span class="ln" data-line="52">  <span class="hljs-keyword">const</span> cols = grid[<span class="hljs-number">0</span>].<span class="hljs-property">length</span>;</span><span class="ln" data-line="53">  <span class="hljs-keyword">const</span> seen = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: rows }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(cols).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>));</span><span class="ln" data-line="54">  <span class="hljs-keyword">const</span> dirs = [[-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]];</span><span class="ln" data-line="55">  <span class="hljs-keyword">let</span> islands = <span class="hljs-number">0</span>;</span><span class="ln" data-line="56">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> r = <span class="hljs-number">0</span>; r &lt; rows; r++) {</span><span class="ln" data-line="57">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> c = <span class="hljs-number">0</span>; c &lt; cols; c++) {</span><span class="ln" data-line="58">      <span class="hljs-keyword">if</span> (grid[r][c] !== <span class="hljs-string">&quot;1&quot;</span> || seen[r][c]) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="59">      islands++;</span><span class="ln" data-line="60">      <span class="hljs-keyword">const</span> stack = [[r, c]];</span><span class="ln" data-line="61">      seen[r][c] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="62">      <span class="hljs-keyword">while</span> (stack.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="63">        <span class="hljs-keyword">const</span> [cr, cc] = stack.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="64">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [dr, dc] <span class="hljs-keyword">of</span> dirs) {</span><span class="ln" data-line="65">          <span class="hljs-keyword">const</span> nr = cr + dr;</span><span class="ln" data-line="66">          <span class="hljs-keyword">const</span> nc = cc + dc;</span><span class="ln" data-line="67">          <span class="hljs-keyword">if</span> (nr &gt;= <span class="hljs-number">0</span> &amp;&amp; nr &lt; rows &amp;&amp; nc &gt;= <span class="hljs-number">0</span> &amp;&amp; nc &lt; cols &amp;&amp; grid[nr][nc] === <span class="hljs-string">&quot;1&quot;</span> &amp;&amp; !seen[nr][nc]) {</span><span class="ln" data-line="68">            seen[nr][nc] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="69">            stack.<span class="hljs-title function_">push</span>([nr, nc]);</span><span class="ln" data-line="70">          }</span><span class="ln" data-line="71">        }</span><span class="ln" data-line="72">      }</span><span class="ln" data-line="73">    }</span><span class="ln" data-line="74">  }</span><span class="ln" data-line="75">  <span class="hljs-keyword">return</span> islands;</span><span class="ln" data-line="76">}</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="79">  <span class="hljs-keyword">const</span> n = <span class="hljs-number">6</span>;</span><span class="ln" data-line="80">  <span class="hljs-keyword">const</span> edges = [[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>]];</span><span class="ln" data-line="81">  <span class="hljs-keyword">const</span> adj = <span class="hljs-title function_">buildUndirected</span>(n, edges);</span><span class="ln" data-line="82">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;adjacency list:&quot;</span>);</span><span class="ln" data-line="83">  adj.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">ns, u</span>) =&gt;</span> <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${u}</span>:`</span> + ns.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">v</span>) =&gt;</span> <span class="hljs-string">` <span class="hljs-subst">${v}</span>`</span>).<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot;&quot;</span>)));</span><span class="ln" data-line="84">  <span class="hljs-keyword">const</span> matrix = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>));</span><span class="ln" data-line="85">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [u, v] <span class="hljs-keyword">of</span> edges) matrix[u][v] = matrix[v][u] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="86">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`matrix row 3: <span class="hljs-subst">${matrix[<span class="hljs-number">3</span>].join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="87">  <span class="hljs-keyword">const</span> { order, dist } = <span class="hljs-title function_">bfs</span>(adj, <span class="hljs-number">0</span>);</span><span class="ln" data-line="88">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`BFS from 0: <span class="hljs-subst">${order.join(<span class="hljs-string">&quot; &quot;</span>)}</span>, hops to 4: <span class="hljs-subst">${dist[<span class="hljs-number">4</span>]}</span>, hops to 5: <span class="hljs-subst">${dist[<span class="hljs-number">5</span>]}</span>`</span>);</span><span class="ln" data-line="89">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`DFS from 0: <span class="hljs-subst">${dfs(adj, <span class="hljs-number">0</span>, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>(n).fill(<span class="hljs-literal">false</span>), []).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="90">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`connected components: <span class="hljs-subst">${components(adj)}</span>`</span>);</span><span class="ln" data-line="91">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`islands in grid: <span class="hljs-subst">${countIslands([<span class="hljs-string">&quot;11000&quot;</span>, <span class="hljs-string">&quot;11000&quot;</span>, <span class="hljs-string">&quot;00100&quot;</span>, <span class="hljs-string">&quot;00011&quot;</span>])}</span>`</span>);</span><span class="ln" data-line="92">}</span><span class="ln" data-line="93"> </span><span class="ln" data-line="94"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function buildUndirected(n, edges) {
+  const adj = Array.from({ length: n }, () =&gt; []);
+  for (const [u, v] of edges) {
+    adj[u].push(v);
+    adj[v].push(u); // undirected: both directions
+  }
+  return adj;
+}
+
+/** Returns the visit order and hop counts (-1 if unreachable). */
+function bfs(adj, start) {
+  const dist = new Array(adj.length).fill(-1);
+  const order = [];
+  const queue = [start];
+  dist[start] = 0;
+  for (let head = 0; head &lt; queue.length; head++) {
+    const u = queue[head];
+    order.push(u);
+    for (const v of adj[u]) {
+      if (dist[v] === -1) {
+        dist[v] = dist[u] + 1; // mark when enqueuing
+        queue.push(v);
+      }
+    }
+  }
+  return { order, dist };
+}
+
+function dfs(adj, u, seen, order) {
+  seen[u] = true;
+  order.push(u);
+  for (const v of adj[u]) {
+    if (!seen[v]) dfs(adj, v, seen, order);
+  }
+  return order;
+}
+
+function components(adj) {
+  const seen = new Array(adj.length).fill(false);
+  let count = 0;
+  for (let u = 0; u &lt; adj.length; u++) {
+    if (!seen[u]) {
+      count++;
+      dfs(adj, u, seen, []);
+    }
+  }
+  return count;
+}
+
+function countIslands(grid) {
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const seen = Array.from({ length: rows }, () =&gt; new Array(cols).fill(false));
+  const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  let islands = 0;
+  for (let r = 0; r &lt; rows; r++) {
+    for (let c = 0; c &lt; cols; c++) {
+      if (grid[r][c] !== &quot;1&quot; || seen[r][c]) continue;
+      islands++;
+      const stack = [[r, c]];
+      seen[r][c] = true;
+      while (stack.length &gt; 0) {
+        const [cr, cc] = stack.pop();
+        for (const [dr, dc] of dirs) {
+          const nr = cr + dr;
+          const nc = cc + dc;
+          if (nr &gt;= 0 &amp;&amp; nr &lt; rows &amp;&amp; nc &gt;= 0 &amp;&amp; nc &lt; cols &amp;&amp; grid[nr][nc] === &quot;1&quot; &amp;&amp; !seen[nr][nc]) {
+            seen[nr][nc] = true;
+            stack.push([nr, nc]);
+          }
+        }
+      }
+    }
+  }
+  return islands;
+}
+
+function main() {
+  const n = 6;
+  const edges = [[0, 1], [0, 2], [1, 3], [2, 3], [3, 4]];
+  const adj = buildUndirected(n, edges);
+  console.log(&quot;adjacency list:&quot;);
+  adj.forEach((ns, u) =&gt; console.log(`  ${u}:` + ns.map((v) =&gt; ` ${v}`).join(&quot;&quot;)));
+  const matrix = Array.from({ length: n }, () =&gt; new Array(n).fill(0));
+  for (const [u, v] of edges) matrix[u][v] = matrix[v][u] = 1;
+  console.log(`matrix row 3: ${matrix[3].join(&quot; &quot;)}`);
+  const { order, dist } = bfs(adj, 0);
+  console.log(`BFS from 0: ${order.join(&quot; &quot;)}, hops to 4: ${dist[4]}, hops to 5: ${dist[5]}`);
+  console.log(`DFS from 0: ${dfs(adj, 0, new Array(n).fill(false), []).join(&quot; &quot;)}`);
+  console.log(`connected components: ${components(adj)}`);
+  console.log(`islands in grid: ${countIslands([&quot;11000&quot;, &quot;11000&quot;, &quot;00100&quot;, &quot;00011&quot;])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-graphs-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">buildUndirected</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">edges</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][]</span>): <span class="hljs-built_in">number</span>[][] {</span><span class="ln" data-line="2">  <span class="hljs-keyword">const</span> <span class="hljs-attr">adj</span>: <span class="hljs-built_in">number</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> []);</span><span class="ln" data-line="3">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [u, v] <span class="hljs-keyword">of</span> edges) {</span><span class="ln" data-line="4">    adj[u].<span class="hljs-title function_">push</span>(v);</span><span class="ln" data-line="5">    adj[v].<span class="hljs-title function_">push</span>(u); <span class="hljs-comment">// undirected: both directions</span></span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">return</span> adj;</span><span class="ln" data-line="8">}</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"><span class="hljs-comment">/** Returns the visit order and hop counts (-1 if unreachable). */</span></span><span class="ln" data-line="11"><span class="hljs-keyword">function</span> <span class="hljs-title function_">bfs</span>(<span class="hljs-params"><span class="hljs-attr">adj</span>: <span class="hljs-built_in">number</span>[][], <span class="hljs-attr">start</span>: <span class="hljs-built_in">number</span></span>): { <span class="hljs-attr">order</span>: <span class="hljs-built_in">number</span>[]; <span class="hljs-attr">dist</span>: <span class="hljs-built_in">number</span>[] } {</span><span class="ln" data-line="12">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dist</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(adj.<span class="hljs-property">length</span>).<span class="hljs-title function_">fill</span>(-<span class="hljs-number">1</span>);</span><span class="ln" data-line="13">  <span class="hljs-keyword">const</span> <span class="hljs-attr">order</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="14">  <span class="hljs-keyword">const</span> <span class="hljs-attr">queue</span>: <span class="hljs-built_in">number</span>[] = [start];</span><span class="ln" data-line="15">  dist[start] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="16">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> head = <span class="hljs-number">0</span>; head &lt; queue.<span class="hljs-property">length</span>; head++) {</span><span class="ln" data-line="17">    <span class="hljs-keyword">const</span> u = queue[head];</span><span class="ln" data-line="18">    order.<span class="hljs-title function_">push</span>(u);</span><span class="ln" data-line="19">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> adj[u]) {</span><span class="ln" data-line="20">      <span class="hljs-keyword">if</span> (dist[v] === -<span class="hljs-number">1</span>) {</span><span class="ln" data-line="21">        dist[v] = dist[u] + <span class="hljs-number">1</span>; <span class="hljs-comment">// mark when enqueuing</span></span><span class="ln" data-line="22">        queue.<span class="hljs-title function_">push</span>(v);</span><span class="ln" data-line="23">      }</span><span class="ln" data-line="24">    }</span><span class="ln" data-line="25">  }</span><span class="ln" data-line="26">  <span class="hljs-keyword">return</span> { order, dist };</span><span class="ln" data-line="27">}</span><span class="ln" data-line="28"> </span><span class="ln" data-line="29"><span class="hljs-keyword">function</span> <span class="hljs-title function_">dfs</span>(<span class="hljs-params"><span class="hljs-attr">adj</span>: <span class="hljs-built_in">number</span>[][], <span class="hljs-attr">u</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">seen</span>: <span class="hljs-built_in">boolean</span>[], <span class="hljs-attr">order</span>: <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="30">  seen[u] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="31">  order.<span class="hljs-title function_">push</span>(u);</span><span class="ln" data-line="32">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> v <span class="hljs-keyword">of</span> adj[u]) {</span><span class="ln" data-line="33">    <span class="hljs-keyword">if</span> (!seen[v]) <span class="hljs-title function_">dfs</span>(adj, v, seen, order);</span><span class="ln" data-line="34">  }</span><span class="ln" data-line="35">  <span class="hljs-keyword">return</span> order;</span><span class="ln" data-line="36">}</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"><span class="hljs-keyword">function</span> <span class="hljs-title function_">components</span>(<span class="hljs-params"><span class="hljs-attr">adj</span>: <span class="hljs-built_in">number</span>[][]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="39">  <span class="hljs-keyword">const</span> <span class="hljs-attr">seen</span>: <span class="hljs-built_in">boolean</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(adj.<span class="hljs-property">length</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>);</span><span class="ln" data-line="40">  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="41">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> u = <span class="hljs-number">0</span>; u &lt; adj.<span class="hljs-property">length</span>; u++) {</span><span class="ln" data-line="42">    <span class="hljs-keyword">if</span> (!seen[u]) {</span><span class="ln" data-line="43">      count++;</span><span class="ln" data-line="44">      <span class="hljs-title function_">dfs</span>(adj, u, seen, []);</span><span class="ln" data-line="45">    }</span><span class="ln" data-line="46">  }</span><span class="ln" data-line="47">  <span class="hljs-keyword">return</span> count;</span><span class="ln" data-line="48">}</span><span class="ln" data-line="49"> </span><span class="ln" data-line="50"><span class="hljs-keyword">function</span> <span class="hljs-title function_">countIslands</span>(<span class="hljs-params"><span class="hljs-attr">grid</span>: <span class="hljs-built_in">string</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="51">  <span class="hljs-keyword">const</span> rows = grid.<span class="hljs-property">length</span>;</span><span class="ln" data-line="52">  <span class="hljs-keyword">const</span> cols = grid[<span class="hljs-number">0</span>].<span class="hljs-property">length</span>;</span><span class="ln" data-line="53">  <span class="hljs-keyword">const</span> <span class="hljs-attr">seen</span>: <span class="hljs-built_in">boolean</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: rows }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(cols).<span class="hljs-title function_">fill</span>(<span class="hljs-literal">false</span>));</span><span class="ln" data-line="54">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dirs</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [[-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]];</span><span class="ln" data-line="55">  <span class="hljs-keyword">let</span> islands = <span class="hljs-number">0</span>;</span><span class="ln" data-line="56">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> r = <span class="hljs-number">0</span>; r &lt; rows; r++) {</span><span class="ln" data-line="57">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> c = <span class="hljs-number">0</span>; c &lt; cols; c++) {</span><span class="ln" data-line="58">      <span class="hljs-keyword">if</span> (grid[r][c] !== <span class="hljs-string">&quot;1&quot;</span> || seen[r][c]) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="59">      islands++;</span><span class="ln" data-line="60">      <span class="hljs-keyword">const</span> <span class="hljs-attr">stack</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [[r, c]];</span><span class="ln" data-line="61">      seen[r][c] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="62">      <span class="hljs-keyword">while</span> (stack.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="63">        <span class="hljs-keyword">const</span> [cr, cc] = stack.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>];</span><span class="ln" data-line="64">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [dr, dc] <span class="hljs-keyword">of</span> dirs) {</span><span class="ln" data-line="65">          <span class="hljs-keyword">const</span> nr = cr + dr;</span><span class="ln" data-line="66">          <span class="hljs-keyword">const</span> nc = cc + dc;</span><span class="ln" data-line="67">          <span class="hljs-keyword">if</span> (nr &gt;= <span class="hljs-number">0</span> &amp;&amp; nr &lt; rows &amp;&amp; nc &gt;= <span class="hljs-number">0</span> &amp;&amp; nc &lt; cols &amp;&amp; grid[nr][nc] === <span class="hljs-string">&quot;1&quot;</span> &amp;&amp; !seen[nr][nc]) {</span><span class="ln" data-line="68">            seen[nr][nc] = <span class="hljs-literal">true</span>;</span><span class="ln" data-line="69">            stack.<span class="hljs-title function_">push</span>([nr, nc]);</span><span class="ln" data-line="70">          }</span><span class="ln" data-line="71">        }</span><span class="ln" data-line="72">      }</span><span class="ln" data-line="73">    }</span><span class="ln" data-line="74">  }</span><span class="ln" data-line="75">  <span class="hljs-keyword">return</span> islands;</span><span class="ln" data-line="76">}</span><span class="ln" data-line="77"> </span><span class="ln" data-line="78"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="79">  <span class="hljs-keyword">const</span> n = <span class="hljs-number">6</span>;</span><span class="ln" data-line="80">  <span class="hljs-keyword">const</span> <span class="hljs-attr">edges</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>]];</span><span class="ln" data-line="81">  <span class="hljs-keyword">const</span> adj = <span class="hljs-title function_">buildUndirected</span>(n, edges);</span><span class="ln" data-line="82">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;adjacency list:&quot;</span>);</span><span class="ln" data-line="83">  adj.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">ns, u</span>) =&gt;</span> <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`  <span class="hljs-subst">${u}</span>:`</span> + ns.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">v</span>) =&gt;</span> <span class="hljs-string">` <span class="hljs-subst">${v}</span>`</span>).<span class="hljs-title function_">join</span>(<span class="hljs-string">&quot;&quot;</span>)));</span><span class="ln" data-line="84">  <span class="hljs-keyword">const</span> <span class="hljs-attr">matrix</span>: <span class="hljs-built_in">number</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-number">0</span>));</span><span class="ln" data-line="85">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [u, v] <span class="hljs-keyword">of</span> edges) matrix[u][v] = matrix[v][u] = <span class="hljs-number">1</span>;</span><span class="ln" data-line="86">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`matrix row 3: <span class="hljs-subst">${matrix[<span class="hljs-number">3</span>].join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="87">  <span class="hljs-keyword">const</span> { order, dist } = <span class="hljs-title function_">bfs</span>(adj, <span class="hljs-number">0</span>);</span><span class="ln" data-line="88">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`BFS from 0: <span class="hljs-subst">${order.join(<span class="hljs-string">&quot; &quot;</span>)}</span>, hops to 4: <span class="hljs-subst">${dist[<span class="hljs-number">4</span>]}</span>, hops to 5: <span class="hljs-subst">${dist[<span class="hljs-number">5</span>]}</span>`</span>);</span><span class="ln" data-line="89">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`DFS from 0: <span class="hljs-subst">${dfs(adj, <span class="hljs-number">0</span>, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Array</span>(n).fill(<span class="hljs-literal">false</span>), []).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="90">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`connected components: <span class="hljs-subst">${components(adj)}</span>`</span>);</span><span class="ln" data-line="91">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`islands in grid: <span class="hljs-subst">${countIslands([<span class="hljs-string">&quot;11000&quot;</span>, <span class="hljs-string">&quot;11000&quot;</span>, <span class="hljs-string">&quot;00100&quot;</span>, <span class="hljs-string">&quot;00011&quot;</span>])}</span>`</span>);</span><span class="ln" data-line="92">}</span><span class="ln" data-line="93"> </span><span class="ln" data-line="94"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function buildUndirected(n: number, edges: [number, number][]): number[][] {
+  const adj: number[][] = Array.from({ length: n }, () =&gt; []);
+  for (const [u, v] of edges) {
+    adj[u].push(v);
+    adj[v].push(u); // undirected: both directions
+  }
+  return adj;
+}
+
+/** Returns the visit order and hop counts (-1 if unreachable). */
+function bfs(adj: number[][], start: number): { order: number[]; dist: number[] } {
+  const dist: number[] = new Array(adj.length).fill(-1);
+  const order: number[] = [];
+  const queue: number[] = [start];
+  dist[start] = 0;
+  for (let head = 0; head &lt; queue.length; head++) {
+    const u = queue[head];
+    order.push(u);
+    for (const v of adj[u]) {
+      if (dist[v] === -1) {
+        dist[v] = dist[u] + 1; // mark when enqueuing
+        queue.push(v);
+      }
+    }
+  }
+  return { order, dist };
+}
+
+function dfs(adj: number[][], u: number, seen: boolean[], order: number[]): number[] {
+  seen[u] = true;
+  order.push(u);
+  for (const v of adj[u]) {
+    if (!seen[v]) dfs(adj, v, seen, order);
+  }
+  return order;
+}
+
+function components(adj: number[][]): number {
+  const seen: boolean[] = new Array(adj.length).fill(false);
+  let count = 0;
+  for (let u = 0; u &lt; adj.length; u++) {
+    if (!seen[u]) {
+      count++;
+      dfs(adj, u, seen, []);
+    }
+  }
+  return count;
+}
+
+function countIslands(grid: string[]): number {
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const seen: boolean[][] = Array.from({ length: rows }, () =&gt; new Array(cols).fill(false));
+  const dirs: [number, number][] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  let islands = 0;
+  for (let r = 0; r &lt; rows; r++) {
+    for (let c = 0; c &lt; cols; c++) {
+      if (grid[r][c] !== &quot;1&quot; || seen[r][c]) continue;
+      islands++;
+      const stack: [number, number][] = [[r, c]];
+      seen[r][c] = true;
+      while (stack.length &gt; 0) {
+        const [cr, cc] = stack.pop() as [number, number];
+        for (const [dr, dc] of dirs) {
+          const nr = cr + dr;
+          const nc = cc + dc;
+          if (nr &gt;= 0 &amp;&amp; nr &lt; rows &amp;&amp; nc &gt;= 0 &amp;&amp; nc &lt; cols &amp;&amp; grid[nr][nc] === &quot;1&quot; &amp;&amp; !seen[nr][nc]) {
+            seen[nr][nc] = true;
+            stack.push([nr, nc]);
+          }
+        }
+      }
+    }
+  }
+  return islands;
+}
+
+function main(): void {
+  const n = 6;
+  const edges: [number, number][] = [[0, 1], [0, 2], [1, 3], [2, 3], [3, 4]];
+  const adj = buildUndirected(n, edges);
+  console.log(&quot;adjacency list:&quot;);
+  adj.forEach((ns, u) =&gt; console.log(`  ${u}:` + ns.map((v) =&gt; ` ${v}`).join(&quot;&quot;)));
+  const matrix: number[][] = Array.from({ length: n }, () =&gt; new Array(n).fill(0));
+  for (const [u, v] of edges) matrix[u][v] = matrix[v][u] = 1;
+  console.log(`matrix row 3: ${matrix[3].join(&quot; &quot;)}`);
+  const { order, dist } = bfs(adj, 0);
+  console.log(`BFS from 0: ${order.join(&quot; &quot;)}, hops to 4: ${dist[4]}, hops to 5: ${dist[5]}`);
+  console.log(`DFS from 0: ${dfs(adj, 0, new Array(n).fill(false), []).join(&quot; &quot;)}`);
+  console.log(`connected components: ${components(adj)}`);
+  console.log(`islands in grid: ${countIslands([&quot;11000&quot;, &quot;11000&quot;, &quot;00100&quot;, &quot;00011&quot;])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-graphs-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> collections <span class="hljs-keyword">import</span> deque</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Tuple</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">def</span> <span class="hljs-title function_">build_undirected</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span>, edges: <span class="hljs-type">List</span>[<span class="hljs-type">Tuple</span>[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]:</span><span class="ln" data-line="6">    adj: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]] = [[] <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n)]</span><span class="ln" data-line="7">    <span class="hljs-keyword">for</span> u, v <span class="hljs-keyword">in</span> edges:</span><span class="ln" data-line="8">        adj[u].append(v)</span><span class="ln" data-line="9">        adj[v].append(u)  <span class="hljs-comment"># undirected: both directions</span></span><span class="ln" data-line="10">    <span class="hljs-keyword">return</span> adj</span><span class="ln" data-line="11"> </span><span class="ln" data-line="12"> </span><span class="ln" data-line="13"><span class="hljs-keyword">def</span> <span class="hljs-title function_">bfs</span>(<span class="hljs-params">adj: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]], start: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">Tuple</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]:</span><span class="ln" data-line="14">    <span class="hljs-string">&quot;&quot;&quot;Returns the visit order and hop counts (-1 if unreachable).&quot;&quot;&quot;</span></span><span class="ln" data-line="15">    dist = [-<span class="hljs-number">1</span>] * <span class="hljs-built_in">len</span>(adj)</span><span class="ln" data-line="16">    order, queue = [], deque([start])</span><span class="ln" data-line="17">    dist[start] = <span class="hljs-number">0</span></span><span class="ln" data-line="18">    <span class="hljs-keyword">while</span> queue:</span><span class="ln" data-line="19">        u = queue.popleft()</span><span class="ln" data-line="20">        order.append(u)</span><span class="ln" data-line="21">        <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> adj[u]:</span><span class="ln" data-line="22">            <span class="hljs-keyword">if</span> dist[v] == -<span class="hljs-number">1</span>:  <span class="hljs-comment"># mark when enqueuing</span></span><span class="ln" data-line="23">                dist[v] = dist[u] + <span class="hljs-number">1</span></span><span class="ln" data-line="24">                queue.append(v)</span><span class="ln" data-line="25">    <span class="hljs-keyword">return</span> order, dist</span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"> </span><span class="ln" data-line="28"><span class="hljs-keyword">def</span> <span class="hljs-title function_">dfs</span>(<span class="hljs-params">adj: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]], u: <span class="hljs-built_in">int</span>, seen: <span class="hljs-type">List</span>[<span class="hljs-built_in">bool</span>], order: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="29">    seen[u] = <span class="hljs-literal">True</span></span><span class="ln" data-line="30">    order.append(u)</span><span class="ln" data-line="31">    <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> adj[u]:</span><span class="ln" data-line="32">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> seen[v]:</span><span class="ln" data-line="33">            dfs(adj, v, seen, order)</span><span class="ln" data-line="34">    <span class="hljs-keyword">return</span> order</span><span class="ln" data-line="35"> </span><span class="ln" data-line="36"> </span><span class="ln" data-line="37"><span class="hljs-keyword">def</span> <span class="hljs-title function_">components</span>(<span class="hljs-params">adj: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="38">    seen = [<span class="hljs-literal">False</span>] * <span class="hljs-built_in">len</span>(adj)</span><span class="ln" data-line="39">    count = <span class="hljs-number">0</span></span><span class="ln" data-line="40">    <span class="hljs-keyword">for</span> u <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(adj)):</span><span class="ln" data-line="41">        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> seen[u]:</span><span class="ln" data-line="42">            count += <span class="hljs-number">1</span></span><span class="ln" data-line="43">            dfs(adj, u, seen, [])</span><span class="ln" data-line="44">    <span class="hljs-keyword">return</span> count</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"> </span><span class="ln" data-line="47"><span class="hljs-keyword">def</span> <span class="hljs-title function_">count_islands</span>(<span class="hljs-params">grid: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="48">    rows, cols = <span class="hljs-built_in">len</span>(grid), <span class="hljs-built_in">len</span>(grid[<span class="hljs-number">0</span>])</span><span class="ln" data-line="49">    seen = [[<span class="hljs-literal">False</span>] * cols <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(rows)]</span><span class="ln" data-line="50">    islands = <span class="hljs-number">0</span></span><span class="ln" data-line="51">    <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(rows):</span><span class="ln" data-line="52">        <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(cols):</span><span class="ln" data-line="53">            <span class="hljs-keyword">if</span> grid[r][c] != <span class="hljs-string">&quot;1&quot;</span> <span class="hljs-keyword">or</span> seen[r][c]:</span><span class="ln" data-line="54">                <span class="hljs-keyword">continue</span></span><span class="ln" data-line="55">            islands += <span class="hljs-number">1</span></span><span class="ln" data-line="56">            stack = [(r, c)]</span><span class="ln" data-line="57">            seen[r][c] = <span class="hljs-literal">True</span></span><span class="ln" data-line="58">            <span class="hljs-keyword">while</span> stack:</span><span class="ln" data-line="59">                cr, cc = stack.pop()</span><span class="ln" data-line="60">                <span class="hljs-keyword">for</span> dr, dc <span class="hljs-keyword">in</span> ((-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>), (<span class="hljs-number">0</span>, <span class="hljs-number">1</span>)):</span><span class="ln" data-line="61">                    nr, nc = cr + dr, cc + dc</span><span class="ln" data-line="62">                    <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &lt;= nr &lt; rows <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt;= nc &lt; cols <span class="hljs-keyword">and</span> grid[nr][nc] == <span class="hljs-string">&quot;1&quot;</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> seen[nr][nc]:</span><span class="ln" data-line="63">                        seen[nr][nc] = <span class="hljs-literal">True</span></span><span class="ln" data-line="64">                        stack.append((nr, nc))</span><span class="ln" data-line="65">    <span class="hljs-keyword">return</span> islands</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="69">    n = <span class="hljs-number">6</span></span><span class="ln" data-line="70">    edges = [(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>), (<span class="hljs-number">0</span>, <span class="hljs-number">2</span>), (<span class="hljs-number">1</span>, <span class="hljs-number">3</span>), (<span class="hljs-number">2</span>, <span class="hljs-number">3</span>), (<span class="hljs-number">3</span>, <span class="hljs-number">4</span>)]</span><span class="ln" data-line="71">    adj = build_undirected(n, edges)</span><span class="ln" data-line="72">    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;adjacency list:&quot;</span>)</span><span class="ln" data-line="73">    <span class="hljs-keyword">for</span> u, ns <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(adj):</span><span class="ln" data-line="74">        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;  <span class="hljs-subst">{u}</span>:&quot;</span> + <span class="hljs-string">&quot;&quot;</span>.join(<span class="hljs-string">f&quot; <span class="hljs-subst">{v}</span>&quot;</span> <span class="hljs-keyword">for</span> v <span class="hljs-keyword">in</span> ns))</span><span class="ln" data-line="75">    matrix = [[<span class="hljs-number">0</span>] * n <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n)]</span><span class="ln" data-line="76">    <span class="hljs-keyword">for</span> u, v <span class="hljs-keyword">in</span> edges:</span><span class="ln" data-line="77">        matrix[u][v] = matrix[v][u] = <span class="hljs-number">1</span></span><span class="ln" data-line="78">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;matrix row 3: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, matrix[<span class="hljs-number">3</span>]))}</span>&quot;</span>)</span><span class="ln" data-line="79">    order, dist = bfs(adj, <span class="hljs-number">0</span>)</span><span class="ln" data-line="80">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;BFS from 0: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, order))}</span>, hops to 4: <span class="hljs-subst">{dist[<span class="hljs-number">4</span>]}</span>, hops to 5: <span class="hljs-subst">{dist[<span class="hljs-number">5</span>]}</span>&quot;</span>)</span><span class="ln" data-line="81">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;DFS from 0: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, dfs(adj, <span class="hljs-number">0</span>, [<span class="hljs-literal">False</span>] * n, [])))}</span>&quot;</span>)</span><span class="ln" data-line="82">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;connected components: <span class="hljs-subst">{components(adj)}</span>&quot;</span>)</span><span class="ln" data-line="83">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;islands in grid: <span class="hljs-subst">{count_islands([<span class="hljs-string">&#x27;11000&#x27;</span>, <span class="hljs-string">&#x27;11000&#x27;</span>, <span class="hljs-string">&#x27;00100&#x27;</span>, <span class="hljs-string">&#x27;00011&#x27;</span>])}</span>&quot;</span>)</span><span class="ln" data-line="84"> </span><span class="ln" data-line="85"> </span><span class="ln" data-line="86"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="87">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from collections import deque
+from typing import List, Tuple
+
+
+def build_undirected(n: int, edges: List[Tuple[int, int]]) -&gt; List[List[int]]:
+    adj: List[List[int]] = [[] for _ in range(n)]
+    for u, v in edges:
+        adj[u].append(v)
+        adj[v].append(u)  # undirected: both directions
+    return adj
+
+
+def bfs(adj: List[List[int]], start: int) -&gt; Tuple[List[int], List[int]]:
+    &quot;&quot;&quot;Returns the visit order and hop counts (-1 if unreachable).&quot;&quot;&quot;
+    dist = [-1] * len(adj)
+    order, queue = [], deque([start])
+    dist[start] = 0
+    while queue:
+        u = queue.popleft()
+        order.append(u)
+        for v in adj[u]:
+            if dist[v] == -1:  # mark when enqueuing
+                dist[v] = dist[u] + 1
+                queue.append(v)
+    return order, dist
+
+
+def dfs(adj: List[List[int]], u: int, seen: List[bool], order: List[int]) -&gt; List[int]:
+    seen[u] = True
+    order.append(u)
+    for v in adj[u]:
+        if not seen[v]:
+            dfs(adj, v, seen, order)
+    return order
+
+
+def components(adj: List[List[int]]) -&gt; int:
+    seen = [False] * len(adj)
+    count = 0
+    for u in range(len(adj)):
+        if not seen[u]:
+            count += 1
+            dfs(adj, u, seen, [])
+    return count
+
+
+def count_islands(grid: List[str]) -&gt; int:
+    rows, cols = len(grid), len(grid[0])
+    seen = [[False] * cols for _ in range(rows)]
+    islands = 0
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] != &quot;1&quot; or seen[r][c]:
+                continue
+            islands += 1
+            stack = [(r, c)]
+            seen[r][c] = True
+            while stack:
+                cr, cc = stack.pop()
+                for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                    nr, nc = cr + dr, cc + dc
+                    if 0 &lt;= nr &lt; rows and 0 &lt;= nc &lt; cols and grid[nr][nc] == &quot;1&quot; and not seen[nr][nc]:
+                        seen[nr][nc] = True
+                        stack.append((nr, nc))
+    return islands
+
+
+def main() -&gt; None:
+    n = 6
+    edges = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)]
+    adj = build_undirected(n, edges)
+    print(&quot;adjacency list:&quot;)
+    for u, ns in enumerate(adj):
+        print(f&quot;  {u}:&quot; + &quot;&quot;.join(f&quot; {v}&quot; for v in ns))
+    matrix = [[0] * n for _ in range(n)]
+    for u, v in edges:
+        matrix[u][v] = matrix[v][u] = 1
+    print(f&quot;matrix row 3: {&#39; &#39;.join(map(str, matrix[3]))}&quot;)
+    order, dist = bfs(adj, 0)
+    print(f&quot;BFS from 0: {&#39; &#39;.join(map(str, order))}, hops to 4: {dist[4]}, hops to 5: {dist[5]}&quot;)
+    print(f&quot;DFS from 0: {&#39; &#39;.join(map(str, dfs(adj, 0, [False] * n, [])))}&quot;)
+    print(f&quot;connected components: {components(adj)}&quot;)
+    print(f&quot;islands in grid: {count_islands([&#39;11000&#39;, &#39;11000&#39;, &#39;00100&#39;, &#39;00011&#39;])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>adjacency list:
+  0: 1 2
+  1: 0 3
+  2: 0 3
+  3: 1 2 4
+  4: 3
+  5:
+matrix row 3: 0 1 1 0 1 0
+BFS from 0: 0 1 2 3 4, hops to 4: 3, hops to 5: -1
+DFS from 0: 0 1 3 2 4
+connected components: 2
+islands in grid: 3</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Forgetting to add both directions for an undirected edge.</li><li>Not tracking visited nodes, so cycles cause infinite loops.</li><li>Marking visited when you pop instead of when you push in BFS, so nodes are queued many times.</li><li>Assuming the graph is connected. Loop over every node and start a new search from each unvisited one.</li><li>In grids, swapping rows and columns or forgetting the bounds check.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/number-of-islands/" rel="noopener" target="_blank">Number of Islands<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>200</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/clone-graph/" rel="noopener" target="_blank">Clone Graph<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>133</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/number-of-provinces/" rel="noopener" target="_blank">Number of Provinces<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>547</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/course-schedule/" rel="noopener" target="_blank">Course Schedule<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">A directed graph with a cycle check.</span></td><td>207</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-if-path-exists-in-graph/" rel="noopener" target="_blank">Find if Path Exists in Graph<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>1971</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/rotting-oranges/" rel="noopener" target="_blank">Rotting Oranges<span class="vh"> (opens LeetCode in a new tab)</span></a><span class="pr-note">Multi-source BFS on a grid.</span></td><td>994</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Used by <a href="../../patterns/graph-bfs-dfs/index.html">Graph BFS and DFS</a>, <a href="../../patterns/topological-sort/index.html">Topological sort</a>, <a href="../../patterns/union-find/index.html">Union-Find</a>, <a href="../../patterns/shortest-path/index.html">Shortest path</a>, <a href="../../patterns/matrix-traversal/index.html">Matrix traversal</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../heaps/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Heaps</span></a><a class="pn pn-next" href="../trie/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Trie</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

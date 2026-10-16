@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-way merge · DSA Academy</title>
+<meta name="description" content="Merge K sorted inputs using a heap of their heads.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">K-way merge</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>K-way merge</h1>
+  <p class="lede">To merge k sorted lists, put the first item of each list into a min-heap. Pop the smallest, then push the next item from the same list. The heap never holds more than k items.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Merging the queues at k checkout counters into one line by arrival time. You only need to compare the person at the front of each queue; whoever arrived earliest goes next, and the next person in their queue steps up.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Several <strong>sorted</strong> lists, arrays, files or streams must be combined into one sorted output.</li>
+<li>The k-th smallest element across sorted rows, a sorted matrix, or pairwise sums.</li>
+<li>The smallest range that includes at least one element from each list.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">heap = [(first value, list index, position 0) for each non-empty list]
+while heap not empty:
+    value, i, j = pop smallest
+    output value
+    if list i has an item at j + 1: push (lists[i][j + 1], i, j + 1)
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>The next item of the merged output must be the smallest of the current heads,
+and those heads are exactly what the heap holds. Each item is pushed and popped
+once at a cost of O(log k), so merging N items in total is O(N log k).</p>
+<p>Compare this with merging pairs one after another: merging list 1 with 2, then
+the result with 3, and so on copies the early items k times, which is O(N × k).
+Merging pairs in a balanced tournament (1+2, 3+4, …, then the results) gets back
+to O(N log k) without a heap.</p>
+<p>A sorted matrix is k sorted rows, so the k-th smallest element is a k-way merge
+stopped after k pops.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Merge k lists with N items in total</td><td class="nowrap">O(N log k) time, O(k) heap</td><td>Every item passes through a heap of size at most k.</td></tr><tr><td>K-th smallest in an n × n sorted matrix</td><td class="nowrap">O(k log n)</td><td>Stop after k pops.</td></tr><tr><td>K smallest pair sums</td><td class="nowrap">O(k log k)</td><td>Push pairs lazily, starting from the smallest.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Arrays stand in for linked lists to keep the demo short; with linked lists the heap holds node references instead of (list, position) pairs.</p><figure class="codeblock" id="code-k-way-merge" aria-label="Merge k sorted arrays, k-th smallest in a sorted matrix and k smallest pairs">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-k-way-merge-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-k-way-merge-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-k-way-merge-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-k-way-merge-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-k-way-merge-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.PriorityQueue;</span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="6"> </span><span class="ln" data-line="7">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-title function_">mergeK</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] lists)</span> {</span><span class="ln" data-line="8">        <span class="hljs-type">PriorityQueue</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">heap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;((a, b) -&gt; Integer.compare(a[<span class="hljs-number">0</span>], b[<span class="hljs-number">0</span>])); <span class="hljs-comment">// {value, list, position}</span></span><span class="ln" data-line="9">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; lists.length; i++) <span class="hljs-keyword">if</span> (lists[i].length &gt; <span class="hljs-number">0</span>) heap.offer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { lists[i][<span class="hljs-number">0</span>], i, <span class="hljs-number">0</span> });</span><span class="ln" data-line="10">        <span class="hljs-type">List</span>&lt;Integer&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="11">        <span class="hljs-keyword">while</span> (!heap.isEmpty()) {</span><span class="ln" data-line="12">            <span class="hljs-type">int</span>[] <span class="hljs-variable">top</span> <span class="hljs-operator">=</span> heap.poll();</span><span class="ln" data-line="13">            out.add(top[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="14">            <span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> top[<span class="hljs-number">1</span>], j = top[<span class="hljs-number">2</span>] + <span class="hljs-number">1</span>;</span><span class="ln" data-line="15">            <span class="hljs-keyword">if</span> (j &lt; lists[i].length) heap.offer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { lists[i][j], i, j }); <span class="hljs-comment">// the same list&#x27;s next item steps up</span></span><span class="ln" data-line="16">        }</span><span class="ln" data-line="17">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="18">    }</span><span class="ln" data-line="19"> </span><span class="ln" data-line="20">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">kthSmallest</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] matrix, <span class="hljs-type">int</span> k)</span> {</span><span class="ln" data-line="21">        <span class="hljs-type">PriorityQueue</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">heap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;((a, b) -&gt; Integer.compare(a[<span class="hljs-number">0</span>], b[<span class="hljs-number">0</span>]));</span><span class="ln" data-line="22">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; r &lt; matrix.length; r++) heap.offer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { matrix[r][<span class="hljs-number">0</span>], r, <span class="hljs-number">0</span> });</span><span class="ln" data-line="23">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">popped</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; ; popped++) {</span><span class="ln" data-line="24">            <span class="hljs-type">int</span>[] <span class="hljs-variable">top</span> <span class="hljs-operator">=</span> heap.poll();</span><span class="ln" data-line="25">            <span class="hljs-keyword">if</span> (popped == k) <span class="hljs-keyword">return</span> top[<span class="hljs-number">0</span>];</span><span class="ln" data-line="26">            <span class="hljs-keyword">if</span> (top[<span class="hljs-number">2</span>] + <span class="hljs-number">1</span> &lt; matrix[top[<span class="hljs-number">1</span>]].length) heap.offer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { matrix[top[<span class="hljs-number">1</span>]][top[<span class="hljs-number">2</span>] + <span class="hljs-number">1</span>], top[<span class="hljs-number">1</span>], top[<span class="hljs-number">2</span>] + <span class="hljs-number">1</span> });</span><span class="ln" data-line="27">        }</span><span class="ln" data-line="28">    }</span><span class="ln" data-line="29"> </span><span class="ln" data-line="30">    <span class="hljs-keyword">static</span> <span class="hljs-type">List</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-title function_">kSmallestPairs</span><span class="hljs-params">(<span class="hljs-type">int</span>[] a, <span class="hljs-type">int</span>[] b, <span class="hljs-type">int</span> k)</span> {</span><span class="ln" data-line="31">        <span class="hljs-type">PriorityQueue</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">heap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;((x, y) -&gt; Integer.compare(a[x[<span class="hljs-number">0</span>]] + b[x[<span class="hljs-number">1</span>]], a[y[<span class="hljs-number">0</span>]] + b[y[<span class="hljs-number">1</span>]]));</span><span class="ln" data-line="32">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; Math.min(a.length, k); i++) heap.offer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { i, <span class="hljs-number">0</span> }); <span class="hljs-comment">// pair each a[i] with b[0]</span></span><span class="ln" data-line="33">        <span class="hljs-type">List</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">out</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="34">        <span class="hljs-keyword">while</span> (!heap.isEmpty() &amp;&amp; out.size() &lt; k) {</span><span class="ln" data-line="35">            <span class="hljs-type">int</span>[] <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> heap.poll();</span><span class="ln" data-line="36">            out.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { a[p[<span class="hljs-number">0</span>]], b[p[<span class="hljs-number">1</span>]] });</span><span class="ln" data-line="37">            <span class="hljs-keyword">if</span> (p[<span class="hljs-number">1</span>] + <span class="hljs-number">1</span> &lt; b.length) heap.offer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { p[<span class="hljs-number">0</span>], p[<span class="hljs-number">1</span>] + <span class="hljs-number">1</span> });</span><span class="ln" data-line="38">        }</span><span class="ln" data-line="39">        <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="40">    }</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="43">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">m</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="44">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> x : mergeK(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">6</span> }, {} })) m.append(m.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(x);</span><span class="ln" data-line="45">        System.out.println(<span class="hljs-string">&quot;merge [1 4 5] [1 3 4] [2 6] []: &quot;</span> + m);</span><span class="ln" data-line="46">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">matrix</span> <span class="hljs-operator">=</span> { { <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">9</span> }, { <span class="hljs-number">10</span>, <span class="hljs-number">11</span>, <span class="hljs-number">13</span> }, { <span class="hljs-number">12</span>, <span class="hljs-number">13</span>, <span class="hljs-number">15</span> } };</span><span class="ln" data-line="47">        System.out.println(<span class="hljs-string">&quot;8th smallest in the matrix: &quot;</span> + kthSmallest(matrix, <span class="hljs-number">8</span>));</span><span class="ln" data-line="48">        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();</span><span class="ln" data-line="49">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] pair : kSmallestPairs(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">7</span>, <span class="hljs-number">11</span> }, <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span> }, <span class="hljs-number">3</span>))</span><span class="ln" data-line="50">            p.append(p.length() &gt; <span class="hljs-number">0</span> ? <span class="hljs-string">&quot; &quot;</span> : <span class="hljs-string">&quot;&quot;</span>).append(<span class="hljs-string">&quot;[&quot;</span>).append(pair[<span class="hljs-number">0</span>]).append(<span class="hljs-string">&quot;,&quot;</span>).append(pair[<span class="hljs-number">1</span>]).append(<span class="hljs-string">&quot;]&quot;</span>);</span><span class="ln" data-line="51">        System.out.println(<span class="hljs-string">&quot;3 smallest pairs of [1 7 11] and [2 4 6]: &quot;</span> + p);</span><span class="ln" data-line="52">    }</span><span class="ln" data-line="53">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.List;
+import java.util.PriorityQueue;
+
+public class Solution {
+
+    static List&lt;Integer&gt; mergeK(int[][] lists) {
+        PriorityQueue&lt;int[]&gt; heap = new PriorityQueue&lt;&gt;((a, b) -&gt; Integer.compare(a[0], b[0])); // {value, list, position}
+        for (int i = 0; i &lt; lists.length; i++) if (lists[i].length &gt; 0) heap.offer(new int[] { lists[i][0], i, 0 });
+        List&lt;Integer&gt; out = new ArrayList&lt;&gt;();
+        while (!heap.isEmpty()) {
+            int[] top = heap.poll();
+            out.add(top[0]);
+            int i = top[1], j = top[2] + 1;
+            if (j &lt; lists[i].length) heap.offer(new int[] { lists[i][j], i, j }); // the same list&#39;s next item steps up
+        }
+        return out;
+    }
+
+    static int kthSmallest(int[][] matrix, int k) {
+        PriorityQueue&lt;int[]&gt; heap = new PriorityQueue&lt;&gt;((a, b) -&gt; Integer.compare(a[0], b[0]));
+        for (int r = 0; r &lt; matrix.length; r++) heap.offer(new int[] { matrix[r][0], r, 0 });
+        for (int popped = 1; ; popped++) {
+            int[] top = heap.poll();
+            if (popped == k) return top[0];
+            if (top[2] + 1 &lt; matrix[top[1]].length) heap.offer(new int[] { matrix[top[1]][top[2] + 1], top[1], top[2] + 1 });
+        }
+    }
+
+    static List&lt;int[]&gt; kSmallestPairs(int[] a, int[] b, int k) {
+        PriorityQueue&lt;int[]&gt; heap = new PriorityQueue&lt;&gt;((x, y) -&gt; Integer.compare(a[x[0]] + b[x[1]], a[y[0]] + b[y[1]]));
+        for (int i = 0; i &lt; Math.min(a.length, k); i++) heap.offer(new int[] { i, 0 }); // pair each a[i] with b[0]
+        List&lt;int[]&gt; out = new ArrayList&lt;&gt;();
+        while (!heap.isEmpty() &amp;&amp; out.size() &lt; k) {
+            int[] p = heap.poll();
+            out.add(new int[] { a[p[0]], b[p[1]] });
+            if (p[1] + 1 &lt; b.length) heap.offer(new int[] { p[0], p[1] + 1 });
+        }
+        return out;
+    }
+
+    public static void main(String[] args) {
+        StringBuilder m = new StringBuilder();
+        for (int x : mergeK(new int[][] { { 1, 4, 5 }, { 1, 3, 4 }, { 2, 6 }, {} })) m.append(m.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(x);
+        System.out.println(&quot;merge [1 4 5] [1 3 4] [2 6] []: &quot; + m);
+        int[][] matrix = { { 1, 5, 9 }, { 10, 11, 13 }, { 12, 13, 15 } };
+        System.out.println(&quot;8th smallest in the matrix: &quot; + kthSmallest(matrix, 8));
+        StringBuilder p = new StringBuilder();
+        for (int[] pair : kSmallestPairs(new int[] { 1, 7, 11 }, new int[] { 2, 4, 6 }, 3))
+            p.append(p.length() &gt; 0 ? &quot; &quot; : &quot;&quot;).append(&quot;[&quot;).append(pair[0]).append(&quot;,&quot;).append(pair[1]).append(&quot;]&quot;);
+        System.out.println(&quot;3 smallest pairs of [1 7 11] and [2 4 6]: &quot; + p);
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-k-way-merge-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Binary heap; less(a, b) says whether a should come out before b. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Heap</span> {</span><span class="ln" data-line="3">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">less</span>) {</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span> = [];</span><span class="ln" data-line="5">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>() {</span><span class="ln" data-line="8">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="9">  }</span><span class="ln" data-line="10">  <span class="hljs-title function_">peek</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="11">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="12">  }</span><span class="ln" data-line="13">  <span class="hljs-title function_">push</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="14">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="15">    a.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="16">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt; <span class="hljs-number">0</span>; ) {</span><span class="ln" data-line="17">      <span class="hljs-keyword">const</span> p = (i - <span class="hljs-number">1</span>) &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="18">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[i], a[p])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="19">      [a[i], a[p]] = [a[p], a[i]];</span><span class="ln" data-line="20">      i = p;</span><span class="ln" data-line="21">    }</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">  <span class="hljs-title function_">pop</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="24">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="25">    <span class="hljs-keyword">const</span> top = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> last = a.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="27">    <span class="hljs-keyword">if</span> (a.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="28">      a[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="29">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; ) {</span><span class="ln" data-line="30">        <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="31">        <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="32">        <span class="hljs-keyword">let</span> m = i;</span><span class="ln" data-line="33">        <span class="hljs-keyword">if</span> (l &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[l], a[m])) m = l;</span><span class="ln" data-line="34">        <span class="hljs-keyword">if</span> (r &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[r], a[m])) m = r;</span><span class="ln" data-line="35">        <span class="hljs-keyword">if</span> (m === i) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="36">        [a[i], a[m]] = [a[m], a[i]];</span><span class="ln" data-line="37">        i = m;</span><span class="ln" data-line="38">      }</span><span class="ln" data-line="39">    }</span><span class="ln" data-line="40">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="41">  }</span><span class="ln" data-line="42">}</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"><span class="hljs-keyword">function</span> <span class="hljs-title function_">mergeK</span>(<span class="hljs-params">lists</span>) {</span><span class="ln" data-line="45">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> x[<span class="hljs-number">0</span>] &lt; y[<span class="hljs-number">0</span>]); <span class="hljs-comment">// [value, list, position]</span></span><span class="ln" data-line="46">  lists.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">list, i</span>) =&gt;</span> {</span><span class="ln" data-line="47">    <span class="hljs-keyword">if</span> (list.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) heap.<span class="hljs-title function_">push</span>([list[<span class="hljs-number">0</span>], i, <span class="hljs-number">0</span>]);</span><span class="ln" data-line="48">  });</span><span class="ln" data-line="49">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="50">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="51">    <span class="hljs-keyword">const</span> [value, i, j] = heap.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="52">    out.<span class="hljs-title function_">push</span>(value);</span><span class="ln" data-line="53">    <span class="hljs-keyword">if</span> (j + <span class="hljs-number">1</span> &lt; lists[i].<span class="hljs-property">length</span>) heap.<span class="hljs-title function_">push</span>([lists[i][j + <span class="hljs-number">1</span>], i, j + <span class="hljs-number">1</span>]); <span class="hljs-comment">// the same list&#x27;s next item steps up</span></span><span class="ln" data-line="54">  }</span><span class="ln" data-line="55">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="56">}</span><span class="ln" data-line="57"> </span><span class="ln" data-line="58"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kthSmallest</span>(<span class="hljs-params">matrix, k</span>) {</span><span class="ln" data-line="59">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> x[<span class="hljs-number">0</span>] &lt; y[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="60">  matrix.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">row, r</span>) =&gt;</span> heap.<span class="hljs-title function_">push</span>([row[<span class="hljs-number">0</span>], r, <span class="hljs-number">0</span>]));</span><span class="ln" data-line="61">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> popped = <span class="hljs-number">1</span>; ; popped++) {</span><span class="ln" data-line="62">    <span class="hljs-keyword">const</span> [value, r, c] = heap.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="63">    <span class="hljs-keyword">if</span> (popped === k) <span class="hljs-keyword">return</span> value;</span><span class="ln" data-line="64">    <span class="hljs-keyword">if</span> (c + <span class="hljs-number">1</span> &lt; matrix[r].<span class="hljs-property">length</span>) heap.<span class="hljs-title function_">push</span>([matrix[r][c + <span class="hljs-number">1</span>], r, c + <span class="hljs-number">1</span>]);</span><span class="ln" data-line="65">  }</span><span class="ln" data-line="66">}</span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kSmallestPairs</span>(<span class="hljs-params">a, b, k</span>) {</span><span class="ln" data-line="69">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> a[x[<span class="hljs-number">0</span>]] + b[x[<span class="hljs-number">1</span>]] &lt; a[y[<span class="hljs-number">0</span>]] + b[y[<span class="hljs-number">1</span>]]);</span><span class="ln" data-line="70">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(a.<span class="hljs-property">length</span>, k); i++) heap.<span class="hljs-title function_">push</span>([i, <span class="hljs-number">0</span>]); <span class="hljs-comment">// pair each a[i] with b[0]</span></span><span class="ln" data-line="71">  <span class="hljs-keyword">const</span> out = [];</span><span class="ln" data-line="72">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span> &amp;&amp; out.<span class="hljs-property">length</span> &lt; k) {</span><span class="ln" data-line="73">    <span class="hljs-keyword">const</span> [i, j] = heap.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="74">    out.<span class="hljs-title function_">push</span>([a[i], b[j]]);</span><span class="ln" data-line="75">    <span class="hljs-keyword">if</span> (j + <span class="hljs-number">1</span> &lt; b.<span class="hljs-property">length</span>) heap.<span class="hljs-title function_">push</span>([i, j + <span class="hljs-number">1</span>]);</span><span class="ln" data-line="76">  }</span><span class="ln" data-line="77">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="78">}</span><span class="ln" data-line="79"> </span><span class="ln" data-line="80"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="81">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`merge [1 4 5] [1 3 4] [2 6] []: <span class="hljs-subst">${mergeK([[<span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">6</span>], []]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="82">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`8th smallest in the matrix: <span class="hljs-subst">${kthSmallest([[<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">9</span>], [<span class="hljs-number">10</span>, <span class="hljs-number">11</span>, <span class="hljs-number">13</span>], [<span class="hljs-number">12</span>, <span class="hljs-number">13</span>, <span class="hljs-number">15</span>]], <span class="hljs-number">8</span>)}</span>`</span>);</span><span class="ln" data-line="83">  <span class="hljs-keyword">const</span> pairs = <span class="hljs-title function_">kSmallestPairs</span>([<span class="hljs-number">1</span>, <span class="hljs-number">7</span>, <span class="hljs-number">11</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>], <span class="hljs-number">3</span>);</span><span class="ln" data-line="84">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`3 smallest pairs of [1 7 11] and [2 4 6]: <span class="hljs-subst">${pairs.map(([x, y]) =&gt; <span class="hljs-string">`[<span class="hljs-subst">${x}</span>,<span class="hljs-subst">${y}</span>]`</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="85">}</span><span class="ln" data-line="86"> </span><span class="ln" data-line="87"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Binary heap; less(a, b) says whether a should come out before b. */
+class Heap {
+  constructor(less) {
+    this.a = [];
+    this.less = less;
+  }
+  get size() {
+    return this.a.length;
+  }
+  peek() {
+    return this.a[0];
+  }
+  push(x) {
+    const a = this.a;
+    a.push(x);
+    for (let i = a.length - 1; i &gt; 0; ) {
+      const p = (i - 1) &gt;&gt; 1;
+      if (!this.less(a[i], a[p])) break;
+      [a[i], a[p]] = [a[p], a[i]];
+      i = p;
+    }
+  }
+  pop() {
+    const a = this.a;
+    const top = a[0];
+    const last = a.pop();
+    if (a.length &gt; 0) {
+      a[0] = last;
+      for (let i = 0; ; ) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l &lt; a.length &amp;&amp; this.less(a[l], a[m])) m = l;
+        if (r &lt; a.length &amp;&amp; this.less(a[r], a[m])) m = r;
+        if (m === i) break;
+        [a[i], a[m]] = [a[m], a[i]];
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
+function mergeK(lists) {
+  const heap = new Heap((x, y) =&gt; x[0] &lt; y[0]); // [value, list, position]
+  lists.forEach((list, i) =&gt; {
+    if (list.length &gt; 0) heap.push([list[0], i, 0]);
+  });
+  const out = [];
+  while (heap.size &gt; 0) {
+    const [value, i, j] = heap.pop();
+    out.push(value);
+    if (j + 1 &lt; lists[i].length) heap.push([lists[i][j + 1], i, j + 1]); // the same list&#39;s next item steps up
+  }
+  return out;
+}
+
+function kthSmallest(matrix, k) {
+  const heap = new Heap((x, y) =&gt; x[0] &lt; y[0]);
+  matrix.forEach((row, r) =&gt; heap.push([row[0], r, 0]));
+  for (let popped = 1; ; popped++) {
+    const [value, r, c] = heap.pop();
+    if (popped === k) return value;
+    if (c + 1 &lt; matrix[r].length) heap.push([matrix[r][c + 1], r, c + 1]);
+  }
+}
+
+function kSmallestPairs(a, b, k) {
+  const heap = new Heap((x, y) =&gt; a[x[0]] + b[x[1]] &lt; a[y[0]] + b[y[1]]);
+  for (let i = 0; i &lt; Math.min(a.length, k); i++) heap.push([i, 0]); // pair each a[i] with b[0]
+  const out = [];
+  while (heap.size &gt; 0 &amp;&amp; out.length &lt; k) {
+    const [i, j] = heap.pop();
+    out.push([a[i], b[j]]);
+    if (j + 1 &lt; b.length) heap.push([i, j + 1]);
+  }
+  return out;
+}
+
+function main() {
+  console.log(`merge [1 4 5] [1 3 4] [2 6] []: ${mergeK([[1, 4, 5], [1, 3, 4], [2, 6], []]).join(&quot; &quot;)}`);
+  console.log(`8th smallest in the matrix: ${kthSmallest([[1, 5, 9], [10, 11, 13], [12, 13, 15]], 8)}`);
+  const pairs = kSmallestPairs([1, 7, 11], [2, 4, 6], 3);
+  console.log(`3 smallest pairs of [1 7 11] and [2 4 6]: ${pairs.map(([x, y]) =&gt; `[${x},${y}]`).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-k-way-merge-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Binary heap; less(a, b) says whether a should come out before b. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Heap</span>&lt;T&gt; {</span><span class="ln" data-line="3">  <span class="hljs-keyword">private</span> <span class="hljs-attr">a</span>: T[] = [];</span><span class="ln" data-line="4">  <span class="hljs-keyword">private</span> <span class="hljs-attr">less</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">x</span>: T, <span class="hljs-attr">y</span>: T</span>) =&gt;</span> <span class="hljs-built_in">boolean</span>;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">less</span>: (x: T, y: T) =&gt; <span class="hljs-built_in">boolean</span></span>) {</span><span class="ln" data-line="7">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="8">  }</span><span class="ln" data-line="9">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="10">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="11">  }</span><span class="ln" data-line="12">  <span class="hljs-title function_">peek</span>(): T {</span><span class="ln" data-line="13">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="14">  }</span><span class="ln" data-line="15">  <span class="hljs-title function_">push</span>(<span class="hljs-attr">x</span>: T): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="16">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="17">    a.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="18">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt; <span class="hljs-number">0</span>; ) {</span><span class="ln" data-line="19">      <span class="hljs-keyword">const</span> p = (i - <span class="hljs-number">1</span>) &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="20">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[i], a[p])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="21">      [a[i], a[p]] = [a[p], a[i]];</span><span class="ln" data-line="22">      i = p;</span><span class="ln" data-line="23">    }</span><span class="ln" data-line="24">  }</span><span class="ln" data-line="25">  <span class="hljs-title function_">pop</span>(): T {</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="27">    <span class="hljs-keyword">const</span> top = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="28">    <span class="hljs-keyword">const</span> last = a.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> T;</span><span class="ln" data-line="29">    <span class="hljs-keyword">if</span> (a.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="30">      a[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="31">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; ) {</span><span class="ln" data-line="32">        <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="33">        <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="34">        <span class="hljs-keyword">let</span> m = i;</span><span class="ln" data-line="35">        <span class="hljs-keyword">if</span> (l &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[l], a[m])) m = l;</span><span class="ln" data-line="36">        <span class="hljs-keyword">if</span> (r &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[r], a[m])) m = r;</span><span class="ln" data-line="37">        <span class="hljs-keyword">if</span> (m === i) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="38">        [a[i], a[m]] = [a[m], a[i]];</span><span class="ln" data-line="39">        i = m;</span><span class="ln" data-line="40">      }</span><span class="ln" data-line="41">    }</span><span class="ln" data-line="42">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="43">  }</span><span class="ln" data-line="44">}</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">type</span> <span class="hljs-title class_">Entry</span> = [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>];</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"><span class="hljs-keyword">function</span> <span class="hljs-title function_">mergeK</span>(<span class="hljs-params"><span class="hljs-attr">lists</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[][]</span>): <span class="hljs-built_in">number</span>[] {</span><span class="ln" data-line="49">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;<span class="hljs-title class_">Entry</span>&gt;(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> x[<span class="hljs-number">0</span>] &lt; y[<span class="hljs-number">0</span>]); <span class="hljs-comment">// [value, list, position]</span></span><span class="ln" data-line="50">  lists.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">list, i</span>) =&gt;</span> {</span><span class="ln" data-line="51">    <span class="hljs-keyword">if</span> (list.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) heap.<span class="hljs-title function_">push</span>([list[<span class="hljs-number">0</span>], i, <span class="hljs-number">0</span>]);</span><span class="ln" data-line="52">  });</span><span class="ln" data-line="53">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: <span class="hljs-built_in">number</span>[] = [];</span><span class="ln" data-line="54">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="55">    <span class="hljs-keyword">const</span> [value, i, j] = heap.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="56">    out.<span class="hljs-title function_">push</span>(value);</span><span class="ln" data-line="57">    <span class="hljs-keyword">if</span> (j + <span class="hljs-number">1</span> &lt; lists[i].<span class="hljs-property">length</span>) heap.<span class="hljs-title function_">push</span>([lists[i][j + <span class="hljs-number">1</span>], i, j + <span class="hljs-number">1</span>]); <span class="hljs-comment">// the same list&#x27;s next item steps up</span></span><span class="ln" data-line="58">  }</span><span class="ln" data-line="59">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="60">}</span><span class="ln" data-line="61"> </span><span class="ln" data-line="62"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kthSmallest</span>(<span class="hljs-params"><span class="hljs-attr">matrix</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[][], <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="63">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;<span class="hljs-title class_">Entry</span>&gt;(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> x[<span class="hljs-number">0</span>] &lt; y[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="64">  matrix.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">row, r</span>) =&gt;</span> heap.<span class="hljs-title function_">push</span>([row[<span class="hljs-number">0</span>], r, <span class="hljs-number">0</span>]));</span><span class="ln" data-line="65">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> popped = <span class="hljs-number">1</span>; ; popped++) {</span><span class="ln" data-line="66">    <span class="hljs-keyword">const</span> [value, r, c] = heap.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="67">    <span class="hljs-keyword">if</span> (popped === k) <span class="hljs-keyword">return</span> value;</span><span class="ln" data-line="68">    <span class="hljs-keyword">if</span> (c + <span class="hljs-number">1</span> &lt; matrix[r].<span class="hljs-property">length</span>) heap.<span class="hljs-title function_">push</span>([matrix[r][c + <span class="hljs-number">1</span>], r, c + <span class="hljs-number">1</span>]);</span><span class="ln" data-line="69">  }</span><span class="ln" data-line="70">}</span><span class="ln" data-line="71"> </span><span class="ln" data-line="72"><span class="hljs-keyword">function</span> <span class="hljs-title function_">kSmallestPairs</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">b</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[], <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] {</span><span class="ln" data-line="73">  <span class="hljs-keyword">const</span> heap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;[<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>]&gt;(<span class="hljs-function">(<span class="hljs-params">x, y</span>) =&gt;</span> a[x[<span class="hljs-number">0</span>]] + b[x[<span class="hljs-number">1</span>]] &lt; a[y[<span class="hljs-number">0</span>]] + b[y[<span class="hljs-number">1</span>]]);</span><span class="ln" data-line="74">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">min</span>(a.<span class="hljs-property">length</span>, k); i++) heap.<span class="hljs-title function_">push</span>([i, <span class="hljs-number">0</span>]); <span class="hljs-comment">// pair each a[i] with b[0]</span></span><span class="ln" data-line="75">  <span class="hljs-keyword">const</span> <span class="hljs-attr">out</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [];</span><span class="ln" data-line="76">  <span class="hljs-keyword">while</span> (heap.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span> &amp;&amp; out.<span class="hljs-property">length</span> &lt; k) {</span><span class="ln" data-line="77">    <span class="hljs-keyword">const</span> [i, j] = heap.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="78">    out.<span class="hljs-title function_">push</span>([a[i], b[j]]);</span><span class="ln" data-line="79">    <span class="hljs-keyword">if</span> (j + <span class="hljs-number">1</span> &lt; b.<span class="hljs-property">length</span>) heap.<span class="hljs-title function_">push</span>([i, j + <span class="hljs-number">1</span>]);</span><span class="ln" data-line="80">  }</span><span class="ln" data-line="81">  <span class="hljs-keyword">return</span> out;</span><span class="ln" data-line="82">}</span><span class="ln" data-line="83"> </span><span class="ln" data-line="84"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="85">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`merge [1 4 5] [1 3 4] [2 6] []: <span class="hljs-subst">${mergeK([[<span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">6</span>], []]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="86">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`8th smallest in the matrix: <span class="hljs-subst">${kthSmallest([[<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">9</span>], [<span class="hljs-number">10</span>, <span class="hljs-number">11</span>, <span class="hljs-number">13</span>], [<span class="hljs-number">12</span>, <span class="hljs-number">13</span>, <span class="hljs-number">15</span>]], <span class="hljs-number">8</span>)}</span>`</span>);</span><span class="ln" data-line="87">  <span class="hljs-keyword">const</span> pairs = <span class="hljs-title function_">kSmallestPairs</span>([<span class="hljs-number">1</span>, <span class="hljs-number">7</span>, <span class="hljs-number">11</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>], <span class="hljs-number">3</span>);</span><span class="ln" data-line="88">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`3 smallest pairs of [1 7 11] and [2 4 6]: <span class="hljs-subst">${pairs.map(([x, y]) =&gt; <span class="hljs-string">`[<span class="hljs-subst">${x}</span>,<span class="hljs-subst">${y}</span>]`</span>).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="89">}</span><span class="ln" data-line="90"> </span><span class="ln" data-line="91"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Binary heap; less(a, b) says whether a should come out before b. */
+class Heap&lt;T&gt; {
+  private a: T[] = [];
+  private less: (x: T, y: T) =&gt; boolean;
+
+  constructor(less: (x: T, y: T) =&gt; boolean) {
+    this.less = less;
+  }
+  get size(): number {
+    return this.a.length;
+  }
+  peek(): T {
+    return this.a[0];
+  }
+  push(x: T): void {
+    const a = this.a;
+    a.push(x);
+    for (let i = a.length - 1; i &gt; 0; ) {
+      const p = (i - 1) &gt;&gt; 1;
+      if (!this.less(a[i], a[p])) break;
+      [a[i], a[p]] = [a[p], a[i]];
+      i = p;
+    }
+  }
+  pop(): T {
+    const a = this.a;
+    const top = a[0];
+    const last = a.pop() as T;
+    if (a.length &gt; 0) {
+      a[0] = last;
+      for (let i = 0; ; ) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l &lt; a.length &amp;&amp; this.less(a[l], a[m])) m = l;
+        if (r &lt; a.length &amp;&amp; this.less(a[r], a[m])) m = r;
+        if (m === i) break;
+        [a[i], a[m]] = [a[m], a[i]];
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
+type Entry = [number, number, number];
+
+function mergeK(lists: readonly number[][]): number[] {
+  const heap = new Heap&lt;Entry&gt;((x, y) =&gt; x[0] &lt; y[0]); // [value, list, position]
+  lists.forEach((list, i) =&gt; {
+    if (list.length &gt; 0) heap.push([list[0], i, 0]);
+  });
+  const out: number[] = [];
+  while (heap.size &gt; 0) {
+    const [value, i, j] = heap.pop();
+    out.push(value);
+    if (j + 1 &lt; lists[i].length) heap.push([lists[i][j + 1], i, j + 1]); // the same list&#39;s next item steps up
+  }
+  return out;
+}
+
+function kthSmallest(matrix: readonly number[][], k: number): number {
+  const heap = new Heap&lt;Entry&gt;((x, y) =&gt; x[0] &lt; y[0]);
+  matrix.forEach((row, r) =&gt; heap.push([row[0], r, 0]));
+  for (let popped = 1; ; popped++) {
+    const [value, r, c] = heap.pop();
+    if (popped === k) return value;
+    if (c + 1 &lt; matrix[r].length) heap.push([matrix[r][c + 1], r, c + 1]);
+  }
+}
+
+function kSmallestPairs(a: readonly number[], b: readonly number[], k: number): [number, number][] {
+  const heap = new Heap&lt;[number, number]&gt;((x, y) =&gt; a[x[0]] + b[x[1]] &lt; a[y[0]] + b[y[1]]);
+  for (let i = 0; i &lt; Math.min(a.length, k); i++) heap.push([i, 0]); // pair each a[i] with b[0]
+  const out: [number, number][] = [];
+  while (heap.size &gt; 0 &amp;&amp; out.length &lt; k) {
+    const [i, j] = heap.pop();
+    out.push([a[i], b[j]]);
+    if (j + 1 &lt; b.length) heap.push([i, j + 1]);
+  }
+  return out;
+}
+
+function main(): void {
+  console.log(`merge [1 4 5] [1 3 4] [2 6] []: ${mergeK([[1, 4, 5], [1, 3, 4], [2, 6], []]).join(&quot; &quot;)}`);
+  console.log(`8th smallest in the matrix: ${kthSmallest([[1, 5, 9], [10, 11, 13], [12, 13, 15]], 8)}`);
+  const pairs = kSmallestPairs([1, 7, 11], [2, 4, 6], 3);
+  console.log(`3 smallest pairs of [1 7 11] and [2 4 6]: ${pairs.map(([x, y]) =&gt; `[${x},${y}]`).join(&quot; &quot;)}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-k-way-merge-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> heapq</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Tuple</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"><span class="hljs-keyword">def</span> <span class="hljs-title function_">merge_k</span>(<span class="hljs-params">lists: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="6">    heap = [(lst[<span class="hljs-number">0</span>], i, <span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> i, lst <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(lists) <span class="hljs-keyword">if</span> lst]  <span class="hljs-comment"># (value, list, position)</span></span><span class="ln" data-line="7">    heapq.heapify(heap)</span><span class="ln" data-line="8">    out = []</span><span class="ln" data-line="9">    <span class="hljs-keyword">while</span> heap:</span><span class="ln" data-line="10">        value, i, j = heapq.heappop(heap)</span><span class="ln" data-line="11">        out.append(value)</span><span class="ln" data-line="12">        <span class="hljs-keyword">if</span> j + <span class="hljs-number">1</span> &lt; <span class="hljs-built_in">len</span>(lists[i]):  <span class="hljs-comment"># the same list&#x27;s next item steps up</span></span><span class="ln" data-line="13">            heapq.heappush(heap, (lists[i][j + <span class="hljs-number">1</span>], i, j + <span class="hljs-number">1</span>))</span><span class="ln" data-line="14">    <span class="hljs-keyword">return</span> out</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16"> </span><span class="ln" data-line="17"><span class="hljs-keyword">def</span> <span class="hljs-title function_">kth_smallest</span>(<span class="hljs-params">matrix: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]], k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="18">    heap = [(row[<span class="hljs-number">0</span>], r, <span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> r, row <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(matrix)]</span><span class="ln" data-line="19">    heapq.heapify(heap)</span><span class="ln" data-line="20">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(k - <span class="hljs-number">1</span>):</span><span class="ln" data-line="21">        _, r, c = heapq.heappop(heap)</span><span class="ln" data-line="22">        <span class="hljs-keyword">if</span> c + <span class="hljs-number">1</span> &lt; <span class="hljs-built_in">len</span>(matrix[r]):</span><span class="ln" data-line="23">            heapq.heappush(heap, (matrix[r][c + <span class="hljs-number">1</span>], r, c + <span class="hljs-number">1</span>))</span><span class="ln" data-line="24">    <span class="hljs-keyword">return</span> heap[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"><span class="hljs-keyword">def</span> <span class="hljs-title function_">k_smallest_pairs</span>(<span class="hljs-params">a: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], b: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-type">List</span>[<span class="hljs-type">Tuple</span>[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>]]:</span><span class="ln" data-line="28">    heap = [(a[i] + b[<span class="hljs-number">0</span>], i, <span class="hljs-number">0</span>) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">min</span>(<span class="hljs-built_in">len</span>(a), k))]  <span class="hljs-comment"># pair each a[i] with b[0]</span></span><span class="ln" data-line="29">    heapq.heapify(heap)</span><span class="ln" data-line="30">    out = []</span><span class="ln" data-line="31">    <span class="hljs-keyword">while</span> heap <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(out) &lt; k:</span><span class="ln" data-line="32">        _, i, j = heapq.heappop(heap)</span><span class="ln" data-line="33">        out.append((a[i], b[j]))</span><span class="ln" data-line="34">        <span class="hljs-keyword">if</span> j + <span class="hljs-number">1</span> &lt; <span class="hljs-built_in">len</span>(b):</span><span class="ln" data-line="35">            heapq.heappush(heap, (a[i] + b[j + <span class="hljs-number">1</span>], i, j + <span class="hljs-number">1</span>))</span><span class="ln" data-line="36">    <span class="hljs-keyword">return</span> out</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"> </span><span class="ln" data-line="39"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="40">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;merge [1 4 5] [1 3 4] [2 6] []: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">str</span>, merge_k([[<span class="hljs-number">1</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">6</span>], []])))}</span>&quot;</span>)</span><span class="ln" data-line="41">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;8th smallest in the matrix: <span class="hljs-subst">{kth_smallest([[<span class="hljs-number">1</span>, <span class="hljs-number">5</span>, <span class="hljs-number">9</span>], [<span class="hljs-number">10</span>, <span class="hljs-number">11</span>, <span class="hljs-number">13</span>], [<span class="hljs-number">12</span>, <span class="hljs-number">13</span>, <span class="hljs-number">15</span>]], <span class="hljs-number">8</span>)}</span>&quot;</span>)</span><span class="ln" data-line="42">    pairs = k_smallest_pairs([<span class="hljs-number">1</span>, <span class="hljs-number">7</span>, <span class="hljs-number">11</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>], <span class="hljs-number">3</span>)</span><span class="ln" data-line="43">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;3 smallest pairs of [1 7 11] and [2 4 6]: <span class="hljs-subst">{<span class="hljs-string">&#x27; &#x27;</span>.join(<span class="hljs-string">f&#x27;[<span class="hljs-subst">{x}</span>,<span class="hljs-subst">{y}</span>]&#x27;</span> <span class="hljs-keyword">for</span> x, y <span class="hljs-keyword">in</span> pairs)}</span>&quot;</span>)</span><span class="ln" data-line="44"> </span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="47">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import heapq
+from typing import List, Tuple
+
+
+def merge_k(lists: List[List[int]]) -&gt; List[int]:
+    heap = [(lst[0], i, 0) for i, lst in enumerate(lists) if lst]  # (value, list, position)
+    heapq.heapify(heap)
+    out = []
+    while heap:
+        value, i, j = heapq.heappop(heap)
+        out.append(value)
+        if j + 1 &lt; len(lists[i]):  # the same list&#39;s next item steps up
+            heapq.heappush(heap, (lists[i][j + 1], i, j + 1))
+    return out
+
+
+def kth_smallest(matrix: List[List[int]], k: int) -&gt; int:
+    heap = [(row[0], r, 0) for r, row in enumerate(matrix)]
+    heapq.heapify(heap)
+    for _ in range(k - 1):
+        _, r, c = heapq.heappop(heap)
+        if c + 1 &lt; len(matrix[r]):
+            heapq.heappush(heap, (matrix[r][c + 1], r, c + 1))
+    return heap[0][0]
+
+
+def k_smallest_pairs(a: List[int], b: List[int], k: int) -&gt; List[Tuple[int, int]]:
+    heap = [(a[i] + b[0], i, 0) for i in range(min(len(a), k))]  # pair each a[i] with b[0]
+    heapq.heapify(heap)
+    out = []
+    while heap and len(out) &lt; k:
+        _, i, j = heapq.heappop(heap)
+        out.append((a[i], b[j]))
+        if j + 1 &lt; len(b):
+            heapq.heappush(heap, (a[i] + b[j + 1], i, j + 1))
+    return out
+
+
+def main() -&gt; None:
+    print(f&quot;merge [1 4 5] [1 3 4] [2 6] []: {&#39; &#39;.join(map(str, merge_k([[1, 4, 5], [1, 3, 4], [2, 6], []])))}&quot;)
+    print(f&quot;8th smallest in the matrix: {kth_smallest([[1, 5, 9], [10, 11, 13], [12, 13, 15]], 8)}&quot;)
+    pairs = k_smallest_pairs([1, 7, 11], [2, 4, 6], 3)
+    print(f&quot;3 smallest pairs of [1 7 11] and [2 4 6]: {&#39; &#39;.join(f&#39;[{x},{y}]&#39; for x, y in pairs)}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>merge [1 4 5] [1 3 4] [2 6] []: 1 1 2 3 4 4 5 6
+8th smallest in the matrix: 13
+3 smallest pairs of [1 7 11] and [2 4 6]: [1,2] [1,4] [1,6]</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Pushing every item of every list into the heap at the start (O(N) memory) instead of just the heads.</li><li>Comparing heap entries that tie on value but then compare node objects (a <code>TypeError</code> in Python). Add the list index as a tie-breaker.</li><li>Forgetting to skip empty lists.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/merge-two-sorted-lists/" rel="noopener" target="_blank">Merge Two Sorted Lists<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>21</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/merge-k-sorted-lists/" rel="noopener" target="_blank">Merge k Sorted Lists<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>23</td><td><span class="pill pill-hard">hard</span></td></tr><tr><td><a href="https://leetcode.com/problems/kth-smallest-element-in-a-sorted-matrix/" rel="noopener" target="_blank">Kth Smallest Element in a Sorted Matrix<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>378</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/find-k-pairs-with-smallest-sums/" rel="noopener" target="_blank">Find K Pairs with Smallest Sums<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>373</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/" rel="noopener" target="_blank">Smallest Range Covering Elements from K Lists<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>632</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/heaps/index.html">Heaps</a>, <a href="../../data-structures/linked-lists/index.html">Linked lists</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../two-heaps/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Two heaps</span></a><a class="pn pn-next" href="../tree-dfs/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Tree DFS</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

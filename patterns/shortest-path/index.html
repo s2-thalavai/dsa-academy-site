@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shortest path · DSA Academy</title>
+<meta name="description" content="Dijkstra, Bellman-Ford and 0-1 BFS on weighted graphs.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Shortest path</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Shortest path</h1>
+  <p class="lede">Weighted shortest-path problems are graph problems in disguise: delays on network links, flight prices, effort between grid cells. Pick the algorithm from two facts: are weights negative, and is there a limit on the number of edges?</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Planning a train journey. Dijkstra is the planner that always extends the cheapest itinerary found so far. Bellman-Ford is the planner told &quot;at most k changes&quot;, who improves every itinerary one leg at a time, k + 1 times.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Minimum time, cost or effort to reach one node or all nodes, with <strong>weights</strong> on the edges.</li>
+<li>Grid problems where moving between cells has a cost that isn&#39;t always 1.</li>
+<li>A limit on the number of steps or stops (Bellman-Ford with k rounds).</li>
+<li>Weights of only 0 and 1: 0-1 BFS with a deque.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">Dijkstra (non-negative weights):
+    dist[src] = 0; heap = [(0, src)]
+    while heap: (d, u) = pop
+        if d &gt; dist[u]: continue                     ← stale entry
+        for (v, w) in adj[u]:
+            if d + w &lt; dist[v]: dist[v] = d + w; push (dist[v], v)
+
+Bellman-Ford with at most k edges:
+    repeat k times: relax every edge using a copy of last round&#39;s distances
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>Both algorithms rest on <strong>relaxation</strong>: if reaching <code>u</code> and taking <code>u → v</code> is
+cheaper than the best known route to <code>v</code>, update <code>v</code>.</p>
+<ul>
+<li><strong>Dijkstra</strong> settles nodes in order of distance with a min-heap. It&#39;s the
+default for non-negative weights.</li>
+<li><strong>Bellman-Ford</strong> relaxes every edge in rounds. After round <code>k</code>, every path
+with at most <code>k</code> edges has been considered. Using a <strong>copy</strong> of the previous
+round&#39;s distances is what enforces the limit; without it, one round could
+chain several edges.</li>
+<li><strong>Minimax paths</strong> (like minimum effort, where a path costs its single worst
+step) use Dijkstra with <code>max(d, w)</code> in place of <code>d + w</code>.</li>
+</ul>
+<p>The full algorithms, with Floyd-Warshall and minimum spanning trees, are on the
+Graph algorithms page.</p>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Dijkstra with a heap</td><td class="nowrap">O((V + E) log V)</td><td>Each edge may push one heap entry.</td></tr><tr><td>Bellman-Ford limited to k edges</td><td class="nowrap">O(k × E)</td><td>k rounds over all edges.</td></tr><tr><td>Grid Dijkstra (minimum effort)</td><td class="nowrap">O(R × C × log(R × C))</td><td>Each cell is a node with up to 4 edges.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>JavaScript and TypeScript include a small heap class, since neither language has one built in.</p><figure class="codeblock" id="code-shortest-path" aria-label="Network delay (Dijkstra), cheapest flights with k stops (Bellman-Ford) and minimum effort (minimax Dijkstra)">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-shortest-path-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-shortest-path-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-shortest-path-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-shortest-path-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-shortest-path-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.ArrayList;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.Arrays;</span><span class="ln" data-line="3"><span class="hljs-keyword">import</span> java.util.List;</span><span class="ln" data-line="4"><span class="hljs-keyword">import</span> java.util.PriorityQueue;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="7"> </span><span class="ln" data-line="8">    <span class="hljs-comment">/** Time for a signal from k to reach every node (1-based), or -1. times[i] = {from, to, delay}. */</span></span><span class="ln" data-line="9">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">networkDelayTime</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] times, <span class="hljs-type">int</span> n, <span class="hljs-type">int</span> k)</span> {</span><span class="ln" data-line="10">        <span class="hljs-type">List</span>&lt;List&lt;<span class="hljs-type">int</span>[]&gt;&gt; <span class="hljs-variable">adj</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();</span><span class="ln" data-line="11">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt;= n; i++) adj.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;());</span><span class="ln" data-line="12">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] t : times) adj.get(t[<span class="hljs-number">0</span>]).add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { t[<span class="hljs-number">1</span>], t[<span class="hljs-number">2</span>] });</span><span class="ln" data-line="13">        <span class="hljs-type">int</span>[] <span class="hljs-variable">dist</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n + <span class="hljs-number">1</span>];</span><span class="ln" data-line="14">        Arrays.fill(dist, Integer.MAX_VALUE);</span><span class="ln" data-line="15">        dist[k] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="16">        <span class="hljs-type">PriorityQueue</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">pq</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;((a, b) -&gt; Integer.compare(a[<span class="hljs-number">0</span>], b[<span class="hljs-number">0</span>]));</span><span class="ln" data-line="17">        pq.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">0</span>, k });</span><span class="ln" data-line="18">        <span class="hljs-keyword">while</span> (!pq.isEmpty()) {</span><span class="ln" data-line="19">            <span class="hljs-type">int</span>[] <span class="hljs-variable">top</span> <span class="hljs-operator">=</span> pq.poll();</span><span class="ln" data-line="20">            <span class="hljs-type">int</span> <span class="hljs-variable">d</span> <span class="hljs-operator">=</span> top[<span class="hljs-number">0</span>], u = top[<span class="hljs-number">1</span>];</span><span class="ln" data-line="21">            <span class="hljs-keyword">if</span> (d &gt; dist[u]) <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// stale entry</span></span><span class="ln" data-line="22">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] e : adj.get(u)) {</span><span class="ln" data-line="23">                <span class="hljs-keyword">if</span> (d + e[<span class="hljs-number">1</span>] &lt; dist[e[<span class="hljs-number">0</span>]]) {</span><span class="ln" data-line="24">                    dist[e[<span class="hljs-number">0</span>]] = d + e[<span class="hljs-number">1</span>];</span><span class="ln" data-line="25">                    pq.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { dist[e[<span class="hljs-number">0</span>]], e[<span class="hljs-number">0</span>] });</span><span class="ln" data-line="26">                }</span><span class="ln" data-line="27">            }</span><span class="ln" data-line="28">        }</span><span class="ln" data-line="29">        <span class="hljs-type">int</span> <span class="hljs-variable">worst</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="30">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt;= n; i++) {</span><span class="ln" data-line="31">            <span class="hljs-keyword">if</span> (dist[i] == Integer.MAX_VALUE) <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><span class="ln" data-line="32">            worst = Math.max(worst, dist[i]);</span><span class="ln" data-line="33">        }</span><span class="ln" data-line="34">        <span class="hljs-keyword">return</span> worst;</span><span class="ln" data-line="35">    }</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37">    <span class="hljs-comment">/** Cheapest price from src to dst using at most k stops (k + 1 flights), or -1. */</span></span><span class="ln" data-line="38">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">cheapestFlight</span><span class="hljs-params">(<span class="hljs-type">int</span> n, <span class="hljs-type">int</span>[][] flights, <span class="hljs-type">int</span> src, <span class="hljs-type">int</span> dst, <span class="hljs-type">int</span> k)</span> {</span><span class="ln" data-line="39">        <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">INF</span> <span class="hljs-operator">=</span> Integer.MAX_VALUE / <span class="hljs-number">2</span>;</span><span class="ln" data-line="40">        <span class="hljs-type">int</span>[] <span class="hljs-variable">dist</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[n];</span><span class="ln" data-line="41">        Arrays.fill(dist, INF);</span><span class="ln" data-line="42">        dist[src] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="43">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">round</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; round &lt;= k; round++) {</span><span class="ln" data-line="44">            <span class="hljs-type">int</span>[] <span class="hljs-variable">prev</span> <span class="hljs-operator">=</span> dist.clone(); <span class="hljs-comment">// only last round&#x27;s prices: one more flight per round</span></span><span class="ln" data-line="45">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] f : flights) {</span><span class="ln" data-line="46">                <span class="hljs-keyword">if</span> (prev[f[<span class="hljs-number">0</span>]] + f[<span class="hljs-number">2</span>] &lt; dist[f[<span class="hljs-number">1</span>]]) dist[f[<span class="hljs-number">1</span>]] = prev[f[<span class="hljs-number">0</span>]] + f[<span class="hljs-number">2</span>];</span><span class="ln" data-line="47">            }</span><span class="ln" data-line="48">        }</span><span class="ln" data-line="49">        <span class="hljs-keyword">return</span> dist[dst] &gt;= INF ? -<span class="hljs-number">1</span> : dist[dst];</span><span class="ln" data-line="50">    }</span><span class="ln" data-line="51"> </span><span class="ln" data-line="52">    <span class="hljs-comment">/** A path&#x27;s effort is its largest height step; minimise it. */</span></span><span class="ln" data-line="53">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">minimumEffort</span><span class="hljs-params">(<span class="hljs-type">int</span>[][] h)</span> {</span><span class="ln" data-line="54">        <span class="hljs-type">int</span> <span class="hljs-variable">rows</span> <span class="hljs-operator">=</span> h.length, cols = h[<span class="hljs-number">0</span>].length;</span><span class="ln" data-line="55">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">best</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[rows][cols];</span><span class="ln" data-line="56">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] row : best) Arrays.fill(row, Integer.MAX_VALUE);</span><span class="ln" data-line="57">        best[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="58">        <span class="hljs-type">PriorityQueue</span>&lt;<span class="hljs-type">int</span>[]&gt; <span class="hljs-variable">pq</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>&lt;&gt;((a, b) -&gt; Integer.compare(a[<span class="hljs-number">0</span>], b[<span class="hljs-number">0</span>])); <span class="hljs-comment">// {effort, r, c}</span></span><span class="ln" data-line="59">        pq.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span> });</span><span class="ln" data-line="60">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">dirs</span> <span class="hljs-operator">=</span> { { -<span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">0</span> }, { <span class="hljs-number">0</span>, -<span class="hljs-number">1</span> }, { <span class="hljs-number">0</span>, <span class="hljs-number">1</span> } };</span><span class="ln" data-line="61">        <span class="hljs-keyword">while</span> (!pq.isEmpty()) {</span><span class="ln" data-line="62">            <span class="hljs-type">int</span>[] <span class="hljs-variable">top</span> <span class="hljs-operator">=</span> pq.poll();</span><span class="ln" data-line="63">            <span class="hljs-type">int</span> <span class="hljs-variable">e</span> <span class="hljs-operator">=</span> top[<span class="hljs-number">0</span>], r = top[<span class="hljs-number">1</span>], c = top[<span class="hljs-number">2</span>];</span><span class="ln" data-line="64">            <span class="hljs-keyword">if</span> (r == rows - <span class="hljs-number">1</span> &amp;&amp; c == cols - <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> e;</span><span class="ln" data-line="65">            <span class="hljs-keyword">if</span> (e &gt; best[r][c]) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="66">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span>[] d : dirs) {</span><span class="ln" data-line="67">                <span class="hljs-type">int</span> <span class="hljs-variable">nr</span> <span class="hljs-operator">=</span> r + d[<span class="hljs-number">0</span>], nc = c + d[<span class="hljs-number">1</span>];</span><span class="ln" data-line="68">                <span class="hljs-keyword">if</span> (nr &lt; <span class="hljs-number">0</span> || nr &gt;= rows || nc &lt; <span class="hljs-number">0</span> || nc &gt;= cols) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="69">                <span class="hljs-type">int</span> <span class="hljs-variable">ne</span> <span class="hljs-operator">=</span> Math.max(e, Math.abs(h[nr][nc] - h[r][c])); <span class="hljs-comment">// max instead of +</span></span><span class="ln" data-line="70">                <span class="hljs-keyword">if</span> (ne &lt; best[nr][nc]) {</span><span class="ln" data-line="71">                    best[nr][nc] = ne;</span><span class="ln" data-line="72">                    pq.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { ne, nr, nc });</span><span class="ln" data-line="73">                }</span><span class="ln" data-line="74">            }</span><span class="ln" data-line="75">        }</span><span class="ln" data-line="76">        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="77">    }</span><span class="ln" data-line="78"> </span><span class="ln" data-line="79">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="80">        System.out.println(<span class="hljs-string">&quot;network delay from 2: &quot;</span> + networkDelayTime(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span> }, { <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span> } }, <span class="hljs-number">4</span>, <span class="hljs-number">2</span>)</span><span class="ln" data-line="81">                + <span class="hljs-string">&quot;, from 1 in [[1,2,1]] with 2 nodes, starting at 2: &quot;</span> + networkDelayTime(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span> } }, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>));</span><span class="ln" data-line="82">        <span class="hljs-type">int</span>[][] <span class="hljs-variable">flights</span> <span class="hljs-operator">=</span> { { <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">100</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">0</span>, <span class="hljs-number">100</span> }, { <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">600</span> }, { <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">200</span> } };</span><span class="ln" data-line="83">        System.out.println(<span class="hljs-string">&quot;cheapest 0 -&gt; 3 with 1 stop: &quot;</span> + cheapestFlight(<span class="hljs-number">4</span>, flights, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>) + <span class="hljs-string">&quot;, with 2 stops: &quot;</span> + cheapestFlight(<span class="hljs-number">4</span>, flights, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>));</span><span class="ln" data-line="84">        System.out.println(<span class="hljs-string">&quot;minimum effort: &quot;</span> + minimumEffort(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[][] { { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span> }, { <span class="hljs-number">3</span>, <span class="hljs-number">8</span>, <span class="hljs-number">2</span> }, { <span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span> } }));</span><span class="ln" data-line="85">    }</span><span class="ln" data-line="86">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.PriorityQueue;
+
+public class Solution {
+
+    /** Time for a signal from k to reach every node (1-based), or -1. times[i] = {from, to, delay}. */
+    static int networkDelayTime(int[][] times, int n, int k) {
+        List&lt;List&lt;int[]&gt;&gt; adj = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt;= n; i++) adj.add(new ArrayList&lt;&gt;());
+        for (int[] t : times) adj.get(t[0]).add(new int[] { t[1], t[2] });
+        int[] dist = new int[n + 1];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[k] = 0;
+        PriorityQueue&lt;int[]&gt; pq = new PriorityQueue&lt;&gt;((a, b) -&gt; Integer.compare(a[0], b[0]));
+        pq.add(new int[] { 0, k });
+        while (!pq.isEmpty()) {
+            int[] top = pq.poll();
+            int d = top[0], u = top[1];
+            if (d &gt; dist[u]) continue; // stale entry
+            for (int[] e : adj.get(u)) {
+                if (d + e[1] &lt; dist[e[0]]) {
+                    dist[e[0]] = d + e[1];
+                    pq.add(new int[] { dist[e[0]], e[0] });
+                }
+            }
+        }
+        int worst = 0;
+        for (int i = 1; i &lt;= n; i++) {
+            if (dist[i] == Integer.MAX_VALUE) return -1;
+            worst = Math.max(worst, dist[i]);
+        }
+        return worst;
+    }
+
+    /** Cheapest price from src to dst using at most k stops (k + 1 flights), or -1. */
+    static int cheapestFlight(int n, int[][] flights, int src, int dst, int k) {
+        final int INF = Integer.MAX_VALUE / 2;
+        int[] dist = new int[n];
+        Arrays.fill(dist, INF);
+        dist[src] = 0;
+        for (int round = 0; round &lt;= k; round++) {
+            int[] prev = dist.clone(); // only last round&#39;s prices: one more flight per round
+            for (int[] f : flights) {
+                if (prev[f[0]] + f[2] &lt; dist[f[1]]) dist[f[1]] = prev[f[0]] + f[2];
+            }
+        }
+        return dist[dst] &gt;= INF ? -1 : dist[dst];
+    }
+
+    /** A path&#39;s effort is its largest height step; minimise it. */
+    static int minimumEffort(int[][] h) {
+        int rows = h.length, cols = h[0].length;
+        int[][] best = new int[rows][cols];
+        for (int[] row : best) Arrays.fill(row, Integer.MAX_VALUE);
+        best[0][0] = 0;
+        PriorityQueue&lt;int[]&gt; pq = new PriorityQueue&lt;&gt;((a, b) -&gt; Integer.compare(a[0], b[0])); // {effort, r, c}
+        pq.add(new int[] { 0, 0, 0 });
+        int[][] dirs = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+        while (!pq.isEmpty()) {
+            int[] top = pq.poll();
+            int e = top[0], r = top[1], c = top[2];
+            if (r == rows - 1 &amp;&amp; c == cols - 1) return e;
+            if (e &gt; best[r][c]) continue;
+            for (int[] d : dirs) {
+                int nr = r + d[0], nc = c + d[1];
+                if (nr &lt; 0 || nr &gt;= rows || nc &lt; 0 || nc &gt;= cols) continue;
+                int ne = Math.max(e, Math.abs(h[nr][nc] - h[r][c])); // max instead of +
+                if (ne &lt; best[nr][nc]) {
+                    best[nr][nc] = ne;
+                    pq.add(new int[] { ne, nr, nc });
+                }
+            }
+        }
+        return 0;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;network delay from 2: &quot; + networkDelayTime(new int[][] { { 2, 1, 1 }, { 2, 3, 1 }, { 3, 4, 1 } }, 4, 2)
+                + &quot;, from 1 in [[1,2,1]] with 2 nodes, starting at 2: &quot; + networkDelayTime(new int[][] { { 1, 2, 1 } }, 2, 2));
+        int[][] flights = { { 0, 1, 100 }, { 1, 2, 100 }, { 2, 0, 100 }, { 1, 3, 600 }, { 2, 3, 200 } };
+        System.out.println(&quot;cheapest 0 -&gt; 3 with 1 stop: &quot; + cheapestFlight(4, flights, 0, 3, 1) + &quot;, with 2 stops: &quot; + cheapestFlight(4, flights, 0, 3, 2));
+        System.out.println(&quot;minimum effort: &quot; + minimumEffort(new int[][] { { 1, 2, 2 }, { 3, 8, 2 }, { 5, 3, 5 } }));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-shortest-path-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Binary heap; less(a, b) says whether a should come out before b. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Heap</span> {</span><span class="ln" data-line="3">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">less</span>) {</span><span class="ln" data-line="4">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span> = [];</span><span class="ln" data-line="5">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="6">  }</span><span class="ln" data-line="7">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>() {</span><span class="ln" data-line="8">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="9">  }</span><span class="ln" data-line="10">  <span class="hljs-title function_">peek</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="11">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="12">  }</span><span class="ln" data-line="13">  <span class="hljs-title function_">push</span>(<span class="hljs-params">x</span>) {</span><span class="ln" data-line="14">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="15">    a.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="16">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt; <span class="hljs-number">0</span>; ) {</span><span class="ln" data-line="17">      <span class="hljs-keyword">const</span> p = (i - <span class="hljs-number">1</span>) &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="18">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[i], a[p])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="19">      [a[i], a[p]] = [a[p], a[i]];</span><span class="ln" data-line="20">      i = p;</span><span class="ln" data-line="21">    }</span><span class="ln" data-line="22">  }</span><span class="ln" data-line="23">  <span class="hljs-title function_">pop</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="24">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="25">    <span class="hljs-keyword">const</span> top = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> last = a.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="27">    <span class="hljs-keyword">if</span> (a.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="28">      a[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="29">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; ) {</span><span class="ln" data-line="30">        <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="31">        <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="32">        <span class="hljs-keyword">let</span> m = i;</span><span class="ln" data-line="33">        <span class="hljs-keyword">if</span> (l &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[l], a[m])) m = l;</span><span class="ln" data-line="34">        <span class="hljs-keyword">if</span> (r &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[r], a[m])) m = r;</span><span class="ln" data-line="35">        <span class="hljs-keyword">if</span> (m === i) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="36">        [a[i], a[m]] = [a[m], a[i]];</span><span class="ln" data-line="37">        i = m;</span><span class="ln" data-line="38">      }</span><span class="ln" data-line="39">    }</span><span class="ln" data-line="40">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="41">  }</span><span class="ln" data-line="42">}</span><span class="ln" data-line="43"> </span><span class="ln" data-line="44"><span class="hljs-comment">/** Time for a signal from k to reach every node (1-based), or -1. times[i] = [from, to, delay]. */</span></span><span class="ln" data-line="45"><span class="hljs-keyword">function</span> <span class="hljs-title function_">networkDelayTime</span>(<span class="hljs-params">times, n, k</span>) {</span><span class="ln" data-line="46">  <span class="hljs-keyword">const</span> adj = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n + <span class="hljs-number">1</span> }, <span class="hljs-function">() =&gt;</span> []);</span><span class="ln" data-line="47">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [u, v, w] <span class="hljs-keyword">of</span> times) adj[u].<span class="hljs-title function_">push</span>([v, w]);</span><span class="ln" data-line="48">  <span class="hljs-keyword">const</span> dist = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>);</span><span class="ln" data-line="49">  dist[k] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="50">  <span class="hljs-keyword">const</span> pq = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">0</span>] &lt; b[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="51">  pq.<span class="hljs-title function_">push</span>([<span class="hljs-number">0</span>, k]);</span><span class="ln" data-line="52">  <span class="hljs-keyword">while</span> (pq.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="53">    <span class="hljs-keyword">const</span> [d, u] = pq.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="54">    <span class="hljs-keyword">if</span> (d &gt; dist[u]) <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// stale entry</span></span><span class="ln" data-line="55">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [v, w] <span class="hljs-keyword">of</span> adj[u]) {</span><span class="ln" data-line="56">      <span class="hljs-keyword">if</span> (d + w &lt; dist[v]) {</span><span class="ln" data-line="57">        dist[v] = d + w;</span><span class="ln" data-line="58">        pq.<span class="hljs-title function_">push</span>([dist[v], v]);</span><span class="ln" data-line="59">      }</span><span class="ln" data-line="60">    }</span><span class="ln" data-line="61">  }</span><span class="ln" data-line="62">  <span class="hljs-keyword">const</span> worst = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(...dist.<span class="hljs-title function_">slice</span>(<span class="hljs-number">1</span>));</span><span class="ln" data-line="63">  <span class="hljs-keyword">return</span> worst === <span class="hljs-title class_">Infinity</span> ? -<span class="hljs-number">1</span> : worst;</span><span class="ln" data-line="64">}</span><span class="ln" data-line="65"> </span><span class="ln" data-line="66"><span class="hljs-comment">/** Cheapest price from src to dst using at most k stops (k + 1 flights), or -1. */</span></span><span class="ln" data-line="67"><span class="hljs-keyword">function</span> <span class="hljs-title function_">cheapestFlight</span>(<span class="hljs-params">n, flights, src, dst, k</span>) {</span><span class="ln" data-line="68">  <span class="hljs-keyword">let</span> dist = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>);</span><span class="ln" data-line="69">  dist[src] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="70">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> round = <span class="hljs-number">0</span>; round &lt;= k; round++) {</span><span class="ln" data-line="71">    <span class="hljs-keyword">const</span> prev = [...dist]; <span class="hljs-comment">// only last round&#x27;s prices: one more flight per round</span></span><span class="ln" data-line="72">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [u, v, w] <span class="hljs-keyword">of</span> flights) <span class="hljs-keyword">if</span> (prev[u] + w &lt; dist[v]) dist[v] = prev[u] + w;</span><span class="ln" data-line="73">  }</span><span class="ln" data-line="74">  <span class="hljs-keyword">return</span> dist[dst] === <span class="hljs-title class_">Infinity</span> ? -<span class="hljs-number">1</span> : dist[dst];</span><span class="ln" data-line="75">}</span><span class="ln" data-line="76"> </span><span class="ln" data-line="77"><span class="hljs-comment">/** A path&#x27;s effort is its largest height step; minimise it. */</span></span><span class="ln" data-line="78"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minimumEffort</span>(<span class="hljs-params">h</span>) {</span><span class="ln" data-line="79">  <span class="hljs-keyword">const</span> rows = h.<span class="hljs-property">length</span>;</span><span class="ln" data-line="80">  <span class="hljs-keyword">const</span> cols = h[<span class="hljs-number">0</span>].<span class="hljs-property">length</span>;</span><span class="ln" data-line="81">  <span class="hljs-keyword">const</span> best = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: rows }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(cols).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>));</span><span class="ln" data-line="82">  best[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="83">  <span class="hljs-keyword">const</span> pq = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">0</span>] &lt; b[<span class="hljs-number">0</span>]); <span class="hljs-comment">// [effort, r, c]</span></span><span class="ln" data-line="84">  pq.<span class="hljs-title function_">push</span>([<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]);</span><span class="ln" data-line="85">  <span class="hljs-keyword">const</span> dirs = [[-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]];</span><span class="ln" data-line="86">  <span class="hljs-keyword">while</span> (pq.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="87">    <span class="hljs-keyword">const</span> [e, r, c] = pq.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="88">    <span class="hljs-keyword">if</span> (r === rows - <span class="hljs-number">1</span> &amp;&amp; c === cols - <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> e;</span><span class="ln" data-line="89">    <span class="hljs-keyword">if</span> (e &gt; best[r][c]) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="90">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [dr, dc] <span class="hljs-keyword">of</span> dirs) {</span><span class="ln" data-line="91">      <span class="hljs-keyword">const</span> nr = r + dr;</span><span class="ln" data-line="92">      <span class="hljs-keyword">const</span> nc = c + dc;</span><span class="ln" data-line="93">      <span class="hljs-keyword">if</span> (nr &lt; <span class="hljs-number">0</span> || nr &gt;= rows || nc &lt; <span class="hljs-number">0</span> || nc &gt;= cols) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="94">      <span class="hljs-keyword">const</span> ne = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(e, <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">abs</span>(h[nr][nc] - h[r][c])); <span class="hljs-comment">// max instead of +</span></span><span class="ln" data-line="95">      <span class="hljs-keyword">if</span> (ne &lt; best[nr][nc]) {</span><span class="ln" data-line="96">        best[nr][nc] = ne;</span><span class="ln" data-line="97">        pq.<span class="hljs-title function_">push</span>([ne, nr, nc]);</span><span class="ln" data-line="98">      }</span><span class="ln" data-line="99">    }</span><span class="ln" data-line="100">  }</span><span class="ln" data-line="101">  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="102">}</span><span class="ln" data-line="103"> </span><span class="ln" data-line="104"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="105">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`network delay from 2: <span class="hljs-subst">${networkDelayTime([[<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>]], <span class="hljs-number">4</span>, <span class="hljs-number">2</span>)}</span>, from 1 in [[1,2,1]] with 2 nodes, starting at 2: <span class="hljs-subst">${networkDelayTime([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>]], <span class="hljs-number">2</span>, <span class="hljs-number">2</span>)}</span>`</span>);</span><span class="ln" data-line="106">  <span class="hljs-keyword">const</span> flights = [[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">100</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">0</span>, <span class="hljs-number">100</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">600</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">200</span>]];</span><span class="ln" data-line="107">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`cheapest 0 -&gt; 3 with 1 stop: <span class="hljs-subst">${cheapestFlight(<span class="hljs-number">4</span>, flights, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>)}</span>, with 2 stops: <span class="hljs-subst">${cheapestFlight(<span class="hljs-number">4</span>, flights, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>)}</span>`</span>);</span><span class="ln" data-line="108">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`minimum effort: <span class="hljs-subst">${minimumEffort([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">8</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>]])}</span>`</span>);</span><span class="ln" data-line="109">}</span><span class="ln" data-line="110"> </span><span class="ln" data-line="111"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Binary heap; less(a, b) says whether a should come out before b. */
+class Heap {
+  constructor(less) {
+    this.a = [];
+    this.less = less;
+  }
+  get size() {
+    return this.a.length;
+  }
+  peek() {
+    return this.a[0];
+  }
+  push(x) {
+    const a = this.a;
+    a.push(x);
+    for (let i = a.length - 1; i &gt; 0; ) {
+      const p = (i - 1) &gt;&gt; 1;
+      if (!this.less(a[i], a[p])) break;
+      [a[i], a[p]] = [a[p], a[i]];
+      i = p;
+    }
+  }
+  pop() {
+    const a = this.a;
+    const top = a[0];
+    const last = a.pop();
+    if (a.length &gt; 0) {
+      a[0] = last;
+      for (let i = 0; ; ) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l &lt; a.length &amp;&amp; this.less(a[l], a[m])) m = l;
+        if (r &lt; a.length &amp;&amp; this.less(a[r], a[m])) m = r;
+        if (m === i) break;
+        [a[i], a[m]] = [a[m], a[i]];
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
+/** Time for a signal from k to reach every node (1-based), or -1. times[i] = [from, to, delay]. */
+function networkDelayTime(times, n, k) {
+  const adj = Array.from({ length: n + 1 }, () =&gt; []);
+  for (const [u, v, w] of times) adj[u].push([v, w]);
+  const dist = new Array(n + 1).fill(Infinity);
+  dist[k] = 0;
+  const pq = new Heap((a, b) =&gt; a[0] &lt; b[0]);
+  pq.push([0, k]);
+  while (pq.size &gt; 0) {
+    const [d, u] = pq.pop();
+    if (d &gt; dist[u]) continue; // stale entry
+    for (const [v, w] of adj[u]) {
+      if (d + w &lt; dist[v]) {
+        dist[v] = d + w;
+        pq.push([dist[v], v]);
+      }
+    }
+  }
+  const worst = Math.max(...dist.slice(1));
+  return worst === Infinity ? -1 : worst;
+}
+
+/** Cheapest price from src to dst using at most k stops (k + 1 flights), or -1. */
+function cheapestFlight(n, flights, src, dst, k) {
+  let dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  for (let round = 0; round &lt;= k; round++) {
+    const prev = [...dist]; // only last round&#39;s prices: one more flight per round
+    for (const [u, v, w] of flights) if (prev[u] + w &lt; dist[v]) dist[v] = prev[u] + w;
+  }
+  return dist[dst] === Infinity ? -1 : dist[dst];
+}
+
+/** A path&#39;s effort is its largest height step; minimise it. */
+function minimumEffort(h) {
+  const rows = h.length;
+  const cols = h[0].length;
+  const best = Array.from({ length: rows }, () =&gt; new Array(cols).fill(Infinity));
+  best[0][0] = 0;
+  const pq = new Heap((a, b) =&gt; a[0] &lt; b[0]); // [effort, r, c]
+  pq.push([0, 0, 0]);
+  const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  while (pq.size &gt; 0) {
+    const [e, r, c] = pq.pop();
+    if (r === rows - 1 &amp;&amp; c === cols - 1) return e;
+    if (e &gt; best[r][c]) continue;
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr &lt; 0 || nr &gt;= rows || nc &lt; 0 || nc &gt;= cols) continue;
+      const ne = Math.max(e, Math.abs(h[nr][nc] - h[r][c])); // max instead of +
+      if (ne &lt; best[nr][nc]) {
+        best[nr][nc] = ne;
+        pq.push([ne, nr, nc]);
+      }
+    }
+  }
+  return 0;
+}
+
+function main() {
+  console.log(`network delay from 2: ${networkDelayTime([[2, 1, 1], [2, 3, 1], [3, 4, 1]], 4, 2)}, from 1 in [[1,2,1]] with 2 nodes, starting at 2: ${networkDelayTime([[1, 2, 1]], 2, 2)}`);
+  const flights = [[0, 1, 100], [1, 2, 100], [2, 0, 100], [1, 3, 600], [2, 3, 200]];
+  console.log(`cheapest 0 -&gt; 3 with 1 stop: ${cheapestFlight(4, flights, 0, 3, 1)}, with 2 stops: ${cheapestFlight(4, flights, 0, 3, 2)}`);
+  console.log(`minimum effort: ${minimumEffort([[1, 2, 2], [3, 8, 2], [5, 3, 5]])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-shortest-path-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-comment">/** Binary heap; less(a, b) says whether a should come out before b. */</span></span><span class="ln" data-line="2"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Heap</span>&lt;T&gt; {</span><span class="ln" data-line="3">  <span class="hljs-keyword">private</span> <span class="hljs-attr">a</span>: T[] = [];</span><span class="ln" data-line="4">  <span class="hljs-keyword">private</span> <span class="hljs-attr">less</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">x</span>: T, <span class="hljs-attr">y</span>: T</span>) =&gt;</span> <span class="hljs-built_in">boolean</span>;</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-attr">less</span>: (x: T, y: T) =&gt; <span class="hljs-built_in">boolean</span></span>) {</span><span class="ln" data-line="7">    <span class="hljs-variable language_">this</span>.<span class="hljs-property">less</span> = less;</span><span class="ln" data-line="8">  }</span><span class="ln" data-line="9">  <span class="hljs-keyword">get</span> <span class="hljs-title function_">size</span>(): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="10">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>.<span class="hljs-property">length</span>;</span><span class="ln" data-line="11">  }</span><span class="ln" data-line="12">  <span class="hljs-title function_">peek</span>(): T {</span><span class="ln" data-line="13">    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>[<span class="hljs-number">0</span>];</span><span class="ln" data-line="14">  }</span><span class="ln" data-line="15">  <span class="hljs-title function_">push</span>(<span class="hljs-attr">x</span>: T): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="16">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="17">    a.<span class="hljs-title function_">push</span>(x);</span><span class="ln" data-line="18">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = a.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>; i &gt; <span class="hljs-number">0</span>; ) {</span><span class="ln" data-line="19">      <span class="hljs-keyword">const</span> p = (i - <span class="hljs-number">1</span>) &gt;&gt; <span class="hljs-number">1</span>;</span><span class="ln" data-line="20">      <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[i], a[p])) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="21">      [a[i], a[p]] = [a[p], a[i]];</span><span class="ln" data-line="22">      i = p;</span><span class="ln" data-line="23">    }</span><span class="ln" data-line="24">  }</span><span class="ln" data-line="25">  <span class="hljs-title function_">pop</span>(): T {</span><span class="ln" data-line="26">    <span class="hljs-keyword">const</span> a = <span class="hljs-variable language_">this</span>.<span class="hljs-property">a</span>;</span><span class="ln" data-line="27">    <span class="hljs-keyword">const</span> top = a[<span class="hljs-number">0</span>];</span><span class="ln" data-line="28">    <span class="hljs-keyword">const</span> last = a.<span class="hljs-title function_">pop</span>() <span class="hljs-keyword">as</span> T;</span><span class="ln" data-line="29">    <span class="hljs-keyword">if</span> (a.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="30">      a[<span class="hljs-number">0</span>] = last;</span><span class="ln" data-line="31">      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; ; ) {</span><span class="ln" data-line="32">        <span class="hljs-keyword">const</span> l = <span class="hljs-number">2</span> * i + <span class="hljs-number">1</span>;</span><span class="ln" data-line="33">        <span class="hljs-keyword">const</span> r = l + <span class="hljs-number">1</span>;</span><span class="ln" data-line="34">        <span class="hljs-keyword">let</span> m = i;</span><span class="ln" data-line="35">        <span class="hljs-keyword">if</span> (l &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[l], a[m])) m = l;</span><span class="ln" data-line="36">        <span class="hljs-keyword">if</span> (r &lt; a.<span class="hljs-property">length</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">less</span>(a[r], a[m])) m = r;</span><span class="ln" data-line="37">        <span class="hljs-keyword">if</span> (m === i) <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="38">        [a[i], a[m]] = [a[m], a[i]];</span><span class="ln" data-line="39">        i = m;</span><span class="ln" data-line="40">      }</span><span class="ln" data-line="41">    }</span><span class="ln" data-line="42">    <span class="hljs-keyword">return</span> top;</span><span class="ln" data-line="43">  }</span><span class="ln" data-line="44">}</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46"><span class="hljs-keyword">type</span> <span class="hljs-title class_">Edge</span> = [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>];</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"><span class="hljs-comment">/** Time for a signal from k to reach every node (1-based), or -1. times[i] = [from, to, delay]. */</span></span><span class="ln" data-line="49"><span class="hljs-keyword">function</span> <span class="hljs-title function_">networkDelayTime</span>(<span class="hljs-params"><span class="hljs-attr">times</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Edge</span>[], <span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="50">  <span class="hljs-keyword">const</span> <span class="hljs-attr">adj</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: n + <span class="hljs-number">1</span> }, <span class="hljs-function">() =&gt;</span> []);</span><span class="ln" data-line="51">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [u, v, w] <span class="hljs-keyword">of</span> times) adj[u].<span class="hljs-title function_">push</span>([v, w]);</span><span class="ln" data-line="52">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dist</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n + <span class="hljs-number">1</span>).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>);</span><span class="ln" data-line="53">  dist[k] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="54">  <span class="hljs-keyword">const</span> pq = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;[<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>]&gt;(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">0</span>] &lt; b[<span class="hljs-number">0</span>]);</span><span class="ln" data-line="55">  pq.<span class="hljs-title function_">push</span>([<span class="hljs-number">0</span>, k]);</span><span class="ln" data-line="56">  <span class="hljs-keyword">while</span> (pq.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="57">    <span class="hljs-keyword">const</span> [d, u] = pq.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="58">    <span class="hljs-keyword">if</span> (d &gt; dist[u]) <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// stale entry</span></span><span class="ln" data-line="59">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [v, w] <span class="hljs-keyword">of</span> adj[u]) {</span><span class="ln" data-line="60">      <span class="hljs-keyword">if</span> (d + w &lt; dist[v]) {</span><span class="ln" data-line="61">        dist[v] = d + w;</span><span class="ln" data-line="62">        pq.<span class="hljs-title function_">push</span>([dist[v], v]);</span><span class="ln" data-line="63">      }</span><span class="ln" data-line="64">    }</span><span class="ln" data-line="65">  }</span><span class="ln" data-line="66">  <span class="hljs-keyword">const</span> worst = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(...dist.<span class="hljs-title function_">slice</span>(<span class="hljs-number">1</span>));</span><span class="ln" data-line="67">  <span class="hljs-keyword">return</span> worst === <span class="hljs-title class_">Infinity</span> ? -<span class="hljs-number">1</span> : worst;</span><span class="ln" data-line="68">}</span><span class="ln" data-line="69"> </span><span class="ln" data-line="70"><span class="hljs-comment">/** Cheapest price from src to dst using at most k stops (k + 1 flights), or -1. */</span></span><span class="ln" data-line="71"><span class="hljs-keyword">function</span> <span class="hljs-title function_">cheapestFlight</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">flights</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">Edge</span>[], <span class="hljs-attr">src</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">dst</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">k</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="72">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dist</span>: <span class="hljs-built_in">number</span>[] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(n).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>);</span><span class="ln" data-line="73">  dist[src] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="74">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> round = <span class="hljs-number">0</span>; round &lt;= k; round++) {</span><span class="ln" data-line="75">    <span class="hljs-keyword">const</span> prev = [...dist]; <span class="hljs-comment">// only last round&#x27;s prices: one more flight per round</span></span><span class="ln" data-line="76">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [u, v, w] <span class="hljs-keyword">of</span> flights) <span class="hljs-keyword">if</span> (prev[u] + w &lt; dist[v]) dist[v] = prev[u] + w;</span><span class="ln" data-line="77">  }</span><span class="ln" data-line="78">  <span class="hljs-keyword">return</span> dist[dst] === <span class="hljs-title class_">Infinity</span> ? -<span class="hljs-number">1</span> : dist[dst];</span><span class="ln" data-line="79">}</span><span class="ln" data-line="80"> </span><span class="ln" data-line="81"><span class="hljs-comment">/** A path&#x27;s effort is its largest height step; minimise it. */</span></span><span class="ln" data-line="82"><span class="hljs-keyword">function</span> <span class="hljs-title function_">minimumEffort</span>(<span class="hljs-params"><span class="hljs-attr">h</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[][]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="83">  <span class="hljs-keyword">const</span> rows = h.<span class="hljs-property">length</span>;</span><span class="ln" data-line="84">  <span class="hljs-keyword">const</span> cols = h[<span class="hljs-number">0</span>].<span class="hljs-property">length</span>;</span><span class="ln" data-line="85">  <span class="hljs-keyword">const</span> <span class="hljs-attr">best</span>: <span class="hljs-built_in">number</span>[][] = <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>({ <span class="hljs-attr">length</span>: rows }, <span class="hljs-function">() =&gt;</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(cols).<span class="hljs-title function_">fill</span>(<span class="hljs-title class_">Infinity</span>));</span><span class="ln" data-line="86">  best[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;</span><span class="ln" data-line="87">  <span class="hljs-keyword">const</span> pq = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Heap</span>&lt;[<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>]&gt;(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a[<span class="hljs-number">0</span>] &lt; b[<span class="hljs-number">0</span>]); <span class="hljs-comment">// [effort, r, c]</span></span><span class="ln" data-line="88">  pq.<span class="hljs-title function_">push</span>([<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]);</span><span class="ln" data-line="89">  <span class="hljs-keyword">const</span> <span class="hljs-attr">dirs</span>: [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>][] = [[-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]];</span><span class="ln" data-line="90">  <span class="hljs-keyword">while</span> (pq.<span class="hljs-property">size</span> &gt; <span class="hljs-number">0</span>) {</span><span class="ln" data-line="91">    <span class="hljs-keyword">const</span> [e, r, c] = pq.<span class="hljs-title function_">pop</span>();</span><span class="ln" data-line="92">    <span class="hljs-keyword">if</span> (r === rows - <span class="hljs-number">1</span> &amp;&amp; c === cols - <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> e;</span><span class="ln" data-line="93">    <span class="hljs-keyword">if</span> (e &gt; best[r][c]) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="94">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [dr, dc] <span class="hljs-keyword">of</span> dirs) {</span><span class="ln" data-line="95">      <span class="hljs-keyword">const</span> nr = r + dr;</span><span class="ln" data-line="96">      <span class="hljs-keyword">const</span> nc = c + dc;</span><span class="ln" data-line="97">      <span class="hljs-keyword">if</span> (nr &lt; <span class="hljs-number">0</span> || nr &gt;= rows || nc &lt; <span class="hljs-number">0</span> || nc &gt;= cols) <span class="hljs-keyword">continue</span>;</span><span class="ln" data-line="98">      <span class="hljs-keyword">const</span> ne = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">max</span>(e, <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">abs</span>(h[nr][nc] - h[r][c])); <span class="hljs-comment">// max instead of +</span></span><span class="ln" data-line="99">      <span class="hljs-keyword">if</span> (ne &lt; best[nr][nc]) {</span><span class="ln" data-line="100">        best[nr][nc] = ne;</span><span class="ln" data-line="101">        pq.<span class="hljs-title function_">push</span>([ne, nr, nc]);</span><span class="ln" data-line="102">      }</span><span class="ln" data-line="103">    }</span><span class="ln" data-line="104">  }</span><span class="ln" data-line="105">  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="106">}</span><span class="ln" data-line="107"> </span><span class="ln" data-line="108"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="109">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`network delay from 2: <span class="hljs-subst">${networkDelayTime([[<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>]], <span class="hljs-number">4</span>, <span class="hljs-number">2</span>)}</span>, from 1 in [[1,2,1]] with 2 nodes, starting at 2: <span class="hljs-subst">${networkDelayTime([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>]], <span class="hljs-number">2</span>, <span class="hljs-number">2</span>)}</span>`</span>);</span><span class="ln" data-line="110">  <span class="hljs-keyword">const</span> <span class="hljs-attr">flights</span>: <span class="hljs-title class_">Edge</span>[] = [[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">100</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">0</span>, <span class="hljs-number">100</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">600</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">200</span>]];</span><span class="ln" data-line="111">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`cheapest 0 -&gt; 3 with 1 stop: <span class="hljs-subst">${cheapestFlight(<span class="hljs-number">4</span>, flights, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>)}</span>, with 2 stops: <span class="hljs-subst">${cheapestFlight(<span class="hljs-number">4</span>, flights, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>)}</span>`</span>);</span><span class="ln" data-line="112">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`minimum effort: <span class="hljs-subst">${minimumEffort([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">8</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>]])}</span>`</span>);</span><span class="ln" data-line="113">}</span><span class="ln" data-line="114"> </span><span class="ln" data-line="115"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">/** Binary heap; less(a, b) says whether a should come out before b. */
+class Heap&lt;T&gt; {
+  private a: T[] = [];
+  private less: (x: T, y: T) =&gt; boolean;
+
+  constructor(less: (x: T, y: T) =&gt; boolean) {
+    this.less = less;
+  }
+  get size(): number {
+    return this.a.length;
+  }
+  peek(): T {
+    return this.a[0];
+  }
+  push(x: T): void {
+    const a = this.a;
+    a.push(x);
+    for (let i = a.length - 1; i &gt; 0; ) {
+      const p = (i - 1) &gt;&gt; 1;
+      if (!this.less(a[i], a[p])) break;
+      [a[i], a[p]] = [a[p], a[i]];
+      i = p;
+    }
+  }
+  pop(): T {
+    const a = this.a;
+    const top = a[0];
+    const last = a.pop() as T;
+    if (a.length &gt; 0) {
+      a[0] = last;
+      for (let i = 0; ; ) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l &lt; a.length &amp;&amp; this.less(a[l], a[m])) m = l;
+        if (r &lt; a.length &amp;&amp; this.less(a[r], a[m])) m = r;
+        if (m === i) break;
+        [a[i], a[m]] = [a[m], a[i]];
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
+type Edge = [number, number, number];
+
+/** Time for a signal from k to reach every node (1-based), or -1. times[i] = [from, to, delay]. */
+function networkDelayTime(times: readonly Edge[], n: number, k: number): number {
+  const adj: [number, number][][] = Array.from({ length: n + 1 }, () =&gt; []);
+  for (const [u, v, w] of times) adj[u].push([v, w]);
+  const dist: number[] = new Array(n + 1).fill(Infinity);
+  dist[k] = 0;
+  const pq = new Heap&lt;[number, number]&gt;((a, b) =&gt; a[0] &lt; b[0]);
+  pq.push([0, k]);
+  while (pq.size &gt; 0) {
+    const [d, u] = pq.pop();
+    if (d &gt; dist[u]) continue; // stale entry
+    for (const [v, w] of adj[u]) {
+      if (d + w &lt; dist[v]) {
+        dist[v] = d + w;
+        pq.push([dist[v], v]);
+      }
+    }
+  }
+  const worst = Math.max(...dist.slice(1));
+  return worst === Infinity ? -1 : worst;
+}
+
+/** Cheapest price from src to dst using at most k stops (k + 1 flights), or -1. */
+function cheapestFlight(n: number, flights: readonly Edge[], src: number, dst: number, k: number): number {
+  const dist: number[] = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  for (let round = 0; round &lt;= k; round++) {
+    const prev = [...dist]; // only last round&#39;s prices: one more flight per round
+    for (const [u, v, w] of flights) if (prev[u] + w &lt; dist[v]) dist[v] = prev[u] + w;
+  }
+  return dist[dst] === Infinity ? -1 : dist[dst];
+}
+
+/** A path&#39;s effort is its largest height step; minimise it. */
+function minimumEffort(h: readonly number[][]): number {
+  const rows = h.length;
+  const cols = h[0].length;
+  const best: number[][] = Array.from({ length: rows }, () =&gt; new Array(cols).fill(Infinity));
+  best[0][0] = 0;
+  const pq = new Heap&lt;[number, number, number]&gt;((a, b) =&gt; a[0] &lt; b[0]); // [effort, r, c]
+  pq.push([0, 0, 0]);
+  const dirs: [number, number][] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  while (pq.size &gt; 0) {
+    const [e, r, c] = pq.pop();
+    if (r === rows - 1 &amp;&amp; c === cols - 1) return e;
+    if (e &gt; best[r][c]) continue;
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr &lt; 0 || nr &gt;= rows || nc &lt; 0 || nc &gt;= cols) continue;
+      const ne = Math.max(e, Math.abs(h[nr][nc] - h[r][c])); // max instead of +
+      if (ne &lt; best[nr][nc]) {
+        best[nr][nc] = ne;
+        pq.push([ne, nr, nc]);
+      }
+    }
+  }
+  return 0;
+}
+
+function main(): void {
+  console.log(`network delay from 2: ${networkDelayTime([[2, 1, 1], [2, 3, 1], [3, 4, 1]], 4, 2)}, from 1 in [[1,2,1]] with 2 nodes, starting at 2: ${networkDelayTime([[1, 2, 1]], 2, 2)}`);
+  const flights: Edge[] = [[0, 1, 100], [1, 2, 100], [2, 0, 100], [1, 3, 600], [2, 3, 200]];
+  console.log(`cheapest 0 -&gt; 3 with 1 stop: ${cheapestFlight(4, flights, 0, 3, 1)}, with 2 stops: ${cheapestFlight(4, flights, 0, 3, 2)}`);
+  console.log(`minimum effort: ${minimumEffort([[1, 2, 2], [3, 8, 2], [5, 3, 5]])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-shortest-path-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> heapq</span><span class="ln" data-line="2"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span></span><span class="ln" data-line="3"> </span><span class="ln" data-line="4">INF = <span class="hljs-built_in">float</span>(<span class="hljs-string">&quot;inf&quot;</span>)</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"> </span><span class="ln" data-line="7"><span class="hljs-keyword">def</span> <span class="hljs-title function_">network_delay_time</span>(<span class="hljs-params">times: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]], n: <span class="hljs-built_in">int</span>, k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="8">    <span class="hljs-string">&quot;&quot;&quot;Time for a signal from k to reach every node (1-based), or -1. times[i] = [from, to, delay].&quot;&quot;&quot;</span></span><span class="ln" data-line="9">    adj: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">tuple</span>]] = [[] <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n + <span class="hljs-number">1</span>)]</span><span class="ln" data-line="10">    <span class="hljs-keyword">for</span> u, v, w <span class="hljs-keyword">in</span> times:</span><span class="ln" data-line="11">        adj[u].append((v, w))</span><span class="ln" data-line="12">    dist = [INF] * (n + <span class="hljs-number">1</span>)</span><span class="ln" data-line="13">    dist[k] = <span class="hljs-number">0</span></span><span class="ln" data-line="14">    pq = [(<span class="hljs-number">0</span>, k)]</span><span class="ln" data-line="15">    <span class="hljs-keyword">while</span> pq:</span><span class="ln" data-line="16">        d, u = heapq.heappop(pq)</span><span class="ln" data-line="17">        <span class="hljs-keyword">if</span> d &gt; dist[u]:  <span class="hljs-comment"># stale entry</span></span><span class="ln" data-line="18">            <span class="hljs-keyword">continue</span></span><span class="ln" data-line="19">        <span class="hljs-keyword">for</span> v, w <span class="hljs-keyword">in</span> adj[u]:</span><span class="ln" data-line="20">            <span class="hljs-keyword">if</span> d + w &lt; dist[v]:</span><span class="ln" data-line="21">                dist[v] = d + w</span><span class="ln" data-line="22">                heapq.heappush(pq, (dist[v], v))</span><span class="ln" data-line="23">    worst = <span class="hljs-built_in">max</span>(dist[<span class="hljs-number">1</span>:])</span><span class="ln" data-line="24">    <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> worst == INF <span class="hljs-keyword">else</span> worst</span><span class="ln" data-line="25"> </span><span class="ln" data-line="26"> </span><span class="ln" data-line="27"><span class="hljs-keyword">def</span> <span class="hljs-title function_">cheapest_flight</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span>, flights: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]], src: <span class="hljs-built_in">int</span>, dst: <span class="hljs-built_in">int</span>, k: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="28">    <span class="hljs-string">&quot;&quot;&quot;Cheapest price from src to dst using at most k stops (k + 1 flights), or -1.&quot;&quot;&quot;</span></span><span class="ln" data-line="29">    dist = [INF] * n</span><span class="ln" data-line="30">    dist[src] = <span class="hljs-number">0</span></span><span class="ln" data-line="31">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(k + <span class="hljs-number">1</span>):</span><span class="ln" data-line="32">        prev = dist[:]  <span class="hljs-comment"># only last round&#x27;s prices: one more flight per round</span></span><span class="ln" data-line="33">        <span class="hljs-keyword">for</span> u, v, w <span class="hljs-keyword">in</span> flights:</span><span class="ln" data-line="34">            <span class="hljs-keyword">if</span> prev[u] + w &lt; dist[v]:</span><span class="ln" data-line="35">                dist[v] = prev[u] + w</span><span class="ln" data-line="36">    <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> dist[dst] == INF <span class="hljs-keyword">else</span> dist[dst]</span><span class="ln" data-line="37"> </span><span class="ln" data-line="38"> </span><span class="ln" data-line="39"><span class="hljs-keyword">def</span> <span class="hljs-title function_">minimum_effort</span>(<span class="hljs-params">h: <span class="hljs-type">List</span>[<span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="40">    <span class="hljs-string">&quot;&quot;&quot;A path&#x27;s effort is its largest height step; minimise it.&quot;&quot;&quot;</span></span><span class="ln" data-line="41">    rows, cols = <span class="hljs-built_in">len</span>(h), <span class="hljs-built_in">len</span>(h[<span class="hljs-number">0</span>])</span><span class="ln" data-line="42">    best = [[INF] * cols <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(rows)]</span><span class="ln" data-line="43">    best[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = <span class="hljs-number">0</span></span><span class="ln" data-line="44">    pq = [(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>)]  <span class="hljs-comment"># (effort, r, c)</span></span><span class="ln" data-line="45">    <span class="hljs-keyword">while</span> pq:</span><span class="ln" data-line="46">        e, r, c = heapq.heappop(pq)</span><span class="ln" data-line="47">        <span class="hljs-keyword">if</span> (r, c) == (rows - <span class="hljs-number">1</span>, cols - <span class="hljs-number">1</span>):</span><span class="ln" data-line="48">            <span class="hljs-keyword">return</span> e</span><span class="ln" data-line="49">        <span class="hljs-keyword">if</span> e &gt; best[r][c]:</span><span class="ln" data-line="50">            <span class="hljs-keyword">continue</span></span><span class="ln" data-line="51">        <span class="hljs-keyword">for</span> dr, dc <span class="hljs-keyword">in</span> ((-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>), (<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>), (<span class="hljs-number">0</span>, <span class="hljs-number">1</span>)):</span><span class="ln" data-line="52">            nr, nc = r + dr, c + dc</span><span class="ln" data-line="53">            <span class="hljs-keyword">if</span> <span class="hljs-number">0</span> &lt;= nr &lt; rows <span class="hljs-keyword">and</span> <span class="hljs-number">0</span> &lt;= nc &lt; cols:</span><span class="ln" data-line="54">                ne = <span class="hljs-built_in">max</span>(e, <span class="hljs-built_in">abs</span>(h[nr][nc] - h[r][c]))  <span class="hljs-comment"># max instead of +</span></span><span class="ln" data-line="55">                <span class="hljs-keyword">if</span> ne &lt; best[nr][nc]:</span><span class="ln" data-line="56">                    best[nr][nc] = ne</span><span class="ln" data-line="57">                    heapq.heappush(pq, (ne, nr, nc))</span><span class="ln" data-line="58">    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span></span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"> </span><span class="ln" data-line="61"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="62">    a = network_delay_time([[<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">1</span>]], <span class="hljs-number">4</span>, <span class="hljs-number">2</span>)</span><span class="ln" data-line="63">    b = network_delay_time([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>]], <span class="hljs-number">2</span>, <span class="hljs-number">2</span>)</span><span class="ln" data-line="64">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;network delay from 2: <span class="hljs-subst">{a}</span>, from 1 in [[1,2,1]] with 2 nodes, starting at 2: <span class="hljs-subst">{b}</span>&quot;</span>)</span><span class="ln" data-line="65">    flights = [[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">100</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">100</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">0</span>, <span class="hljs-number">100</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">600</span>], [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">200</span>]]</span><span class="ln" data-line="66">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;cheapest 0 -&gt; 3 with 1 stop: <span class="hljs-subst">{cheapest_flight(<span class="hljs-number">4</span>, flights, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>)}</span>, with 2 stops: <span class="hljs-subst">{cheapest_flight(<span class="hljs-number">4</span>, flights, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>)}</span>&quot;</span>)</span><span class="ln" data-line="67">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;minimum effort: <span class="hljs-subst">{minimum_effort([[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">8</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">5</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>]])}</span>&quot;</span>)</span><span class="ln" data-line="68"> </span><span class="ln" data-line="69"> </span><span class="ln" data-line="70"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="71">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import heapq
+from typing import List
+
+INF = float(&quot;inf&quot;)
+
+
+def network_delay_time(times: List[List[int]], n: int, k: int) -&gt; int:
+    &quot;&quot;&quot;Time for a signal from k to reach every node (1-based), or -1. times[i] = [from, to, delay].&quot;&quot;&quot;
+    adj: List[List[tuple]] = [[] for _ in range(n + 1)]
+    for u, v, w in times:
+        adj[u].append((v, w))
+    dist = [INF] * (n + 1)
+    dist[k] = 0
+    pq = [(0, k)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d &gt; dist[u]:  # stale entry
+            continue
+        for v, w in adj[u]:
+            if d + w &lt; dist[v]:
+                dist[v] = d + w
+                heapq.heappush(pq, (dist[v], v))
+    worst = max(dist[1:])
+    return -1 if worst == INF else worst
+
+
+def cheapest_flight(n: int, flights: List[List[int]], src: int, dst: int, k: int) -&gt; int:
+    &quot;&quot;&quot;Cheapest price from src to dst using at most k stops (k + 1 flights), or -1.&quot;&quot;&quot;
+    dist = [INF] * n
+    dist[src] = 0
+    for _ in range(k + 1):
+        prev = dist[:]  # only last round&#39;s prices: one more flight per round
+        for u, v, w in flights:
+            if prev[u] + w &lt; dist[v]:
+                dist[v] = prev[u] + w
+    return -1 if dist[dst] == INF else dist[dst]
+
+
+def minimum_effort(h: List[List[int]]) -&gt; int:
+    &quot;&quot;&quot;A path&#39;s effort is its largest height step; minimise it.&quot;&quot;&quot;
+    rows, cols = len(h), len(h[0])
+    best = [[INF] * cols for _ in range(rows)]
+    best[0][0] = 0
+    pq = [(0, 0, 0)]  # (effort, r, c)
+    while pq:
+        e, r, c = heapq.heappop(pq)
+        if (r, c) == (rows - 1, cols - 1):
+            return e
+        if e &gt; best[r][c]:
+            continue
+        for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            nr, nc = r + dr, c + dc
+            if 0 &lt;= nr &lt; rows and 0 &lt;= nc &lt; cols:
+                ne = max(e, abs(h[nr][nc] - h[r][c]))  # max instead of +
+                if ne &lt; best[nr][nc]:
+                    best[nr][nc] = ne
+                    heapq.heappush(pq, (ne, nr, nc))
+    return 0
+
+
+def main() -&gt; None:
+    a = network_delay_time([[2, 1, 1], [2, 3, 1], [3, 4, 1]], 4, 2)
+    b = network_delay_time([[1, 2, 1]], 2, 2)
+    print(f&quot;network delay from 2: {a}, from 1 in [[1,2,1]] with 2 nodes, starting at 2: {b}&quot;)
+    flights = [[0, 1, 100], [1, 2, 100], [2, 0, 100], [1, 3, 600], [2, 3, 200]]
+    print(f&quot;cheapest 0 -&gt; 3 with 1 stop: {cheapest_flight(4, flights, 0, 3, 1)}, with 2 stops: {cheapest_flight(4, flights, 0, 3, 2)}&quot;)
+    print(f&quot;minimum effort: {minimum_effort([[1, 2, 2], [3, 8, 2], [5, 3, 5]])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>network delay from 2: 2, from 1 in [[1,2,1]] with 2 nodes, starting at 2: -1
+cheapest 0 -&gt; 3 with 1 stop: 700, with 2 stops: 400
+minimum effort: 2</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>Using Dijkstra when weights can be negative.</li><li>Updating Bellman-Ford distances in place when the number of stops is limited, which lets one round use several edges.</li><li>Forgetting the stale-entry check in Dijkstra.</li><li>Returning <code>Infinity</code> or <code>MAX_VALUE</code> instead of the problem&#39;s &quot;unreachable&quot; value (often −1).</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/network-delay-time/" rel="noopener" target="_blank">Network Delay Time<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>743</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/cheapest-flights-within-k-stops/" rel="noopener" target="_blank">Cheapest Flights Within K Stops<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>787</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/path-with-minimum-effort/" rel="noopener" target="_blank">Path With Minimum Effort<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>1631</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/path-with-maximum-probability/" rel="noopener" target="_blank">Path with Maximum Probability<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>1514</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/swim-in-rising-water/" rel="noopener" target="_blank">Swim in Rising Water<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>778</td><td><span class="pill pill-hard">hard</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../data-structures/graphs/index.html">Graphs</a>, <a href="../../data-structures/heaps/index.html">Heaps</a>, <a href="../../algorithms/graph-algorithms/index.html">Graph algorithms</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../union-find/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Union-Find</span></a><a class="pn pn-next" href="../trie-pattern/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Trie</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>

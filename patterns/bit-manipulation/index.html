@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bit manipulation · DSA Academy</title>
+<meta name="description" content="XOR tricks, counting bits and subset masks.">
+<meta name="author" content="Sivasankar Thalavai">
+<meta name="copyright" content="© 2026 Sivasankar Thalavai. All rights reserved.">
+<script>
+(function(){var d=document.documentElement,ls;try{ls=window.localStorage}catch(e){}
+function g(k){try{return ls&&ls.getItem(k)}catch(e){return null}}
+var t=g("dsa-academy:theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);
+var ids=["java","javascript","typescript","python"],l=g("dsa-academy:lang");d.setAttribute("data-lang",ids.indexOf(l)>-1?l:"java");
+d.classList.add("js");})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/languages.css">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page-topic">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="../../index.html"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><span class="brand-text"><span class="brand-name">DSA Academy</span><span class="brand-by">by Sivasankar Thalavai</span></span></a>
+    <div class="tools">
+      <label class="lang-pick"><span class="vh">Code language</span>
+        <select data-lang-select aria-label="Code language"><option value="java">Java</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option></select>
+      </label>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-moon"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav id="site-nav" class="site-nav" aria-label="Main"><ul><li><a href="../../intro/index.html">Start here</a></li><li><a href="../../roadmap/index.html">Roadmap</a></li><li><a href="../../data-structures/index.html">Data structures</a></li><li><a href="../../algorithms/index.html">Algorithms</a></li><li><a href="../index.html" aria-current="page">Patterns</a></li><li><a href="../../lld/index.html">Low-level design</a></li><li><a href="../../practice/index.html">Practice</a></li></ul></nav>
+</header>
+<main id="main" tabindex="-1">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../../index.html">Home</a></li><li><a href="../index.html">Coding patterns</a></li><li><span aria-current="page">Bit manipulation</span></li></ol></nav>
+<article class="prose topic-page">
+<header class="page-head">
+  <h1>Bit manipulation</h1>
+  <p class="lede">Interview bit problems reuse a handful of tricks: XOR cancels pairs, counting bits position by position, building an answer one bit at a time from the top, and doing arithmetic with AND, XOR and shifts.</p>
+  <p class="tags"><span class="pill">Coding pattern</span></p>
+</header>
+<aside class="analogy"><p><strong>Picture it.</strong> Sorting socks in the dark by touch. XOR is like pairing them off: every pair cancels, and whatever is left in your hand is the odd sock out.</p></aside>
+<h2 id="recognise-it">Recognise it</h2>
+<ul>
+<li>Every element appears twice (or three times) except one or two.</li>
+<li>Reverse, count or compare the bits of a number.</li>
+<li>Arithmetic without <code>+</code> or <code>*</code>.</li>
+<li>Maximise an XOR: build the answer bit by bit from the most significant end.</li>
+</ul>
+<h2 id="the-template">The template</h2>
+<pre><code class="language-text">odd one out:         x = 0; for n in nums: x ^= n
+appears three times: for each bit b: count the numbers with bit b set; keep bit b if count % 3 != 0
+two odd ones out:    x = a ^ b; split nums by any set bit of x; XOR each group
+max XOR:             for bit from high to low: try setting it, keep it if some prefix pair allows it
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<p>The operators and single-bit tricks are on the Bit manipulation technique
+page. These are the problem patterns built from them:</p>
+<ul>
+<li><strong>Single Number II</strong> (everything else appears three times): XOR can&#39;t cancel
+triples, but counting works. For each of the 32 bit positions, count how many
+numbers have it set; the unique number has that bit exactly when the count
+isn&#39;t a multiple of 3.</li>
+<li><strong>Single Number III</strong> (two unique numbers): XOR everything to get <code>a ^ b</code>.
+Any set bit in it is a position where <code>a</code> and <code>b</code> differ, so it splits the
+numbers into two groups with one unique number each.</li>
+<li><strong>Sum of two integers</strong>: XOR adds without carrying, AND then shift-left gives
+the carries. Repeat until there are no carries.</li>
+<li><strong>Maximum XOR of two numbers</strong>: decide the answer&#39;s bits from the top. For
+each bit, guess it&#39;s 1, then check with a set of prefixes whether two numbers
+can produce it (<code>a ^ b = guess</code> means <code>a ^ guess</code> is in the set).</li>
+</ul>
+
+<h2 id="complexity">Cost of each operation</h2>
+<div class="table-wrap"><table class="cx"><thead><tr><th scope="col">Operation</th><th scope="col">Time</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Single Number (pairs)</td><td class="nowrap">O(n) time, O(1) space</td><td>One XOR per element.</td></tr><tr><td>Single Number II (triples)</td><td class="nowrap">O(32 × n)</td><td>Count each bit position separately.</td></tr><tr><td>Reverse bits</td><td class="nowrap">O(32)</td><td>One step per bit.</td></tr><tr><td>Maximum XOR of two numbers</td><td class="nowrap">O(31 × n)</td><td>One pass with a hash set per bit.</td></tr></tbody></table></div>
+<h2 id="code">Code</h2>
+<p>Everything works on 32-bit values. Python masks with <code>0xFFFFFFFF</code> to get the same results as Java and JavaScript.</p><figure class="codeblock" id="code-bit-manipulation" aria-label="Single number II and III, reverse bits, addition without + and maximum XOR">
+<div class="code-tabs" role="tablist" aria-label="Language"><button type="button" role="tab" class="code-tab" data-lang="java" data-set-lang="java" aria-controls="code-bit-manipulation-java">Java</button><button type="button" role="tab" class="code-tab" data-lang="javascript" data-set-lang="javascript" aria-controls="code-bit-manipulation-javascript">JavaScript</button><button type="button" role="tab" class="code-tab" data-lang="typescript" data-set-lang="typescript" aria-controls="code-bit-manipulation-typescript">TypeScript</button><button type="button" role="tab" class="code-tab" data-lang="python" data-set-lang="python" aria-controls="code-bit-manipulation-python">Python</button></div>
+<div class="code-pane" role="tabpanel" id="code-bit-manipulation-java" data-lang="java" data-anchors="{}" aria-label="Java code">
+  <div class="code-meta"><span class="code-file">Solution.java</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">import</span> java.util.HashSet;</span><span class="ln" data-line="2"><span class="hljs-keyword">import</span> java.util.Set;</span><span class="ln" data-line="3"> </span><span class="ln" data-line="4"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Solution</span> {</span><span class="ln" data-line="5"> </span><span class="ln" data-line="6">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">singleNumberII</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="7">        <span class="hljs-type">int</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="8">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">bit</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; bit &lt; <span class="hljs-number">32</span>; bit++) {</span><span class="ln" data-line="9">            <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="10">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> n : nums) count += (n &gt;&gt; bit) &amp; <span class="hljs-number">1</span>;</span><span class="ln" data-line="11">            <span class="hljs-keyword">if</span> (count % <span class="hljs-number">3</span> != <span class="hljs-number">0</span>) result |= <span class="hljs-number">1</span> &lt;&lt; bit; <span class="hljs-comment">// the unique number has this bit</span></span><span class="ln" data-line="12">        }</span><span class="ln" data-line="13">        <span class="hljs-keyword">return</span> result;</span><span class="ln" data-line="14">    }</span><span class="ln" data-line="15"> </span><span class="ln" data-line="16">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span>[] <span class="hljs-title function_">singleNumberIII</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="17">        <span class="hljs-type">int</span> <span class="hljs-variable">both</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="18">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> n : nums) both ^= n;     <span class="hljs-comment">// a ^ b</span></span><span class="ln" data-line="19">        <span class="hljs-type">int</span> <span class="hljs-variable">split</span> <span class="hljs-operator">=</span> both &amp; -both;         <span class="hljs-comment">// a bit where a and b differ</span></span><span class="ln" data-line="20">        <span class="hljs-type">int</span> <span class="hljs-variable">a</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, b = <span class="hljs-number">0</span>;</span><span class="ln" data-line="21">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> n : nums) {</span><span class="ln" data-line="22">            <span class="hljs-keyword">if</span> ((n &amp; split) != <span class="hljs-number">0</span>) a ^= n;</span><span class="ln" data-line="23">            <span class="hljs-keyword">else</span> b ^= n;</span><span class="ln" data-line="24">        }</span><span class="ln" data-line="25">        <span class="hljs-keyword">return</span> a &lt; b ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { a, b } : <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { b, a };</span><span class="ln" data-line="26">    }</span><span class="ln" data-line="27"> </span><span class="ln" data-line="28">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">reverseBits</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span> {</span><span class="ln" data-line="29">        <span class="hljs-type">int</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;</span><span class="ln" data-line="30">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">32</span>; i++) {</span><span class="ln" data-line="31">            r = (r &lt;&lt; <span class="hljs-number">1</span>) | (n &amp; <span class="hljs-number">1</span>);</span><span class="ln" data-line="32">            n &gt;&gt;&gt;= <span class="hljs-number">1</span>;</span><span class="ln" data-line="33">        }</span><span class="ln" data-line="34">        <span class="hljs-keyword">return</span> r;</span><span class="ln" data-line="35">    }</span><span class="ln" data-line="36"> </span><span class="ln" data-line="37">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">add</span><span class="hljs-params">(<span class="hljs-type">int</span> a, <span class="hljs-type">int</span> b)</span> {</span><span class="ln" data-line="38">        <span class="hljs-keyword">while</span> (b != <span class="hljs-number">0</span>) {</span><span class="ln" data-line="39">            <span class="hljs-type">int</span> <span class="hljs-variable">carry</span> <span class="hljs-operator">=</span> (a &amp; b) &lt;&lt; <span class="hljs-number">1</span>; <span class="hljs-comment">// where both bits are 1</span></span><span class="ln" data-line="40">            a ^= b;                   <span class="hljs-comment">// sum without carries</span></span><span class="ln" data-line="41">            b = carry;</span><span class="ln" data-line="42">        }</span><span class="ln" data-line="43">        <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="44">    }</span><span class="ln" data-line="45"> </span><span class="ln" data-line="46">    <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">maxXor</span><span class="hljs-params">(<span class="hljs-type">int</span>[] nums)</span> {</span><span class="ln" data-line="47">        <span class="hljs-type">int</span> <span class="hljs-variable">best</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>, mask = <span class="hljs-number">0</span>;</span><span class="ln" data-line="48">        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">bit</span> <span class="hljs-operator">=</span> <span class="hljs-number">30</span>; bit &gt;= <span class="hljs-number">0</span>; bit--) { <span class="hljs-comment">// inputs are non-negative ints</span></span><span class="ln" data-line="49">            mask |= <span class="hljs-number">1</span> &lt;&lt; bit;</span><span class="ln" data-line="50">            <span class="hljs-type">Set</span>&lt;Integer&gt; <span class="hljs-variable">prefixes</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>&lt;&gt;();</span><span class="ln" data-line="51">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> n : nums) prefixes.add(n &amp; mask);</span><span class="ln" data-line="52">            <span class="hljs-type">int</span> <span class="hljs-variable">guess</span> <span class="hljs-operator">=</span> best | (<span class="hljs-number">1</span> &lt;&lt; bit);</span><span class="ln" data-line="53">            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> p : prefixes) {</span><span class="ln" data-line="54">                <span class="hljs-keyword">if</span> (prefixes.contains(p ^ guess)) { best = guess; <span class="hljs-keyword">break</span>; } <span class="hljs-comment">// two prefixes produce guess</span></span><span class="ln" data-line="55">            }</span><span class="ln" data-line="56">        }</span><span class="ln" data-line="57">        <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="58">    }</span><span class="ln" data-line="59"> </span><span class="ln" data-line="60">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> {</span><span class="ln" data-line="61">        System.out.println(<span class="hljs-string">&quot;singleNumberII(2 2 3 2) = &quot;</span> + singleNumberII(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span> }) + <span class="hljs-string">&quot;, (0 1 0 1 0 1 99) = &quot;</span> + singleNumberII(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">99</span> }));</span><span class="ln" data-line="62">        <span class="hljs-type">int</span>[] <span class="hljs-variable">two</span> <span class="hljs-operator">=</span> singleNumberIII(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span> });</span><span class="ln" data-line="63">        System.out.println(<span class="hljs-string">&quot;singleNumberIII(1 2 1 3 2 5) = &quot;</span> + two[<span class="hljs-number">0</span>] + <span class="hljs-string">&quot; &quot;</span> + two[<span class="hljs-number">1</span>]);</span><span class="ln" data-line="64">        System.out.println(<span class="hljs-string">&quot;reverseBits(43261596) = &quot;</span> + Integer.toUnsignedString(reverseBits(<span class="hljs-number">43261596</span>)));</span><span class="ln" data-line="65">        System.out.println(<span class="hljs-string">&quot;add(1, 2) = &quot;</span> + add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>) + <span class="hljs-string">&quot;, add(-2, 3) = &quot;</span> + add(-<span class="hljs-number">2</span>, <span class="hljs-number">3</span>) + <span class="hljs-string">&quot;, add(-5, -7) = &quot;</span> + add(-<span class="hljs-number">5</span>, -<span class="hljs-number">7</span>));</span><span class="ln" data-line="66">        System.out.println(<span class="hljs-string">&quot;maxXor(3 10 5 25 2 8) = &quot;</span> + maxXor(<span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[] { <span class="hljs-number">3</span>, <span class="hljs-number">10</span>, <span class="hljs-number">5</span>, <span class="hljs-number">25</span>, <span class="hljs-number">2</span>, <span class="hljs-number">8</span> }));</span><span class="ln" data-line="67">    }</span><span class="ln" data-line="68">}</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">import java.util.HashSet;
+import java.util.Set;
+
+public class Solution {
+
+    static int singleNumberII(int[] nums) {
+        int result = 0;
+        for (int bit = 0; bit &lt; 32; bit++) {
+            int count = 0;
+            for (int n : nums) count += (n &gt;&gt; bit) &amp; 1;
+            if (count % 3 != 0) result |= 1 &lt;&lt; bit; // the unique number has this bit
+        }
+        return result;
+    }
+
+    static int[] singleNumberIII(int[] nums) {
+        int both = 0;
+        for (int n : nums) both ^= n;     // a ^ b
+        int split = both &amp; -both;         // a bit where a and b differ
+        int a = 0, b = 0;
+        for (int n : nums) {
+            if ((n &amp; split) != 0) a ^= n;
+            else b ^= n;
+        }
+        return a &lt; b ? new int[] { a, b } : new int[] { b, a };
+    }
+
+    static int reverseBits(int n) {
+        int r = 0;
+        for (int i = 0; i &lt; 32; i++) {
+            r = (r &lt;&lt; 1) | (n &amp; 1);
+            n &gt;&gt;&gt;= 1;
+        }
+        return r;
+    }
+
+    static int add(int a, int b) {
+        while (b != 0) {
+            int carry = (a &amp; b) &lt;&lt; 1; // where both bits are 1
+            a ^= b;                   // sum without carries
+            b = carry;
+        }
+        return a;
+    }
+
+    static int maxXor(int[] nums) {
+        int best = 0, mask = 0;
+        for (int bit = 30; bit &gt;= 0; bit--) { // inputs are non-negative ints
+            mask |= 1 &lt;&lt; bit;
+            Set&lt;Integer&gt; prefixes = new HashSet&lt;&gt;();
+            for (int n : nums) prefixes.add(n &amp; mask);
+            int guess = best | (1 &lt;&lt; bit);
+            for (int p : prefixes) {
+                if (prefixes.contains(p ^ guess)) { best = guess; break; } // two prefixes produce guess
+            }
+        }
+        return best;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(&quot;singleNumberII(2 2 3 2) = &quot; + singleNumberII(new int[] { 2, 2, 3, 2 }) + &quot;, (0 1 0 1 0 1 99) = &quot; + singleNumberII(new int[] { 0, 1, 0, 1, 0, 1, 99 }));
+        int[] two = singleNumberIII(new int[] { 1, 2, 1, 3, 2, 5 });
+        System.out.println(&quot;singleNumberIII(1 2 1 3 2 5) = &quot; + two[0] + &quot; &quot; + two[1]);
+        System.out.println(&quot;reverseBits(43261596) = &quot; + Integer.toUnsignedString(reverseBits(43261596)));
+        System.out.println(&quot;add(1, 2) = &quot; + add(1, 2) + &quot;, add(-2, 3) = &quot; + add(-2, 3) + &quot;, add(-5, -7) = &quot; + add(-5, -7));
+        System.out.println(&quot;maxXor(3 10 5 25 2 8) = &quot; + maxXor(new int[] { 3, 10, 5, 25, 2, 8 }));
+    }
+}</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-bit-manipulation-javascript" data-lang="javascript" data-anchors="{}" aria-label="JavaScript code">
+  <div class="code-meta"><span class="code-file">solution.js</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">singleNumberII</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="2">  <span class="hljs-keyword">let</span> result = <span class="hljs-number">0</span>;</span><span class="ln" data-line="3">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> bit = <span class="hljs-number">0</span>; bit &lt; <span class="hljs-number">32</span>; bit++) {</span><span class="ln" data-line="4">    <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="5">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> nums) count += (n &gt;&gt; bit) &amp; <span class="hljs-number">1</span>;</span><span class="ln" data-line="6">    <span class="hljs-keyword">if</span> (count % <span class="hljs-number">3</span> !== <span class="hljs-number">0</span>) result |= <span class="hljs-number">1</span> &lt;&lt; bit; <span class="hljs-comment">// the unique number has this bit</span></span><span class="ln" data-line="7">  }</span><span class="ln" data-line="8">  <span class="hljs-keyword">return</span> result;</span><span class="ln" data-line="9">}</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"><span class="hljs-keyword">function</span> <span class="hljs-title function_">singleNumberIII</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="12">  <span class="hljs-keyword">let</span> both = <span class="hljs-number">0</span>;</span><span class="ln" data-line="13">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> nums) both ^= n; <span class="hljs-comment">// a ^ b</span></span><span class="ln" data-line="14">  <span class="hljs-keyword">const</span> split = both &amp; -both; <span class="hljs-comment">// a bit where a and b differ</span></span><span class="ln" data-line="15">  <span class="hljs-keyword">let</span> a = <span class="hljs-number">0</span>;</span><span class="ln" data-line="16">  <span class="hljs-keyword">let</span> b = <span class="hljs-number">0</span>;</span><span class="ln" data-line="17">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> nums) {</span><span class="ln" data-line="18">    <span class="hljs-keyword">if</span> ((n &amp; split) !== <span class="hljs-number">0</span>) a ^= n;</span><span class="ln" data-line="19">    <span class="hljs-keyword">else</span> b ^= n;</span><span class="ln" data-line="20">  }</span><span class="ln" data-line="21">  <span class="hljs-keyword">return</span> a &lt; b ? [a, b] : [b, a];</span><span class="ln" data-line="22">}</span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">function</span> <span class="hljs-title function_">reverseBits</span>(<span class="hljs-params">n</span>) {</span><span class="ln" data-line="25">  <span class="hljs-keyword">let</span> r = <span class="hljs-number">0</span>;</span><span class="ln" data-line="26">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">32</span>; i++) {</span><span class="ln" data-line="27">    r = (r &lt;&lt; <span class="hljs-number">1</span>) | (n &amp; <span class="hljs-number">1</span>);</span><span class="ln" data-line="28">    n &gt;&gt;&gt;= <span class="hljs-number">1</span>;</span><span class="ln" data-line="29">  }</span><span class="ln" data-line="30">  <span class="hljs-keyword">return</span> r &gt;&gt;&gt; <span class="hljs-number">0</span>; <span class="hljs-comment">// read as unsigned</span></span><span class="ln" data-line="31">}</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"><span class="hljs-keyword">function</span> <span class="hljs-title function_">add</span>(<span class="hljs-params">a, b</span>) {</span><span class="ln" data-line="34">  <span class="hljs-keyword">while</span> (b !== <span class="hljs-number">0</span>) {</span><span class="ln" data-line="35">    <span class="hljs-keyword">const</span> carry = (a &amp; b) &lt;&lt; <span class="hljs-number">1</span>; <span class="hljs-comment">// where both bits are 1</span></span><span class="ln" data-line="36">    a ^= b; <span class="hljs-comment">// sum without carries</span></span><span class="ln" data-line="37">    b = carry;</span><span class="ln" data-line="38">  }</span><span class="ln" data-line="39">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="40">}</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxXor</span>(<span class="hljs-params">nums</span>) {</span><span class="ln" data-line="43">  <span class="hljs-keyword">let</span> best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="44">  <span class="hljs-keyword">let</span> mask = <span class="hljs-number">0</span>;</span><span class="ln" data-line="45">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> bit = <span class="hljs-number">30</span>; bit &gt;= <span class="hljs-number">0</span>; bit--) {</span><span class="ln" data-line="46">    mask |= <span class="hljs-number">1</span> &lt;&lt; bit;</span><span class="ln" data-line="47">    <span class="hljs-keyword">const</span> prefixes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>(nums.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">n</span>) =&gt;</span> n &amp; mask));</span><span class="ln" data-line="48">    <span class="hljs-keyword">const</span> guess = best | (<span class="hljs-number">1</span> &lt;&lt; bit);</span><span class="ln" data-line="49">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> p <span class="hljs-keyword">of</span> prefixes) {</span><span class="ln" data-line="50">      <span class="hljs-keyword">if</span> (prefixes.<span class="hljs-title function_">has</span>(p ^ guess)) {</span><span class="ln" data-line="51">        best = guess; <span class="hljs-comment">// two prefixes produce guess</span></span><span class="ln" data-line="52">        <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="53">      }</span><span class="ln" data-line="54">    }</span><span class="ln" data-line="55">  }</span><span class="ln" data-line="56">  <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="57">}</span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>) {</span><span class="ln" data-line="60">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`singleNumberII(2 2 3 2) = <span class="hljs-subst">${singleNumberII([<span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>])}</span>, (0 1 0 1 0 1 99) = <span class="hljs-subst">${singleNumberII([<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">99</span>])}</span>`</span>);</span><span class="ln" data-line="61">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`singleNumberIII(1 2 1 3 2 5) = <span class="hljs-subst">${singleNumberIII([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="62">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverseBits(43261596) = <span class="hljs-subst">${reverseBits(<span class="hljs-number">43261596</span>)}</span>`</span>);</span><span class="ln" data-line="63">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`add(1, 2) = <span class="hljs-subst">${add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)}</span>, add(-2, 3) = <span class="hljs-subst">${add(-<span class="hljs-number">2</span>, <span class="hljs-number">3</span>)}</span>, add(-5, -7) = <span class="hljs-subst">${add(-<span class="hljs-number">5</span>, -<span class="hljs-number">7</span>)}</span>`</span>);</span><span class="ln" data-line="64">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxXor(3 10 5 25 2 8) = <span class="hljs-subst">${maxXor([<span class="hljs-number">3</span>, <span class="hljs-number">10</span>, <span class="hljs-number">5</span>, <span class="hljs-number">25</span>, <span class="hljs-number">2</span>, <span class="hljs-number">8</span>])}</span>`</span>);</span><span class="ln" data-line="65">}</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function singleNumberII(nums) {
+  let result = 0;
+  for (let bit = 0; bit &lt; 32; bit++) {
+    let count = 0;
+    for (const n of nums) count += (n &gt;&gt; bit) &amp; 1;
+    if (count % 3 !== 0) result |= 1 &lt;&lt; bit; // the unique number has this bit
+  }
+  return result;
+}
+
+function singleNumberIII(nums) {
+  let both = 0;
+  for (const n of nums) both ^= n; // a ^ b
+  const split = both &amp; -both; // a bit where a and b differ
+  let a = 0;
+  let b = 0;
+  for (const n of nums) {
+    if ((n &amp; split) !== 0) a ^= n;
+    else b ^= n;
+  }
+  return a &lt; b ? [a, b] : [b, a];
+}
+
+function reverseBits(n) {
+  let r = 0;
+  for (let i = 0; i &lt; 32; i++) {
+    r = (r &lt;&lt; 1) | (n &amp; 1);
+    n &gt;&gt;&gt;= 1;
+  }
+  return r &gt;&gt;&gt; 0; // read as unsigned
+}
+
+function add(a, b) {
+  while (b !== 0) {
+    const carry = (a &amp; b) &lt;&lt; 1; // where both bits are 1
+    a ^= b; // sum without carries
+    b = carry;
+  }
+  return a;
+}
+
+function maxXor(nums) {
+  let best = 0;
+  let mask = 0;
+  for (let bit = 30; bit &gt;= 0; bit--) {
+    mask |= 1 &lt;&lt; bit;
+    const prefixes = new Set(nums.map((n) =&gt; n &amp; mask));
+    const guess = best | (1 &lt;&lt; bit);
+    for (const p of prefixes) {
+      if (prefixes.has(p ^ guess)) {
+        best = guess; // two prefixes produce guess
+        break;
+      }
+    }
+  }
+  return best;
+}
+
+function main() {
+  console.log(`singleNumberII(2 2 3 2) = ${singleNumberII([2, 2, 3, 2])}, (0 1 0 1 0 1 99) = ${singleNumberII([0, 1, 0, 1, 0, 1, 99])}`);
+  console.log(`singleNumberIII(1 2 1 3 2 5) = ${singleNumberIII([1, 2, 1, 3, 2, 5]).join(&quot; &quot;)}`);
+  console.log(`reverseBits(43261596) = ${reverseBits(43261596)}`);
+  console.log(`add(1, 2) = ${add(1, 2)}, add(-2, 3) = ${add(-2, 3)}, add(-5, -7) = ${add(-5, -7)}`);
+  console.log(`maxXor(3 10 5 25 2 8) = ${maxXor([3, 10, 5, 25, 2, 8])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-bit-manipulation-typescript" data-lang="typescript" data-anchors="{}" aria-label="TypeScript code">
+  <div class="code-meta"><span class="code-file">solution.ts</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">function</span> <span class="hljs-title function_">singleNumberII</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="2">  <span class="hljs-keyword">let</span> result = <span class="hljs-number">0</span>;</span><span class="ln" data-line="3">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> bit = <span class="hljs-number">0</span>; bit &lt; <span class="hljs-number">32</span>; bit++) {</span><span class="ln" data-line="4">    <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>;</span><span class="ln" data-line="5">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> nums) count += (n &gt;&gt; bit) &amp; <span class="hljs-number">1</span>;</span><span class="ln" data-line="6">    <span class="hljs-keyword">if</span> (count % <span class="hljs-number">3</span> !== <span class="hljs-number">0</span>) result |= <span class="hljs-number">1</span> &lt;&lt; bit; <span class="hljs-comment">// the unique number has this bit</span></span><span class="ln" data-line="7">  }</span><span class="ln" data-line="8">  <span class="hljs-keyword">return</span> result;</span><span class="ln" data-line="9">}</span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"><span class="hljs-keyword">function</span> <span class="hljs-title function_">singleNumberIII</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>] {</span><span class="ln" data-line="12">  <span class="hljs-keyword">let</span> both = <span class="hljs-number">0</span>;</span><span class="ln" data-line="13">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> nums) both ^= n; <span class="hljs-comment">// a ^ b</span></span><span class="ln" data-line="14">  <span class="hljs-keyword">const</span> split = both &amp; -both; <span class="hljs-comment">// a bit where a and b differ</span></span><span class="ln" data-line="15">  <span class="hljs-keyword">let</span> a = <span class="hljs-number">0</span>;</span><span class="ln" data-line="16">  <span class="hljs-keyword">let</span> b = <span class="hljs-number">0</span>;</span><span class="ln" data-line="17">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> n <span class="hljs-keyword">of</span> nums) {</span><span class="ln" data-line="18">    <span class="hljs-keyword">if</span> ((n &amp; split) !== <span class="hljs-number">0</span>) a ^= n;</span><span class="ln" data-line="19">    <span class="hljs-keyword">else</span> b ^= n;</span><span class="ln" data-line="20">  }</span><span class="ln" data-line="21">  <span class="hljs-keyword">return</span> a &lt; b ? [a, b] : [b, a];</span><span class="ln" data-line="22">}</span><span class="ln" data-line="23"> </span><span class="ln" data-line="24"><span class="hljs-keyword">function</span> <span class="hljs-title function_">reverseBits</span>(<span class="hljs-params"><span class="hljs-attr">n</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="25">  <span class="hljs-keyword">let</span> r = <span class="hljs-number">0</span>;</span><span class="ln" data-line="26">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">32</span>; i++) {</span><span class="ln" data-line="27">    r = (r &lt;&lt; <span class="hljs-number">1</span>) | (n &amp; <span class="hljs-number">1</span>);</span><span class="ln" data-line="28">    n &gt;&gt;&gt;= <span class="hljs-number">1</span>;</span><span class="ln" data-line="29">  }</span><span class="ln" data-line="30">  <span class="hljs-keyword">return</span> r &gt;&gt;&gt; <span class="hljs-number">0</span>; <span class="hljs-comment">// read as unsigned</span></span><span class="ln" data-line="31">}</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"><span class="hljs-keyword">function</span> <span class="hljs-title function_">add</span>(<span class="hljs-params"><span class="hljs-attr">a</span>: <span class="hljs-built_in">number</span>, <span class="hljs-attr">b</span>: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="34">  <span class="hljs-keyword">while</span> (b !== <span class="hljs-number">0</span>) {</span><span class="ln" data-line="35">    <span class="hljs-keyword">const</span> carry = (a &amp; b) &lt;&lt; <span class="hljs-number">1</span>; <span class="hljs-comment">// where both bits are 1</span></span><span class="ln" data-line="36">    a ^= b; <span class="hljs-comment">// sum without carries</span></span><span class="ln" data-line="37">    b = carry;</span><span class="ln" data-line="38">  }</span><span class="ln" data-line="39">  <span class="hljs-keyword">return</span> a;</span><span class="ln" data-line="40">}</span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">function</span> <span class="hljs-title function_">maxXor</span>(<span class="hljs-params"><span class="hljs-attr">nums</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">number</span>[]</span>): <span class="hljs-built_in">number</span> {</span><span class="ln" data-line="43">  <span class="hljs-keyword">let</span> best = <span class="hljs-number">0</span>;</span><span class="ln" data-line="44">  <span class="hljs-keyword">let</span> mask = <span class="hljs-number">0</span>;</span><span class="ln" data-line="45">  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> bit = <span class="hljs-number">30</span>; bit &gt;= <span class="hljs-number">0</span>; bit--) {</span><span class="ln" data-line="46">    mask |= <span class="hljs-number">1</span> &lt;&lt; bit;</span><span class="ln" data-line="47">    <span class="hljs-keyword">const</span> prefixes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>(nums.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">n</span>) =&gt;</span> n &amp; mask));</span><span class="ln" data-line="48">    <span class="hljs-keyword">const</span> guess = best | (<span class="hljs-number">1</span> &lt;&lt; bit);</span><span class="ln" data-line="49">    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> p <span class="hljs-keyword">of</span> prefixes) {</span><span class="ln" data-line="50">      <span class="hljs-keyword">if</span> (prefixes.<span class="hljs-title function_">has</span>(p ^ guess)) {</span><span class="ln" data-line="51">        best = guess; <span class="hljs-comment">// two prefixes produce guess</span></span><span class="ln" data-line="52">        <span class="hljs-keyword">break</span>;</span><span class="ln" data-line="53">      }</span><span class="ln" data-line="54">    }</span><span class="ln" data-line="55">  }</span><span class="ln" data-line="56">  <span class="hljs-keyword">return</span> best;</span><span class="ln" data-line="57">}</span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"><span class="hljs-keyword">function</span> <span class="hljs-title function_">main</span>(<span class="hljs-params"></span>): <span class="hljs-built_in">void</span> {</span><span class="ln" data-line="60">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`singleNumberII(2 2 3 2) = <span class="hljs-subst">${singleNumberII([<span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>])}</span>, (0 1 0 1 0 1 99) = <span class="hljs-subst">${singleNumberII([<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">99</span>])}</span>`</span>);</span><span class="ln" data-line="61">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`singleNumberIII(1 2 1 3 2 5) = <span class="hljs-subst">${singleNumberIII([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>]).join(<span class="hljs-string">&quot; &quot;</span>)}</span>`</span>);</span><span class="ln" data-line="62">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`reverseBits(43261596) = <span class="hljs-subst">${reverseBits(<span class="hljs-number">43261596</span>)}</span>`</span>);</span><span class="ln" data-line="63">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`add(1, 2) = <span class="hljs-subst">${add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)}</span>, add(-2, 3) = <span class="hljs-subst">${add(-<span class="hljs-number">2</span>, <span class="hljs-number">3</span>)}</span>, add(-5, -7) = <span class="hljs-subst">${add(-<span class="hljs-number">5</span>, -<span class="hljs-number">7</span>)}</span>`</span>);</span><span class="ln" data-line="64">  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`maxXor(3 10 5 25 2 8) = <span class="hljs-subst">${maxXor([<span class="hljs-number">3</span>, <span class="hljs-number">10</span>, <span class="hljs-number">5</span>, <span class="hljs-number">25</span>, <span class="hljs-number">2</span>, <span class="hljs-number">8</span>])}</span>`</span>);</span><span class="ln" data-line="65">}</span><span class="ln" data-line="66"> </span><span class="ln" data-line="67"><span class="hljs-title function_">main</span>();</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">function singleNumberII(nums: readonly number[]): number {
+  let result = 0;
+  for (let bit = 0; bit &lt; 32; bit++) {
+    let count = 0;
+    for (const n of nums) count += (n &gt;&gt; bit) &amp; 1;
+    if (count % 3 !== 0) result |= 1 &lt;&lt; bit; // the unique number has this bit
+  }
+  return result;
+}
+
+function singleNumberIII(nums: readonly number[]): [number, number] {
+  let both = 0;
+  for (const n of nums) both ^= n; // a ^ b
+  const split = both &amp; -both; // a bit where a and b differ
+  let a = 0;
+  let b = 0;
+  for (const n of nums) {
+    if ((n &amp; split) !== 0) a ^= n;
+    else b ^= n;
+  }
+  return a &lt; b ? [a, b] : [b, a];
+}
+
+function reverseBits(n: number): number {
+  let r = 0;
+  for (let i = 0; i &lt; 32; i++) {
+    r = (r &lt;&lt; 1) | (n &amp; 1);
+    n &gt;&gt;&gt;= 1;
+  }
+  return r &gt;&gt;&gt; 0; // read as unsigned
+}
+
+function add(a: number, b: number): number {
+  while (b !== 0) {
+    const carry = (a &amp; b) &lt;&lt; 1; // where both bits are 1
+    a ^= b; // sum without carries
+    b = carry;
+  }
+  return a;
+}
+
+function maxXor(nums: readonly number[]): number {
+  let best = 0;
+  let mask = 0;
+  for (let bit = 30; bit &gt;= 0; bit--) {
+    mask |= 1 &lt;&lt; bit;
+    const prefixes = new Set(nums.map((n) =&gt; n &amp; mask));
+    const guess = best | (1 &lt;&lt; bit);
+    for (const p of prefixes) {
+      if (prefixes.has(p ^ guess)) {
+        best = guess; // two prefixes produce guess
+        break;
+      }
+    }
+  }
+  return best;
+}
+
+function main(): void {
+  console.log(`singleNumberII(2 2 3 2) = ${singleNumberII([2, 2, 3, 2])}, (0 1 0 1 0 1 99) = ${singleNumberII([0, 1, 0, 1, 0, 1, 99])}`);
+  console.log(`singleNumberIII(1 2 1 3 2 5) = ${singleNumberIII([1, 2, 1, 3, 2, 5]).join(&quot; &quot;)}`);
+  console.log(`reverseBits(43261596) = ${reverseBits(43261596)}`);
+  console.log(`add(1, 2) = ${add(1, 2)}, add(-2, 3) = ${add(-2, 3)}, add(-5, -7) = ${add(-5, -7)}`);
+  console.log(`maxXor(3 10 5 25 2 8) = ${maxXor([3, 10, 5, 25, 2, 8])}`);
+}
+
+main();</textarea>
+</div>
+<div class="code-pane" role="tabpanel" id="code-bit-manipulation-python" data-lang="python" data-anchors="{}" aria-label="Python code">
+  <div class="code-meta"><span class="code-file">solution.py</span><button type="button" class="copy-btn" data-copy>Copy code</button></div>
+  <pre class="code" tabindex="0"><code class="hljs"><span class="ln" data-line="1"><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Tuple</span></span><span class="ln" data-line="2"> </span><span class="ln" data-line="3">MASK = <span class="hljs-number">0xFFFFFFFF</span>  <span class="hljs-comment"># Python ints are unbounded; keep 32 bits to match Java and JavaScript</span></span><span class="ln" data-line="4"> </span><span class="ln" data-line="5"> </span><span class="ln" data-line="6"><span class="hljs-keyword">def</span> <span class="hljs-title function_">to_signed</span>(<span class="hljs-params">x: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="7">    x &amp;= MASK</span><span class="ln" data-line="8">    <span class="hljs-keyword">return</span> x - (<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">32</span>) <span class="hljs-keyword">if</span> x &amp; <span class="hljs-number">0x80000000</span> <span class="hljs-keyword">else</span> x</span><span class="ln" data-line="9"> </span><span class="ln" data-line="10"> </span><span class="ln" data-line="11"><span class="hljs-keyword">def</span> <span class="hljs-title function_">single_number_ii</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="12">    result = <span class="hljs-number">0</span></span><span class="ln" data-line="13">    <span class="hljs-keyword">for</span> bit <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">32</span>):</span><span class="ln" data-line="14">        count = <span class="hljs-built_in">sum</span>((n &gt;&gt; bit) &amp; <span class="hljs-number">1</span> <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> nums)</span><span class="ln" data-line="15">        <span class="hljs-keyword">if</span> count % <span class="hljs-number">3</span>:  <span class="hljs-comment"># the unique number has this bit</span></span><span class="ln" data-line="16">            result |= <span class="hljs-number">1</span> &lt;&lt; bit</span><span class="ln" data-line="17">    <span class="hljs-keyword">return</span> to_signed(result)</span><span class="ln" data-line="18"> </span><span class="ln" data-line="19"> </span><span class="ln" data-line="20"><span class="hljs-keyword">def</span> <span class="hljs-title function_">single_number_iii</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-type">Tuple</span>[<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>]:</span><span class="ln" data-line="21">    both = <span class="hljs-number">0</span></span><span class="ln" data-line="22">    <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> nums:</span><span class="ln" data-line="23">        both ^= n  <span class="hljs-comment"># a ^ b</span></span><span class="ln" data-line="24">    split = both &amp; -both  <span class="hljs-comment"># a bit where a and b differ</span></span><span class="ln" data-line="25">    a = b = <span class="hljs-number">0</span></span><span class="ln" data-line="26">    <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> nums:</span><span class="ln" data-line="27">        <span class="hljs-keyword">if</span> n &amp; split:</span><span class="ln" data-line="28">            a ^= n</span><span class="ln" data-line="29">        <span class="hljs-keyword">else</span>:</span><span class="ln" data-line="30">            b ^= n</span><span class="ln" data-line="31">    <span class="hljs-keyword">return</span> (a, b) <span class="hljs-keyword">if</span> a &lt; b <span class="hljs-keyword">else</span> (b, a)</span><span class="ln" data-line="32"> </span><span class="ln" data-line="33"> </span><span class="ln" data-line="34"><span class="hljs-keyword">def</span> <span class="hljs-title function_">reverse_bits</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="35">    r = <span class="hljs-number">0</span></span><span class="ln" data-line="36">    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">32</span>):</span><span class="ln" data-line="37">        r = (r &lt;&lt; <span class="hljs-number">1</span>) | (n &amp; <span class="hljs-number">1</span>)</span><span class="ln" data-line="38">        n &gt;&gt;= <span class="hljs-number">1</span></span><span class="ln" data-line="39">    <span class="hljs-keyword">return</span> r</span><span class="ln" data-line="40"> </span><span class="ln" data-line="41"> </span><span class="ln" data-line="42"><span class="hljs-keyword">def</span> <span class="hljs-title function_">add</span>(<span class="hljs-params">a: <span class="hljs-built_in">int</span>, b: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="43">    a, b = a &amp; MASK, b &amp; MASK</span><span class="ln" data-line="44">    <span class="hljs-keyword">while</span> b:</span><span class="ln" data-line="45">        a, b = (a ^ b) &amp; MASK, ((a &amp; b) &lt;&lt; <span class="hljs-number">1</span>) &amp; MASK  <span class="hljs-comment"># sum without carries, then the carries</span></span><span class="ln" data-line="46">    <span class="hljs-keyword">return</span> to_signed(a)</span><span class="ln" data-line="47"> </span><span class="ln" data-line="48"> </span><span class="ln" data-line="49"><span class="hljs-keyword">def</span> <span class="hljs-title function_">max_xor</span>(<span class="hljs-params">nums: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]</span>) -&gt; <span class="hljs-built_in">int</span>:</span><span class="ln" data-line="50">    best = mask = <span class="hljs-number">0</span></span><span class="ln" data-line="51">    <span class="hljs-keyword">for</span> bit <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">30</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>):</span><span class="ln" data-line="52">        mask |= <span class="hljs-number">1</span> &lt;&lt; bit</span><span class="ln" data-line="53">        prefixes = {n &amp; mask <span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> nums}</span><span class="ln" data-line="54">        guess = best | (<span class="hljs-number">1</span> &lt;&lt; bit)</span><span class="ln" data-line="55">        <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>(p ^ guess <span class="hljs-keyword">in</span> prefixes <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> prefixes):  <span class="hljs-comment"># two prefixes produce guess</span></span><span class="ln" data-line="56">            best = guess</span><span class="ln" data-line="57">    <span class="hljs-keyword">return</span> best</span><span class="ln" data-line="58"> </span><span class="ln" data-line="59"> </span><span class="ln" data-line="60"><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>() -&gt; <span class="hljs-literal">None</span>:</span><span class="ln" data-line="61">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;singleNumberII(2 2 3 2) = <span class="hljs-subst">{single_number_ii([<span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>])}</span>, (0 1 0 1 0 1 99) = <span class="hljs-subst">{single_number_ii([<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">99</span>])}</span>&quot;</span>)</span><span class="ln" data-line="62">    a, b = single_number_iii([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>])</span><span class="ln" data-line="63">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;singleNumberIII(1 2 1 3 2 5) = <span class="hljs-subst">{a}</span> <span class="hljs-subst">{b}</span>&quot;</span>)</span><span class="ln" data-line="64">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;reverseBits(43261596) = <span class="hljs-subst">{reverse_bits(<span class="hljs-number">43261596</span>)}</span>&quot;</span>)</span><span class="ln" data-line="65">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;add(1, 2) = <span class="hljs-subst">{add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)}</span>, add(-2, 3) = <span class="hljs-subst">{add(-<span class="hljs-number">2</span>, <span class="hljs-number">3</span>)}</span>, add(-5, -7) = <span class="hljs-subst">{add(-<span class="hljs-number">5</span>, -<span class="hljs-number">7</span>)}</span>&quot;</span>)</span><span class="ln" data-line="66">    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;maxXor(3 10 5 25 2 8) = <span class="hljs-subst">{max_xor([<span class="hljs-number">3</span>, <span class="hljs-number">10</span>, <span class="hljs-number">5</span>, <span class="hljs-number">25</span>, <span class="hljs-number">2</span>, <span class="hljs-number">8</span>])}</span>&quot;</span>)</span><span class="ln" data-line="67"> </span><span class="ln" data-line="68"> </span><span class="ln" data-line="69"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:</span><span class="ln" data-line="70">    main()</span></code></pre>
+  <textarea class="code-raw" hidden aria-hidden="true">from typing import List, Tuple
+
+MASK = 0xFFFFFFFF  # Python ints are unbounded; keep 32 bits to match Java and JavaScript
+
+
+def to_signed(x: int) -&gt; int:
+    x &amp;= MASK
+    return x - (1 &lt;&lt; 32) if x &amp; 0x80000000 else x
+
+
+def single_number_ii(nums: List[int]) -&gt; int:
+    result = 0
+    for bit in range(32):
+        count = sum((n &gt;&gt; bit) &amp; 1 for n in nums)
+        if count % 3:  # the unique number has this bit
+            result |= 1 &lt;&lt; bit
+    return to_signed(result)
+
+
+def single_number_iii(nums: List[int]) -&gt; Tuple[int, int]:
+    both = 0
+    for n in nums:
+        both ^= n  # a ^ b
+    split = both &amp; -both  # a bit where a and b differ
+    a = b = 0
+    for n in nums:
+        if n &amp; split:
+            a ^= n
+        else:
+            b ^= n
+    return (a, b) if a &lt; b else (b, a)
+
+
+def reverse_bits(n: int) -&gt; int:
+    r = 0
+    for _ in range(32):
+        r = (r &lt;&lt; 1) | (n &amp; 1)
+        n &gt;&gt;= 1
+    return r
+
+
+def add(a: int, b: int) -&gt; int:
+    a, b = a &amp; MASK, b &amp; MASK
+    while b:
+        a, b = (a ^ b) &amp; MASK, ((a &amp; b) &lt;&lt; 1) &amp; MASK  # sum without carries, then the carries
+    return to_signed(a)
+
+
+def max_xor(nums: List[int]) -&gt; int:
+    best = mask = 0
+    for bit in range(30, -1, -1):
+        mask |= 1 &lt;&lt; bit
+        prefixes = {n &amp; mask for n in nums}
+        guess = best | (1 &lt;&lt; bit)
+        if any(p ^ guess in prefixes for p in prefixes):  # two prefixes produce guess
+            best = guess
+    return best
+
+
+def main() -&gt; None:
+    print(f&quot;singleNumberII(2 2 3 2) = {single_number_ii([2, 2, 3, 2])}, (0 1 0 1 0 1 99) = {single_number_ii([0, 1, 0, 1, 0, 1, 99])}&quot;)
+    a, b = single_number_iii([1, 2, 1, 3, 2, 5])
+    print(f&quot;singleNumberIII(1 2 1 3 2 5) = {a} {b}&quot;)
+    print(f&quot;reverseBits(43261596) = {reverse_bits(43261596)}&quot;)
+    print(f&quot;add(1, 2) = {add(1, 2)}, add(-2, 3) = {add(-2, 3)}, add(-5, -7) = {add(-5, -7)}&quot;)
+    print(f&quot;maxXor(3 10 5 25 2 8) = {max_xor([3, 10, 5, 25, 2, 8])}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()</textarea>
+</div>
+<div class="expected"><span class="expected-label">Expected output</span><pre><samp>singleNumberII(2 2 3 2) = 3, (0 1 0 1 0 1 99) = 99
+singleNumberIII(1 2 1 3 2 5) = 3 5
+reverseBits(43261596) = 964176192
+add(1, 2) = 3, add(-2, 3) = 1, add(-5, -7) = -12
+maxXor(3 10 5 25 2 8) = 28</samp></pre></div>
+</figure>
+<h2 id="mistakes">Common mistakes</h2>
+<ul class="mistakes"><li>In Python, integers don&#39;t overflow, so emulating 32-bit arithmetic needs an explicit <code>&amp; 0xFFFFFFFF</code> mask and a sign fix at the end.</li><li>In JavaScript, results above 2³¹ − 1 print as negative unless converted with <code>&gt;&gt;&gt; 0</code>.</li><li>Forgetting parentheses around <code>&amp;</code> in comparisons.</li><li>Shifting <code>1 &lt;&lt; 31</code> in Java or JavaScript and getting a negative number.</li></ul>
+<h2 id="practice">Practice</h2>
+<div class="table-wrap"><table class="practice-list"><thead><tr><th scope="col">Problem</th><th scope="col">LeetCode</th><th scope="col">Difficulty</th></tr></thead><tbody><tr><td><a href="https://leetcode.com/problems/single-number/" rel="noopener" target="_blank">Single Number<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>136</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/reverse-bits/" rel="noopener" target="_blank">Reverse Bits<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>190</td><td><span class="pill pill-easy">easy</span></td></tr><tr><td><a href="https://leetcode.com/problems/single-number-ii/" rel="noopener" target="_blank">Single Number II<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>137</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/single-number-iii/" rel="noopener" target="_blank">Single Number III<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>260</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/sum-of-two-integers/" rel="noopener" target="_blank">Sum of Two Integers<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>371</td><td><span class="pill pill-medium">medium</span></td></tr><tr><td><a href="https://leetcode.com/problems/maximum-xor-of-two-numbers-in-an-array/" rel="noopener" target="_blank">Maximum XOR of Two Numbers in an Array<span class="vh"> (opens LeetCode in a new tab)</span></a></td><td>421</td><td><span class="pill pill-medium">medium</span></td></tr></tbody></table></div>
+<h2 id="related">Related topics</h2>
+<ul class="related"><li>Builds on <a href="../../algorithms/bit-manipulation-technique/index.html">Bit manipulation</a>.</li></ul>
+</article>
+<nav class="prev-next" aria-label="Previous and next pages"><a class="pn pn-prev" href="../greedy/index.html" rel="prev"><span class="pn-dir">Previous</span><span class="pn-title">Greedy</span></a><a class="pn pn-next" href="../matrix-traversal/index.html" rel="next"><span class="pn-dir">Next</span><span class="pn-title">Matrix traversal</span></a></nav>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><svg class="logo logo-footer" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark-bg" width="32" height="32" rx="7"/>
+  <text class="mark-text" x="16" y="15.5">ST</text>
+  <circle class="mark-l" cx="11.5" cy="24.5" r="2.2"/><circle class="mark-r" cx="20.5" cy="24.5" r="2.2"/>
+</svg><p><strong>DSA Academy</strong><br>Created by Sivasankar Thalavai</p></div>
+    <p>Problem summaries are written for this course; follow the LeetCode links for the original statements.</p>
+    <p class="copyright">© 2026 Sivasankar Thalavai. All rights reserved. No part of this site, including its text, diagrams, animations and code, may be copied, redistributed or republished without written permission.</p>
+  </div>
+</footer>
+<script src="../../assets/js/visualizers.js"></script>
+<script src="../../assets/js/app.js"></script>
+</body>
+</html>
